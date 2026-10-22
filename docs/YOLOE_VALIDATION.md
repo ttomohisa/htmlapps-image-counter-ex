@@ -6,6 +6,8 @@ Validation date: 2026-10-22. This is a development testing milestone, not a stab
 
 The user requested GitHub Pages hosting for Android testing. The existing `deploy-pages.yml` workflow builds from a fresh GitHub Actions checkout of `main` and publishes the resulting HTML/manifests to `https://ttomohisa.github.io/htmlapps-image-counter-ex/`. Local ignored models, reference files, and trial ZIPs are not in that checkout and are not published. The Android device still needs a separately selected compatible FP32 model. Opening the HTTPS deployment does not verify direct-file execution or physical Android behavior by itself.
 
+The first deployment build exposed a PowerShell/.NET difference: all four embedded assets had identical decoded bytes but different gzip encodings. Release comparison now checks identity, compressed and decoded lengths, and SHA-256 before normalizing those encodings. Runtime/configuration/metadata differences still fail, and self-extract restoration remains an exact byte comparison with its fresh readable build. The focused release suite passed 20 tests; the complete repository check then passed under both Windows PowerShell 5.1 and modern `pwsh`. Modern PowerShell produced approximately 12.64 MiB readable / 12.52 MiB self-extract HTML; the earlier size measurements below are from Windows PowerShell 5.1.
+
 ## Implemented workflow
 
 Select a compatible local model, outline up to 20 examples on the current image, detect in a Worker, review/deselect candidates, and append ordinary schema-4 rectangle markers with one Undo. Existing points and rectangles, including hidden and other-category markers, prevent duplicate counts. Models are not saved in drafts or exports. Images remain local.

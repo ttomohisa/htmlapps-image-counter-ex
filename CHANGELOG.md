@@ -7,6 +7,7 @@
 - Embed fixed ORT runtimes; keep custom model selection local and separate. Cancel closes the Worker and rejects stale results.
 - Add bilingual and keyboard-accessible detection controls and behavioral regression coverage across all four artifacts.
 - Fix interrupted detection controls when returning from the browser page cache; preserve completed candidates. Wrap long type names in the detection footer and project summary at narrow widths.
+- Allow equivalent, integrity-checked gzip encodings in release freshness checks so Windows PowerShell 5.1 and GitHub Actions PowerShell builds agree without hiding stale source or asset content.
 - Model embedding, licensing resolution, cross-image examples and tiles remain later milestones.
 
 ## 1.0.4 - 2026-10-21

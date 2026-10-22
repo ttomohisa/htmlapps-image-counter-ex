@@ -215,7 +215,7 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 - CSP blocks runtime network access.
 - Self-extract payload restores `dist/index.html` byte-for-byte.
 - Default builds synchronize `image-counter.html` with the readable output; custom output builds do not change the alias.
-- Repository checks fail when the tracked alias differs from a fresh readable build, ignoring only the build manifest timestamp.
+- Repository checks fail when the tracked alias differs from a fresh readable build. Only the build manifest timestamp and equivalent gzip encodings are ignored; embedded assets must first pass compressed-length, decoded-length, and SHA-256 checks. Source, configuration, decoded asset bytes, and all other metadata must match.
 - Point marker add/select/move/delete works.
 - Rectangle add/select/move/resize/delete works.
 - A new marker does not show editing controls until selected later.

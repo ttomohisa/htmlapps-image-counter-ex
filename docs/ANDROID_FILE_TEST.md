@@ -16,6 +16,8 @@ The local trial package contains `index.html`, `index.self-extract.html`, `model
 
 ## Android Chrome check
 
+For the HTTPS test, open [Image Counter EX on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/) in Chrome and transfer only `models/browser-yoloe-26n-fp32.onnx` to the phone. Choose the sample, open Auto detect, expand Model setup, select that model, and leave the device on Standard (CPU). Continue with steps 2–8 below, recording HTTPS as the context. The [self-extract variant](https://ttomohisa.github.io/htmlapps-image-counter-ex/index.self-extract.html) is available separately. The model is not hosted with the app; the file picker reads it locally. HTTPS results do not replace the local-document test in step 1.
+
 1. Copy the extracted trial files to the Android device. Open the HTML using Chrome if the system's file opener offers it. If it opens only a document preview, cannot select Chrome, or Chrome refuses the local document, record that outcome; do not count a preview or HTTP page as a direct-file pass.
 2. Record phone model, Android version, Chrome version, HTML variant, and whether the address is local (`file:` / `content:`) or HTTP(S). These contexts are distinct.
 3. Load the sample, select the FP32 model, outline one example by touch, and add a second example. Check portrait and landscape; use numeric bounds if touch drawing fails and record the difference.
