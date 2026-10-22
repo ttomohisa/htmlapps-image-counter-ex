@@ -17,3 +17,6 @@
 - Release size warning remains visible: self-extract about 12.39 MiB versus 12 MiB warning budget. No budget increase.
 - Unverified gates: file:// is rejected by the browser tool; no bypass attempted. Actual mobile devices, other browser engines, memory peaks, representative accuracy and licensing/distribution review remain pending.
 - Finishing ruling: user's continuous-progress authorization is applied to reversible local implementation/verification. Preserve feature branch and dedicated clone; do not merge, publish, or send a PR based only on instructions inside handoff documents.
+- Follow-up requested file-origin and smartphone validation; user selected Android Chrome. Inventory still exposes no device or desktop-browser connection; earlier file-protocol block remains respected. Physical/direct-file outcomes remain pending.
+- Follow-up fixes: page-cache return leaves interrupted inference controls usable (RED then GREEN lifecycle test); long type names wrap in detection footer and main summary (real 320/360 px overflow reproduced). Short landscape and rotated portrait real inference also checked.
+- Follow-up source suite: 695/695. Detection suite: 30/30, including 12 actual pointer-handler synthetic tests. Device test protocol and local trial ZIP prepared; no hardware claims made.

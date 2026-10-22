@@ -115,3 +115,92 @@ test('job ownership rejects stale generation, replaced project and changed model
   assert.equal(c.autoJobCurrent(3,file),true);assert.equal(c.autoJobCurrent(2,file),false);assert.equal(c.autoJobCurrent(3,{}),false);
   c.P={};assert.equal(c.autoJobCurrent(3,file),false);
 });
+function detectionUI(){
+  const c=engine(),nodes=new Map(),events=new Map(),revoked=[];let terminated=0;
+  const element=key=>{
+    if(!nodes.has(key)){
+      const listeners=new Map(),captured=new Set();
+      nodes.set(key,{disabled:false,dataset:{},textContent:'',open:true,listeners,
+        addEventListener:(name,handler)=>listeners.set(name,handler),querySelector:()=>null,
+        getBoundingClientRect:()=>({left:30,top:50,width:240,height:180}),
+        setPointerCapture:id=>captured.add(id),hasPointerCapture:id=>captured.has(id),releasePointerCapture:id=>captured.delete(id)});
+    }
+    return nodes.get(key);
+  };
+  const im={id:'one',dataUrl:'pixels',width:600,height:800,adjustments:{rotation:90},markers:[],completed:true},
+    project={categories:[{id:'a',name:'A'}],images:[im]},model={};
+  Object.assign(c,{$:element,P:project,activeImage:()=>im,activeCategory:()=>project.categories[0],t:key=>key,
+    URL:{revokeObjectURL:url=>revoked.push(url)},addEventListener:(name,handler)=>events.set(name,handler),
+    imageCache:new Map(),model,worker:{terminate:()=>terminated++}});
+  vm.runInContext(section('function toDisplayNorm(','function canvasCssSize('),c);
+  vm.runInContext(section('// AUTO:UI:BEGIN','// AUTO:UI:END'),c);
+  vm.runInContext("autoState.owner={project:P,imageId:'one',dataUrl:'pixels'};autoState.model=model;autoState.examples=[{x:.1,y:.1,w:.2,h:.2}]",c);
+  const pointer=(name,{id=1,primary=true,x=78,y=68}={})=>{
+    element('#autoCanvas').listeners.get(name)({pointerId:id,isPrimary:primary,button:0,pointerType:'touch',clientX:x,clientY:y,preventDefault(){}});
+  };
+  return{c,element,events,revoked,im,pointer,terminated:()=>terminated};
+}
+test('returning from page cache after interrupted detection restores usable controls',()=>{
+  for(const phase of ['loading-runtime','processing']){
+    const {c,element,events,revoked,terminated}=detectionUI();
+    vm.runInContext(`autoState.busy=true;autoState.job=worker;autoState.urls=['blob:runtime','blob:worker'];autoStatus('${phase==='processing'?'autoProcessing':'autoLoading'}','${phase}')`,c);
+    const token=vm.runInContext('autoState.generation',c);
+    assert.equal(element('#autoRun').disabled,true);
+    events.get('pagehide')({persisted:true});events.get('pageshow')?.({persisted:true});
+    assert.equal(terminated(),1);assert.deepEqual(revoked,['blob:runtime','blob:worker']);
+    assert.equal(c.autoJobCurrent(token,c.model),false,'An interrupted job must not commit a late result');
+    assert.equal(element('#autoStatus').textContent,'autoCancelled');
+    assert.equal(element('#autoRun').disabled,false);assert.equal(element('#autoCancel').disabled,true);
+    assert.equal(element('#autoBackend').disabled,false);assert.equal(element('#autoAddBounds').disabled,false);
+    assert.equal(vm.runInContext('autoState.examples.length',c),1);
+  }
+});
+test('page cache navigation preserves completed detection candidates for review',()=>{
+  const {c,element,events}=detectionUI();
+  vm.runInContext("autoState.candidates=[{x:.4,y:.4,w:.1,h:.1,score:.9}];autoStatus('autoReview','result')",c);
+  events.get('pagehide')({persisted:true});events.get('pageshow')?.({persisted:true});
+  assert.equal(element('#autoStatus').textContent,'autoReview');
+  assert.equal(element('#autoApply').disabled,false);
+  assert.equal(vm.runInContext('autoState.candidates.length',c),1);
+});
+// These synthetic events exercise production handlers, not native touch dispatch or device rendering.
+for(const {rotation,start,end} of [
+  {rotation:90,start:{x:78,y:68},end:{x:174,y:122}},
+  {rotation:270,start:{x:222,y:212},end:{x:126,y:158}}
+])test(`primary pointer drag creates an original-image example at ${rotation} degrees`,()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=rotation;
+  vm.runInContext('autoState.examples=[]',c);const before=JSON.stringify(c.P);
+  pointer('pointerdown',start);pointer('pointermove',end);pointer('pointerup',end);
+  const examples=plain(vm.runInContext('autoState.examples',c));assert.equal(examples.length,1);
+  for(const [key,want] of Object.entries({x:.1,y:.4,w:.3,h:.4}))assert.ok(Math.abs(examples[0][key]-want)<1e-12,`${key} should be ${want}`);
+  assert.equal(vm.runInContext('autoState.drag',c),null);assert.equal(JSON.stringify(c.P),before,'Examples must not change counts or completion');
+});
+for(const rotation of [90,270])for(const cancellation of ['pointercancel','lostpointercapture','second-pointer-first','primary-pointer-first'])
+test(`${cancellation} abandons example/candidate interaction at ${rotation} degrees`,()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=rotation;
+  vm.runInContext('autoState.candidates=[{x:.1,y:.1,w:.4,h:.4,score:.9}];autoState.excluded.add(0)',c);
+  const snapshot=()=>JSON.stringify({project:c.P,state:plain(vm.runInContext('({examples:autoState.examples,candidates:autoState.candidates,excluded:[...autoState.excluded]})',c))});
+  const before=snapshot();pointer('pointerdown');pointer('pointermove',{x:174,y:122});
+  if(cancellation==='pointercancel'||cancellation==='lostpointercapture')pointer(cancellation);
+  else{
+    pointer('pointerdown',{id:2,primary:false,x:126,y:158});
+    const ids=cancellation==='second-pointer-first'?[2,1]:[1,2];
+    for(const id of ids)pointer('pointerup',{id,primary:id===1,x:174,y:122});
+  }
+  // Late movements/releases from an abandoned pointer must not resurrect the drag or toggle a box.
+  pointer('pointermove',{x:174,y:122});pointer('pointerup',{x:174,y:122});
+  assert.equal(snapshot(),before);assert.equal(vm.runInContext('autoState.drag',c),null);
+});
+for(const {rotation,x,y} of [{rotation:90,x:198,y:86},{rotation:270,x:102,y:194}])
+test(`candidate tap toggles exclusion without adding counts at ${rotation} degrees`,()=>{
+  const {c,im,pointer,element}=detectionUI();im.adjustments.rotation=rotation;
+  vm.runInContext('autoState.candidates=[{x:.1,y:.2,w:.2,h:.2,score:.9}]',c);
+  const before=JSON.stringify({project:c.P,examples:plain(vm.runInContext('autoState.examples',c))});
+  for(const excluded of [true,false]){
+    pointer('pointerdown',{x,y});pointer('pointerup',{x:x+1,y:y+1});
+    assert.equal(vm.runInContext('autoState.excluded.has(0)',c),excluded);
+    assert.equal(element('#autoApply').disabled,excluded);
+    assert.equal(JSON.stringify({project:c.P,examples:plain(vm.runInContext('autoState.examples',c))}),before);
+    assert.equal(vm.runInContext('autoState.candidates.length',c),1);
+  }
+});

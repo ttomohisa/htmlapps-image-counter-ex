@@ -28,8 +28,8 @@ PyTorch/FP32 ONNX comparison: reference box maximum absolute difference 0.002136
 
 ## Automated checks
 
-- `node --test scripts/test-*.cjs`: 681 tests passed.
-- The 16 detection checks cover letterbox/rounding, mask union, output validity, NMS/limits, duplicate filtering, imported tiny rectangles, one-Undo application, stale owners, rotation, two-pass feeds, tensor disposal, cancellation, and enclosing CSP policies.
+- `node --test scripts/test-*.cjs`: 695 tests passed after the mobile follow-up.
+- The 30 detection checks cover letterbox/rounding, mask union, output validity, NMS/limits, duplicate filtering, imported tiny rectangles, one-Undo application, stale owners, rotation, two-pass feeds, tensor disposal, cancellation, enclosing CSP policies, page-cache recovery, and pointer interaction.
 - `scripts/check-repository.ps1` passed, including its final brand/help checks. It runs detection and existing regression suites against the source, readable HTML, root alias, and self-extract payload; it also validates assets, network restrictions, ASCII loader, favicon, brand, and help copy.
 - One independent code review found that tiny but valid imported rectangles could escape duplicate filtering. A regression test reproduced it; existing-marker validation now accepts every positive valid extent while new candidates retain the drawing minimum.
 - A real-browser self-extract failure exposed a second enclosing CSP that blocked WASM. The outer-policy regression reproduced the failure before the loader policy was fixed.
@@ -58,6 +58,26 @@ Windows, Codex in-app Chromium browser, generated files served from loopback HTT
 Timings are single observations, include implementation/runtime overhead, and do not establish a CPU/GPU performance ranking. Six candidates on a sample containing other circles demonstrate the workflow, not exhaustive counting accuracy. Real photographs need their own acceptance dataset and false-positive/missed-object review.
 
 ![Self-extract build, two examples, one candidate excluded](../assets/auto-detection.jpg)
+
+## Android-targeted follow-up (2026-10-22)
+
+The user selected Android Chrome as the target. The connected browser inventory exposes only the in-app browser and MCP Apps, with no Android device or desktop browser connection. Consequently these results remain loopback-HTTP desktop Chromium checks, not physical Android or file-origin passes.
+
+Confirmed and fixed:
+
+- A 40-character unbroken type name made the detection footer overflow at 320×640: the dialog's client width was 306 px but its scroll width was 486 px. Allowing the summary to shrink and wrap brought both to 306 px, with the whole name and Apply button visible.
+- The same type name overflowed the main summary list at 360×800 (document scroll width 450 px). Its name cell now wraps within the existing grid. After rebuilding, the 320 px English page had document width 305 px (plus its scrollbar), and the long-name cell's client/scroll width both measured 231 px. The English detection dialog also measured 306/306 px.
+- `pagehide` terminated a running Worker without updating the busy DOM controls. A cached-page return could therefore appear stuck. The production handler now marks interrupted work cancelled before caching. A failing regression reproduced the old stale status; it now verifies enabled controls, terminated Worker, revoked URLs, and rejection of late results. Completed candidates are preserved. This is simulated lifecycle coverage; no physical-device BFCache claim is made.
+
+Further checks:
+
+- 800×360 short landscape: dialog stayed inside the viewport, body was scrollable (198 px client height / 618 px content in the observed state), and Apply remained visible at y=293–335.
+- 360×800 portrait, 90° rotated sample 2, one numeric example: real CPU/FP32 inference returned 13 candidates. Excluding one and applying produced 12 ordinary markers. The mobile Undo button removed all 12; Redo restored all 12. One observed setup was 0.9 s and inference 1.6 s.
+- Twelve synthetic tests execute the actual pointer handlers for rotated/reversed drags, cancellation, lost capture, two-pointer release orders, late events, and candidate taps. They passed without a pointer-implementation change. Synthetic touch events are not Android input or rendering validation.
+
+![360px viewport, rotated image and reviewed detection candidates; desktop browser, not a phone](../assets/auto-detection-mobile.jpg)
+
+The local trial ZIP (`dist/image-counter-ex-android-trial.zip`, intentionally ignored by Git) includes both HTML variants, FP32 model, notices, and a Japanese checklist. [Direct-file / Android acceptance procedure](ANDROID_FILE_TEST.md) records the still-pending hardware steps. The final repository check passed on all four artifacts, including 30 detection tests per artifact and the final brand/help checks.
 
 ## Sizes and remaining release gates
 

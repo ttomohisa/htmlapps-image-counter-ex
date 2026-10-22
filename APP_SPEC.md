@@ -167,7 +167,7 @@ result.zip
 ## 6. UI / UX requirements
 
 - Smartphone usage is a first-class workflow, not a reduced desktop layout.
-- Mobile must avoid horizontal page scrolling at 390 px and remain usable from 320 px upward.
+- Mobile must avoid horizontal page scrolling at 390 px and remain usable from 320 px upward. Type names, including unbroken names up to 40 characters, must wrap within summary rows instead of widening the page.
 - Mobile top controls clearly show **Point / Rectangle / Move**.
 - The canvas includes a low-profile translucent type-switching dock along its lower edge, showing type color/name/count and allowing one-tap switching without leaving the image. The dock can be minimized to a small corner control when it covers something that must be counted.
 - On smartphone widths, the old duplicate type-switching area below the canvas is hidden; type management remains available from the canvas `+` button and the fixed bottom bar.
@@ -261,6 +261,7 @@ Compatibility exception: the former native resize handler could create an exact 
 - CPU uses FP32 / ORT Web 1.29.0; explicit GPU mode uses ORT Web 1.27.0 and supports FP32 or FP16 on compatible hardware. No automatic fallback: a retry starts a fresh Worker.
 - ORT assets are embedded and decoded lazily. Blob module Workers, wasmBinary, one WASM thread and wasm-unsafe-eval retain connect-src 'none'. No external runtime fetch.
 - Phases: ready → loading-runtime → processing → result or error. Cancel/close/model or setting changes invalidate the job; source ownership is checked again before result/application. Worker termination interrupts compute.
+- Navigating away stops any active detection and updates its controls/status before the page is cached. Returning to a cached page allows another run; already completed review candidates remain available. Long type names wrap in the application summary even at 320 px.
 - Inference uses original decoded pixels, without brightness/contrast corrections. Preview shares existing 0/90/180/270-degree transforms; all candidate geometry remains normalized to the original image, including compressed drafts.
 - Confidence presets: 0.1 / 0.25 default / 0.5. NMS IoU > 0.5 suppresses lower-score boxes. Preview is capped at 1000 with the omitted count shown.
 - Click a candidate or uncheck its list item to exclude it. Existing rectangles match by IoU >= 0.5 or intersection/smaller-area >= 0.8; an existing point inside a candidate also excludes it. This includes hidden and other-category markers. Recheck duplicates against current markers and accepted batch on Apply.

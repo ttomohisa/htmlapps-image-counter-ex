@@ -60,6 +60,8 @@ The first build downloads pinned ONNX Runtime JS/WASM packages. Generated HTML e
 
 ![Reviewing local detection candidates](assets/auto-detection.jpg)
 
+Navigating away cancels running detection and leaves controls usable when a cached page returns. Android Chrome hardware and direct-file operation remain pending; see the [device check procedure](docs/ANDROID_FILE_TEST.md).
+
 1. Select the target marker type and open **Auto detect** beside the canvas.
 2. Select the compatible custom ONNX model under **Model setup (development)**. Use FP32 with Standard (CPU), or select Fast (compatible GPU) for FP32/FP16.
 3. Outline one or more examples. Keyboard users can enter the left/top/right/bottom percentages under **Enter example bounds**.

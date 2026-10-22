@@ -6,6 +6,7 @@
 - Add duplicate-aware one-history batch application using existing markers, drafts and exports.
 - Embed fixed ORT runtimes; keep custom model selection local and separate. Cancel closes the Worker and rejects stale results.
 - Add bilingual and keyboard-accessible detection controls and behavioral regression coverage across all four artifacts.
+- Fix interrupted detection controls when returning from the browser page cache; preserve completed candidates. Wrap long type names in the detection footer and project summary at narrow widths.
 - Model embedding, licensing resolution, cross-image examples and tiles remain later milestones.
 
 ## 1.0.4 - 2026-10-21
