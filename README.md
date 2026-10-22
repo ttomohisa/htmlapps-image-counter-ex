@@ -5,7 +5,7 @@
 
 [日本語版 README](README.ja.md)
 
-> **Development build — 1.1.0-dev.1.** Auto detection is implemented locally but has not been published to the demo. Model redistribution and full file-origin/device verification remain release gates. See [validation](docs/YOLOE_VALIDATION.md).
+> **Android testing build — 1.1.0-dev.1.** GitHub Pages serves the app; select the compatible model separately on each device. Model redistribution, direct-file operation, and physical-device validation remain unresolved. See [validation](docs/YOLOE_VALIDATION.md).
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.

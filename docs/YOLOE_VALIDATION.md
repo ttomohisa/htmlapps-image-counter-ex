@@ -1,6 +1,10 @@
 # Local detection validation — 1.1.0-dev.1
 
-Validation date: 2026-10-22. This is a local development milestone, not a published release or a detection-accuracy benchmark.
+Validation date: 2026-10-22. This is a development testing milestone, not a stable release or a detection-accuracy benchmark.
+
+## GitHub Pages test deployment
+
+The user requested GitHub Pages hosting for Android testing. The existing `deploy-pages.yml` workflow builds from a fresh GitHub Actions checkout of `main` and publishes the resulting HTML/manifests to `https://ttomohisa.github.io/htmlapps-image-counter-ex/`. Local ignored models, reference files, and trial ZIPs are not in that checkout and are not published. The Android device still needs a separately selected compatible FP32 model. Opening the HTTPS deployment does not verify direct-file execution or physical Android behavior by itself.
 
 ## Implemented workflow
 
