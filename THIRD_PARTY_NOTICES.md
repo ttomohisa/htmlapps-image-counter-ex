@@ -46,3 +46,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+# Model development tools (2026-10-23)
+
+`scripts/model_lab/` and its exported YOLOE models are covered by AGPL-3.0-only;
+see `scripts/model_lab/COPYING` and its README for checkpoint provenance and
+reproduction. The historical application source license does not relicense
+these tools, upstream Ultralytics code, or model weights. Model weights are not
+embedded in the current HTML. An eventual combined model-embedded distribution
+must carry compatible licensing, corresponding source and required notices.
+Official licensing: https://www.ultralytics.com/license.

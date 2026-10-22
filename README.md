@@ -1,11 +1,13 @@
 # Image Counter EX
 
+Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer unwanted candidates, then review the boxes. Scores are not accuracy percentages. Select **FP32** for the compact CPU model: its stored weights are FP16, but computation remains FP32. See the [diagnosis and validation](docs/DETECTION_ACCURACY.md).
+
 [![GitHub Pages](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml)
 [![Single HTML](https://img.shields.io/badge/distribution-single%20HTML-0ea5e9)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 [日本語版 README](README.ja.md)
 
-> **Android testing build — 1.1.0-dev.1.** GitHub Pages serves the app; select the compatible model separately on each device. Model redistribution, direct-file operation, and physical-device validation remain unresolved. See [validation](docs/YOLOE_VALIDATION.md).
+> **Local validation build — 1.1.0-dev.2.** This calibration update has not been deployed to GitHub Pages. Select the compatible model separately on each device. Direct-file operation, embedded-model distribution and physical-device validation remain unverified for this build. See [validation](docs/YOLOE_VALIDATION.md).
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.

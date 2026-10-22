@@ -22,6 +22,19 @@ function core(){
 }
 const plain = value => JSON.parse(JSON.stringify(value));
 const box=(x,y,w,h,score=.9)=>({x,y,w,h,score});
+
+test('default visual search retains low-score objects without duplicating overlapping boxes',()=>{
+  const select=source.match(/<select id="autoThreshold"[^>]*>([\s\S]*?)<\/select>/)[1];
+  const options=[...select.matchAll(/<option value="([^"]+)"([^>]*)>/g)];
+  const threshold=Number(options.find(x=>/\bselected\b/.test(x[2]))[1]);
+  const c=core(),boxes=new Float32Array([64,64,128,128, 66,66,130,130, 320,320,384,384, 450,450,500,500]);
+  const scores=new Float32Array([.07,.06,.08,.02]);
+  const result=c.autoCandidates(boxes,scores,c.autoLetterbox(640,640),threshold);
+  assert.equal(result.candidates.length,2,'default should recover two weak objects, suppress their duplicate and reject noise');
+  assert.equal(threshold,.05);
+  assert.ok(options.some(x=>Number(x[1])===.01),'very low-score recovery must be selectable');
+  assert.equal(c.autoFilter(result.candidates,[]).accepted.length,2);
+});
 test('letterbox keeps original aspect ratio, padding and half-to-even rounding',()=>{
   const c=core();assert.deepEqual(plain(c.autoLetterbox(1200,600)),{width:1200,height:600,scale:640/1200,w:640,h:320,padX:0,padY:160});
   assert.deepEqual([c.autoRoundEven(2.5),c.autoRoundEven(3.5)],[2,4]);

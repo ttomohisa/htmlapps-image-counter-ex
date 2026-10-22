@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0-dev.2 — 2026-10-23 (unreleased)
+
+- Add 1% and 5% visual-search presets; default to 5% after fixed-example diagnosis, with bilingual guidance about false positives and uncalibrated scores.
+- Add reproducible model export and FP16 weight-storage compaction with FP32 CPU computation. The model remains a separately selected file.
+- Record fixed-sample threshold, preprocessing, branch and model-size comparisons; distinguish native tests, browser evidence and point-matching proxies.
+
 ## 1.1.0-dev.1 — 2026-10-22 (unreleased)
 
 - Add current-photo visual example selection, local CPU/GPU inference and candidate review. No count changes until explicit application.

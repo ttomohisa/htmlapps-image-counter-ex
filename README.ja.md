@@ -1,11 +1,14 @@
 # 画像カウンター EX (Image Counter EX)
 
+
+検出の初期設定は **5%** です。見落としが多ければ **1%**、余分な候補が多ければ10〜50%を試し、候補を確認してください。スコアは正解率ではありません。CPU用の圧縮モデルは **FP32** として選択します（保存重みのみFP16、計算はFP32）。[原因調査と検証](docs/DETECTION_ACCURACY.md) を参照してください。
+
 [![GitHub Pages](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml)
 [![Single HTML](https://img.shields.io/badge/distribution-single%20HTML-0ea5e9)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 [English README](README.md)
 
-> **Android検証向けの開発版 — 1.1.0-dev.1。** GitHub Pagesではアプリを配信し、モデルは各端末で別途選択します。モデル配布条件、ファイル直接起動、実機での動作確認は未完了です。[検証記録](docs/YOLOE_VALIDATION.md) を参照してください。
+> **ローカル検証版 — 1.1.0-dev.2。** 今回の精度改善はGitHub Pagesへ未反映です。モデルは各端末で別途選択します。この版のファイル直接起動、モデル内蔵版の配布、スマホ実機確認は未検証です。[検証記録](docs/YOLOE_VALIDATION.md) を参照してください。
 
 写真の中のものを、**手動操作や確認済みの自動検出候補で数える**ための単一HTMLアプリです。点・矩形のマーカーで「どこまで数えたか」を残し、迷った対象は要確認にして後から見直せます。選択した画像はアプリからサーバーへアップロードされません。
 
