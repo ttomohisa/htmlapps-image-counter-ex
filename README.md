@@ -1,20 +1,22 @@
-# Image Counter
+# Image Counter EX
 
-[![GitHub Pages](https://github.com/ttomohisa/htmlapps-image-counter/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ttomohisa/htmlapps-image-counter/actions/workflows/deploy-pages.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Single HTML](https://img.shields.io/badge/distribution-single%20HTML-0ea5e9)](https://ttomohisa.github.io/htmlapps-image-counter/)
+[![GitHub Pages](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml)
+[![Single HTML](https://img.shields.io/badge/distribution-single%20HTML-0ea5e9)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 [日本語版 README](README.ja.md)
 
-A privacy-focused, single-HTML app for **manually counting objects in photos**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
+> **Development build — 1.1.0-dev.1.** Auto detection is implemented locally but has not been published to the demo. Model redistribution and full file-origin/device verification remain release gates. See [validation](docs/YOLOE_VALIDATION.md).
+
+
+A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
 
 ## 🚀 Live demo
 
-### [Open Image Counter on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter/)
+### [Open Image Counter on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 GitHub Pages delivers the initial HTML. After it loads, image decoding, counting, marker editing, camera handling, autosave, image correction, and export are processed locally on your device. Images selected in the app are not uploaded by the app.
 
-[![Image Counter screenshot](assets/screenshot-en.png)](https://ttomohisa.github.io/htmlapps-image-counter/)
+[![Image Counter screenshot](assets/screenshot-en.png)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 Undo / Redo results also auto-save. Resetting image corrections returns the image to in-progress. During rapid viewer navigation, images and counts switch together; a decoding failure keeps the previous image and lets you retry or select another.
 
@@ -31,13 +33,13 @@ Undo / Redo results also auto-save. Resetting image corrections returns the imag
 - **Keep drafts locally** — Autosave to IndexedDB, optionally compress draft image copies to WebP, and see the current project / draft storage size.
 - **Export results in practical formats** — Save a read-only single-HTML viewer, or a ZIP containing `markers.csv` and `summary.csv`, with optional annotated JPEG images.
 - **Share a viewer without giving up the data** — The exported viewer can switch images, toggle marker visibility, show image information and comments, and re-export JPEG / CSV+JPEG ZIP. Import it back into Image Counter to resume editing.
-- **Private, dependency-free runtime** — No account, analytics, remote font, runtime CDN, or image upload. Runtime networking is blocked by CSP with `connect-src 'none'`.
+- **Private local runtime** — No account, analytics, remote font, runtime CDN, or image upload. Runtime networking is blocked by CSP with `connect-src 'none'`.
 
 ## Quick start
 
 ### Use the web demo
 
-Open the [GitHub Pages demo](https://ttomohisa.github.io/htmlapps-image-counter/). No installation or account is required.
+Open the [GitHub Pages demo](https://ttomohisa.github.io/htmlapps-image-counter-ex/). No installation or account is required.
 
 ### Use the standalone HTML
 
@@ -52,7 +54,19 @@ Open the [GitHub Pages demo](https://ttomohisa.github.io/htmlapps-image-counter/
 3. Use the generated `dist/index.html` as the normal standalone app.
 4. `dist/index.self-extract.html` is also generated as a gzip self-extracting variant.
 
-This app currently has no third-party runtime dependencies, so the build does not need to download a browser library package.
+The first build downloads pinned ONNX Runtime JS/WASM packages. Generated HTML embeds them; no runtime library download is needed. Models are selected locally and are not bundled.
+
+## Local auto detection
+
+![Reviewing local detection candidates](assets/auto-detection.jpg)
+
+1. Select the target marker type and open **Auto detect** beside the canvas.
+2. Select the compatible custom ONNX model under **Model setup (development)**. Use FP32 with Standard (CPU), or select Fast (compatible GPU) for FP32/FP16.
+3. Outline one or more examples. Keyboard users can enter the left/top/right/bottom percentages under **Enter example bounds**.
+4. Select **Detect**. Click boxes or uncheck candidates you do not want. Counts stay unchanged during preview.
+5. Select **Add candidates as markers**. Existing overlaps are excluded, including other/hidden types. One Undo reverses the entire batch.
+
+Cancel or close the dialog to stop inference. The model is retained only for the current page session; it is not included in drafts or exports. The preview uses original pixels without display brightness/contrast corrections.
 
 ## Usage
 
@@ -173,10 +187,10 @@ Draft image copies can be converted to WebP to reduce local storage usage. This 
 
 The repository includes a workflow that builds the standalone HTML and deploys `dist/` to GitHub Pages.
 
-1. Push the repository to GitHub as `htmlapps-image-counter`.
+1. Push the repository to GitHub as `htmlapps-image-counter-ex`.
 2. Open **Settings → Pages → Build and deployment → Source** and select **GitHub Actions**.
 3. Push to `main`, or manually run **Deploy standalone app to GitHub Pages** from the Actions tab.
-4. After a successful deployment, the app is available at `https://ttomohisa.github.io/htmlapps-image-counter/`.
+4. After a successful deployment, the app is available at `https://ttomohisa.github.io/htmlapps-image-counter-ex/`.
 
 The workflow runs the repository checks before publishing. If Pages is not enabled yet, the build still runs and the workflow summary explains the one-time setup step.
 
@@ -190,7 +204,7 @@ Edit `src/index.template.html`, not the generated `dist/index.html`.
 .
 ├─ src/index.template.html       # Application source template
 ├─ app.config.json               # App identity and build settings
-├─ dependencies.json             # Embedded runtime dependency list (currently empty)
+├─ dependencies.json             # Embedded runtime dependency list (pinned ORT assets)
 ├─ build-standalone.bat          # Windows build entry point
 ├─ build-standalone.ps1          # Standalone HTML builder
 ├─ scripts/                      # Verification and self-extract build scripts
@@ -218,7 +232,7 @@ The GitHub Pages version still requires the initial HTML request. For use with t
 
 ## Limitations
 
-- This app intentionally does **not** perform AI / automatic object detection.
+- Local detection is experimental: false positives and missed objects require human review. Only the current image is processed; tiles and cross-image prompt reuse are not included.
 - One project supports up to 30 images in the current UI.
 - Individual images over 35 MB are rejected, and the project has a 220 MB source-data guard.
 - Large or high-resolution multi-image projects can consume substantial device memory and browser storage.
@@ -228,7 +242,7 @@ The GitHub Pages version still requires the initial HTML request. For use with t
 
 ## Dependencies
 
-Image Counter v1.0.0 bundles **no third-party runtime libraries**. It uses browser APIs, Canvas, IndexedDB, Pointer Events, and system fonts. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Image Counter EX embeds ONNX Runtime Web 1.29.0 (CPU/WASM) and 1.27.0 (WebGPU), both MIT. Models have separate terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Contributing
 
@@ -238,7 +252,7 @@ Bug reports and feature proposals are welcome through GitHub Issues. See [CONTRI
 
 Copyright © 2026 ttomohisa
 
-Licensed under the [MIT License](LICENSE).
+Existing app source is under the [MIT License](LICENSE). This does not grant rights to model weights or establish licensing compatibility for the integrated YOLOE workflow. Review [third-party notices](THIRD_PARTY_NOTICES.md) and the model rights before distribution.
 
 Camera capture stops when its dialog closes. Pending permission requests are discarded and their tracks stopped when they finish.
 

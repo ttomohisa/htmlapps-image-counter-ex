@@ -2,6 +2,16 @@
 
 ## Overview
 
+### EX local detection
+
+The editable template contains `AUTO:CORE`, `AUTO:ENGINE` and `AUTO:UI` sections. Geometry/filtering and the one-history marker transaction are separate from transient dialog state. Model files and candidates are page-local only; the existing `image-counter` schema identifier and storage slug remain compatible. UI product/repository labels use Image Counter EX.
+
+Each Detect action decodes the selected embedded ORT assets lazily and starts a fresh module Worker. The selected ONNX buffer, image bitmap and WASM bytes transfer to the Worker. Its source includes the same pure helper functions tested in the main template. The first pass extracts a 512-float VPE from OR-combined examples; the second uses that VPE with a zero mask to detect the current image. Boxes return to normalized original coordinates before NMS. The main thread validates owner/generation/model identity, previews candidates and applies only explicit selection.
+
+Cancel/close terminates the Worker and revokes its module URLs. Settings/model changes clear candidates; source replacement is checked on result and render. Duplicate filtering includes all existing markers and repeats at application time. Existing positive imported rectangles smaller than the new `.003` drawing minimum still participate in duplicate checks. One `pushHistory()` encloses the complete append; no-op applications leave history/redo/completion intact.
+
+ORT Web is embedded through `dependencies.json`: WASM 1.29.0 bundle + threaded WASM with `numThreads=1`; WebGPU 1.27.0 bundle + asyncify WASM. `wasmBinary` avoids fetch under `connect-src 'none'`. The editor's `wasm-unsafe-eval` allows compilation while keeping JavaScript eval disallowed. Model distribution, tiles and cross-image prompt reuse are deferred. See `docs/YOLOE_VALIDATION.md` for actual test coverage.
+
 The repository separates editable source from the release artifact:
 
 ```text

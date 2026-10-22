@@ -18,6 +18,14 @@ Include:
 
 ## Trust model
 
+### Local model execution (EX development build)
+
+User-selected ONNX models are untrusted binary inputs. Only select models from a trusted source; a 256 MiB input limit and I/O validation cannot guarantee a model's resource requirements. Model parsing/inference occurs in a dedicated Worker. Closing or cancelling terminates it; model/source changes invalidate results. GPU/CPU retries start a new Worker. Model files, tensors, examples and temporary detections are not added to drafts or exports. Only explicitly accepted ordinary markers enter saved project data.
+
+The editor permits `wasm-unsafe-eval` for WebAssembly compilation, not JavaScript `unsafe-eval`. `connect-src 'none'` remains in place. Embedded, pinned ORT bundles are imported through locally created Blob URLs; the WASM bytes are passed directly with `wasmBinary`. No model URL, CDN or runtime download is supported. Existing exported viewer CSP does not need WASM and is unchanged. Runtime buffers are created only when detection is requested; decoded embedded assets may remain cached until the page closes.
+
+Detection quality is not a security or correctness guarantee. Review candidates, remove false positives and add missed objects manually. Model redistribution and application/model license compatibility remain open release gates; local file selection does not resolve those obligations.
+
 The default template is a static browser application with no backend. Its primary protections are:
 
 - No runtime network connection (`connect-src 'none'`).

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0-dev.1 — 2026-10-22 (unreleased)
+
+- Add current-photo visual example selection, local CPU/GPU inference and candidate review. No count changes until explicit application.
+- Add duplicate-aware one-history batch application using existing markers, drafts and exports.
+- Embed fixed ORT runtimes; keep custom model selection local and separate. Cancel closes the Worker and rejects stale results.
+- Add bilingual and keyboard-accessible detection controls and behavioral regression coverage across all four artifacts.
+- Model embedding, licensing resolution, cross-image examples and tiles remain later milestones.
+
 ## 1.0.4 - 2026-10-21
 
 - Auto-save Undo/Redo results and clear image completion when resetting corrections.

@@ -1,17 +1,17 @@
-# APP_SPEC.md — Image Counter / 画像カウンター
+# APP_SPEC.md — Image Counter EX / 画像カウンター EX
 
 ## 1. Product identity
 
-- **Name:** Image Counter / 画像カウンター
-- **Version:** 1.0.4
-- **Repository:** `ttomohisa/htmlapps-image-counter`
+- **Name:** Image Counter EX / 画像カウンター EX
+- **Version:** 1.1.0-dev.1
+- **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
-- **Purpose:** Count objects in one or more photos manually by placing point or rectangle markers, without automatic recognition or uploads.
+- **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
 - **Primary users:** People doing inventory, part counting, inspection, field surveys, photo-based checks, and any task where double-counting or losing the current position is a problem.
 
 ## 2. Product principles
 
-1. **Manual counting first.** The app does not guess with AI. A count is created only by explicit user action.
+1. **Manual counting first.** AI produces temporary candidates only. A count is created only by explicit placement or candidate application.
 2. **Local-first.** Images, markers, notes, drafts, and exports stay in the browser. Runtime network access is blocked with `connect-src 'none'`.
 3. **Fast repetitive work.** Undo/Redo, category switching, current-category emphasis, and mobile controls must remain reachable while counting.
 4. **Editable source data, read-only sharing.** The main app edits projects. Exported viewer HTML is read-only, but can be imported back into the main app to resume editing.
@@ -201,11 +201,11 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 
 ## 9. Non-goals for v1.0.0
 
-- Automatic / AI object detection.
+- Automatic counting without user review (local detection previews are supported in the development build).
 - OCR-based counting.
 - Cloud collaboration or shared server projects.
 - XLSX export (planned for a later version).
-- Automatic duplicate-marker detection.
+- Removing or merging existing markers automatically (candidate import filters duplicates without editing existing markers).
 
 ## 10. Acceptance criteria
 
@@ -253,3 +253,18 @@ Viewer imports accept the native app identifier and schema version 4 only; local
 Editor and viewer CSV use the same serializer: formula-like text receives a leading apostrophe before CSV escaping; actual numbers keep numeric meaning, and project text remains unchanged. The apostrophe may be visible in spreadsheet programs. Repository checks exercise these boundaries and normal native roundtrips in all four source/release variants.
 
 Compatibility exception: the former native resize handler could create an exact 0.003-wide/high rectangle extending past the right/bottom image edge by at most 0.003. Import/restore moves only that affected origin inward, retaining its minimum size. Out-of-range origins and other oversized rectangles still fail validation. New resizes keep the minimum rectangle fully inside the image.
+
+## Local visual detection — 1.1.0 development milestone
+
+- Current-image detection through Auto detect; one to twenty examples, drawn or entered using displayed-image percentage bounds. Examples never create counts.
+- Local custom YOLOE runtime-prompt ONNX file, nonempty and at most 256 MiB; ordinary fixed-prompt YOLO exports are incompatible. The file is selected again after page reload and is not saved in projects.
+- CPU uses FP32 / ORT Web 1.29.0; explicit GPU mode uses ORT Web 1.27.0 and supports FP32 or FP16 on compatible hardware. No automatic fallback: a retry starts a fresh Worker.
+- ORT assets are embedded and decoded lazily. Blob module Workers, wasmBinary, one WASM thread and wasm-unsafe-eval retain connect-src 'none'. No external runtime fetch.
+- Phases: ready → loading-runtime → processing → result or error. Cancel/close/model or setting changes invalidate the job; source ownership is checked again before result/application. Worker termination interrupts compute.
+- Inference uses original decoded pixels, without brightness/contrast corrections. Preview shares existing 0/90/180/270-degree transforms; all candidate geometry remains normalized to the original image, including compressed drafts.
+- Confidence presets: 0.1 / 0.25 default / 0.5. NMS IoU > 0.5 suppresses lower-score boxes. Preview is capped at 1000 with the omitted count shown.
+- Click a candidate or uncheck its list item to exclude it. Existing rectangles match by IoU >= 0.5 or intersection/smaller-area >= 0.8; an existing point inside a candidate also excludes it. This includes hidden and other-category markers. Recheck duplicates against current markers and accepted batch on Apply.
+- Apply creates ordinary schema-4 rectangle markers in the active category with needsReview:false. One history entry, one autosave request, completed image becomes incomplete. Zero accepted candidates change nothing. Undo/Redo restores markers and completion together.
+- Candidates, examples, prompts, model files and runtime state never enter project/draft/viewer/CSV. Existing native app identifier and storage slug image-counter remain unchanged for compatibility; product/repository labels use EX.
+- Model embedding/redistribution, cross-image prompt reuse and tiles are later milestones. This development branch is not a public release. License integration review remains open; separate model selection is not a license exemption.
+- See docs/YOLOE_VALIDATION.md for measured results and explicitly untested environments; direct file-origin detection is not considered verified solely by a successful build or HTTP test.

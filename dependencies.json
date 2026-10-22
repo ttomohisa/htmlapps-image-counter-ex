@@ -1,4 +1,21 @@
 {
   "$schema": "./schemas/dependencies.schema.json",
-  "dependencies": []
+  "dependencies": [
+    {
+      "id": "ort-wasm", "package": "onnxruntime-web", "version": "1.29.0",
+      "license": "MIT", "homepage": "https://onnxruntime.ai/",
+      "assets": [
+        {"key": "main", "path": "dist/ort.wasm.bundle.min.mjs", "mime": "text/javascript", "compression": "gzip", "stripSourceMapComment": true},
+        {"key": "wasm", "path": "dist/ort-wasm-simd-threaded.wasm", "mime": "application/wasm", "compression": "gzip"}
+      ]
+    },
+    {
+      "id": "ort-webgpu", "package": "onnxruntime-web", "version": "1.27.0",
+      "license": "MIT", "homepage": "https://onnxruntime.ai/",
+      "assets": [
+        {"key": "main", "path": "dist/ort.webgpu.bundle.min.mjs", "mime": "text/javascript", "compression": "gzip", "stripSourceMapComment": true},
+        {"key": "wasm", "path": "dist/ort-wasm-simd-threaded.asyncify.wasm", "mime": "application/wasm", "compression": "gzip"}
+      ]
+    }
+  ]
 }

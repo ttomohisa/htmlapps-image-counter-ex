@@ -1,20 +1,21 @@
-# 画像カウンター (Image Counter)
+# 画像カウンター EX (Image Counter EX)
 
-[![GitHub Pages](https://github.com/ttomohisa/htmlapps-image-counter/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ttomohisa/htmlapps-image-counter/actions/workflows/deploy-pages.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Single HTML](https://img.shields.io/badge/distribution-single%20HTML-0ea5e9)](https://ttomohisa.github.io/htmlapps-image-counter/)
+[![GitHub Pages](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml)
+[![Single HTML](https://img.shields.io/badge/distribution-single%20HTML-0ea5e9)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 [English README](README.md)
 
-写真の中のものを、**自動認識ではなく自分でタップ / ドラッグして数える**ための単一HTMLアプリです。点・矩形のマーカーで「どこまで数えたか」を残し、迷った対象は要確認にして後から見直せます。選択した画像はアプリからサーバーへアップロードされません。
+> **開発版 — 1.1.0-dev.1。** 自動検出はローカル実装段階で、デモへは未公開です。モデル配布条件とファイル直接起動・実機検証は公開前の確認事項です。[検証記録](docs/YOLOE_VALIDATION.md) を参照してください。
+
+写真の中のものを、**手動操作や確認済みの自動検出候補で数える**ための単一HTMLアプリです。点・矩形のマーカーで「どこまで数えたか」を残し、迷った対象は要確認にして後から見直せます。選択した画像はアプリからサーバーへアップロードされません。
 
 ## 🚀 デモ
 
-### [GitHub Pagesで画像カウンターを開く](https://ttomohisa.github.io/htmlapps-image-counter/)
+### [GitHub Pagesで画像カウンターを開く](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 GitHub Pagesから最初のHTMLを読み込んだ後、画像の読み込み、カウント、マーカー編集、カメラ処理、途中保存、画像補正、書き出しは端末内で処理されます。アプリで選択した画像がサーバーへ送信されることはありません。
 
-[![画像カウンターの画面](assets/screenshot.png)](https://ttomohisa.github.io/htmlapps-image-counter/)
+[![画像カウンターの画面](assets/screenshot.png)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 Undo / Redoの結果も自動保存されます。画像補正をリセットすると未完了に戻ります。閲覧HTMLで素早く移動しても画像とカウントは一緒に切り替わり、読み込みに失敗した場合は直前の表示を維持して再試行や別の画像の選択ができます。
 
@@ -37,7 +38,7 @@ Undo / Redoの結果も自動保存されます。画像補正をリセットす
 
 ### Webで使う
 
-[GitHub Pagesのデモ](https://ttomohisa.github.io/htmlapps-image-counter/)を開くだけで利用できます。インストールやアカウント登録は不要です。
+[GitHub Pagesのデモ](https://ttomohisa.github.io/htmlapps-image-counter-ex/)を開くだけで利用できます。インストールやアカウント登録は不要です。
 
 ### 単一HTMLをダウンロードして使う
 
@@ -52,7 +53,19 @@ Undo / Redoの結果も自動保存されます。画像補正をリセットす
 3. 通常版 `dist/index.html` が生成されます。
 4. gzip自己展開版 `dist/index.self-extract.html` も同時に生成されます。
 
-v1.0.0は外部ランタイムライブラリを使っていないため、ビルド時にブラウザー用ライブラリをダウンロードする必要はありません。
+初回ビルドで固定バージョンのONNX Runtime JS/WASMを取得してHTMLへ内包します。実行時のライブラリ取得はありません。モデルは同梱せず、ローカルファイルを選択します。
+
+## 自動検出を試す
+
+![自動検出で候補を確認する画面](assets/auto-detection.jpg)
+
+1. 追加先の種類を選び、Canvas付近の **自動検出** を開きます。
+2. **モデル設定（開発版）** で専用ONNXモデルを選択します。標準（CPU）はFP32、高速（対応GPU）はFP32／FP16を使います。
+3. 見本を1個以上囲みます。キーボードでは **数値で見本を囲む** から上下左右の割合を入力できます。
+4. **検出する** を押し、不要な候補をクリックまたは一覧のチェックで外します。プレビュー中はカウントが変わりません。
+5. **候補をマーカーに追加** で確定します。非表示や別種類も含めた既存マーカーとの重複は除外され、1回のUndoで全件戻せます。
+
+キャンセルまたは画面を閉じると推論を中断します。モデルはページを閉じるまでの保持で、途中保存・出力には入りません。検出は元の写真を使用し、明るさ・コントラストの表示補正は使いません。
 
 ## 使い方
 
@@ -173,10 +186,10 @@ result.zip
 
 このリポジトリには、単一HTMLをビルドして `dist/` をGitHub Pagesへ公開するワークフローが含まれています。
 
-1. リポジトリ名を `htmlapps-image-counter` としてGitHubへプッシュします。
+1. リポジトリ名を `htmlapps-image-counter-ex` としてGitHubへプッシュします。
 2. **Settings → Pages → Build and deployment → Source** で **GitHub Actions** を選択します。
 3. `main` へプッシュするか、Actionsから **Deploy standalone app to GitHub Pages** を手動実行します。
-4. 成功後、`https://ttomohisa.github.io/htmlapps-image-counter/` で利用できます。
+4. 成功後、`https://ttomohisa.github.io/htmlapps-image-counter-ex/` で利用できます。
 
 公開前にリポジトリ検証が実行されます。Pagesがまだ有効でない場合でもビルドは行われ、ActionsのSummaryに初回設定手順が表示されます。
 
@@ -190,7 +203,7 @@ result.zip
 .
 ├─ src/index.template.html       # アプリ本体のテンプレート
 ├─ app.config.json               # アプリ名・バージョン・ビルド設定
-├─ dependencies.json             # 内包依存一覧（現在は空）
+├─ dependencies.json             # 内包依存一覧（固定ORT資産）
 ├─ build-standalone.bat          # Windows用ビルド入口
 ├─ build-standalone.ps1          # 単一HTMLビルダー
 ├─ scripts/                      # 検証・自己展開版生成
@@ -218,7 +231,7 @@ GitHub Pages版では最初のHTML取得だけは通信します。ネットワ�
 
 ## 制限事項
 
-- AI / 自動物体検出は意図的に行いません。
+- 自動検出は開発段階です。誤検出・見落としを人が確認してください。現在の画像のみが対象で、タイル・画像間の見本再利用は未実装です。
 - 現在のUIでは1プロジェクト最大30枚です。
 - 1画像35MB超は読み込まず、プロジェクト全体にも220MBの元画像データ上限ガードがあります。
 - 高解像度画像を多数扱うと、端末メモリやブラウザーストレージを多く消費します。
@@ -228,7 +241,7 @@ GitHub Pages版では最初のHTML取得だけは通信します。ネットワ�
 
 ## 使用ライブラリ
 
-画像カウンター v1.0.0は、**サードパーティーのランタイムライブラリを内包していません**。ブラウザーAPI、Canvas、IndexedDB、Pointer Events、システムフォントで実装しています。詳細は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を確認してください。
+画像カウンター EXはONNX Runtime Web 1.29.0（CPU/WASM）と1.27.0（WebGPU）を内包します。いずれもMITですが、モデルには別の条件があります。詳細は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を確認してください。
 
 ## コントリビューション
 
@@ -238,7 +251,7 @@ GitHub Pages版では最初のHTML取得だけは通信します。ネットワ�
 
 Copyright © 2026 ttomohisa
 
-このプロジェクトは [MIT License](LICENSE) で公開されています。
+既存アプリのソースは [MIT License](LICENSE) です。モデルの権利やYOLOE統合全体のライセンス適合を保証するものではありません。配布前に [第三者表記](THIRD_PARTY_NOTICES.md) とモデルの利用条件を確認します。
 
 カメラ画面を閉じると撮影を停止します。起動待ちのカメラも、取得完了後に停止します。
 
