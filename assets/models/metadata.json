@@ -1,0 +1,18 @@
+{
+  "model": "YOLOE-26n visual prompt, one2many",
+  "version": "1.0.0",
+  "license": "AGPL-3.0-only",
+  "ultralytics": "8.4.131",
+  "source": "https://github.com/ultralytics/assets/releases/download/v8.4.0/yoloe-26n-seg.pt",
+  "storage": "FP16 initializers with FP32 Cast; FP32 I/O and computation",
+  "files": {
+    "browser-yoloe-26n-compact-fp32.onnx": {
+      "bytes": 6756087,
+      "sha256": "d33ebb16c8cb03ef4b5e1888e759b96b4e0366769287f003798c3c1c75db41ba"
+    },
+    "yoloe-26n-seg.pt": {
+      "bytes": 11710443,
+      "sha256": "1741c1f8da3cea47e2c01829c334a50dc0b9bbd05e685b90a3ce84fae32c8c1b"
+    }
+  }
+}

@@ -2,19 +2,71 @@
   "$schema": "./schemas/dependencies.schema.json",
   "dependencies": [
     {
-      "id": "ort-wasm", "package": "onnxruntime-web", "version": "1.29.0",
-      "license": "MIT", "homepage": "https://onnxruntime.ai/",
+      "id": "ort-wasm",
+      "package": "onnxruntime-web",
+      "version": "1.29.0",
+      "license": "MIT",
+      "homepage": "https://onnxruntime.ai/",
       "assets": [
-        {"key": "main", "path": "dist/ort.wasm.bundle.min.mjs", "mime": "text/javascript", "compression": "gzip", "stripSourceMapComment": true},
-        {"key": "wasm", "path": "dist/ort-wasm-simd-threaded.wasm", "mime": "application/wasm", "compression": "gzip"}
+        {
+          "key": "main",
+          "path": "dist/ort.wasm.bundle.min.mjs",
+          "mime": "text/javascript",
+          "compression": "gzip",
+          "stripSourceMapComment": true
+        },
+        {
+          "key": "wasm",
+          "path": "dist/ort-wasm-simd-threaded.wasm",
+          "mime": "application/wasm",
+          "compression": "gzip"
+        }
       ]
     },
     {
-      "id": "ort-webgpu", "package": "onnxruntime-web", "version": "1.27.0",
-      "license": "MIT", "homepage": "https://onnxruntime.ai/",
+      "id": "ort-webgpu",
+      "package": "onnxruntime-web",
+      "version": "1.27.0",
+      "license": "MIT",
+      "homepage": "https://onnxruntime.ai/",
       "assets": [
-        {"key": "main", "path": "dist/ort.webgpu.bundle.min.mjs", "mime": "text/javascript", "compression": "gzip", "stripSourceMapComment": true},
-        {"key": "wasm", "path": "dist/ort-wasm-simd-threaded.asyncify.wasm", "mime": "application/wasm", "compression": "gzip"}
+        {
+          "key": "main",
+          "path": "dist/ort.webgpu.bundle.min.mjs",
+          "mime": "text/javascript",
+          "compression": "gzip",
+          "stripSourceMapComment": true
+        },
+        {
+          "key": "wasm",
+          "path": "dist/ort-wasm-simd-threaded.asyncify.wasm",
+          "mime": "application/wasm",
+          "compression": "gzip"
+        }
+      ]
+    },
+    {
+      "id": "yoloe-26n",
+      "source": "local",
+      "package": "browser-yoloe-26n-compact",
+      "version": "1.0.0",
+      "license": "AGPL-3.0-only",
+      "homepage": "https://github.com/ultralytics/ultralytics",
+      "assets": [
+        {
+          "key": "model",
+          "path": "assets/models/browser-yoloe-26n-compact-fp32.onnx",
+          "mime": "application/octet-stream",
+          "compression": "gzip",
+          "sha256": "d33ebb16c8cb03ef4b5e1888e759b96b4e0366769287f003798c3c1c75db41ba"
+        },
+        {
+          "key": "license",
+          "path": "assets/models/LICENSES.txt",
+          "mime": "text/plain",
+          "compression": "gzip",
+          "sha256": "b639b550898a08eecba7d9900d79d46c41f1b4341fc477dd5020ea59799796ef"
+        }
       ]
     }
   ]

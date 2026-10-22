@@ -1,14 +1,14 @@
 # 画像カウンター EX (Image Counter EX)
 
 
-検出の初期設定は **5%** です。見落としが多ければ **1%**、余分な候補が多ければ10〜50%を試し、候補を確認してください。スコアは正解率ではありません。CPU用の圧縮モデルは **FP32** として選択します（保存重みのみFP16、計算はFP32）。[原因調査と検証](docs/DETECTION_ACCURACY.md) を参照してください。
+検出の初期設定は **5%** です。見落としが多ければ **1%**、余分な候補が多ければ10〜50%を試し、候補を確認してください。スコアは正解率ではありません。内蔵の圧縮モデルは **FP32** で計算します（保存重みのみFP16、計算はFP32）。[原因調査と検証](docs/DETECTION_ACCURACY.md) を参照してください。
 
 [![GitHub Pages](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml)
 [![Single HTML](https://img.shields.io/badge/distribution-single%20HTML-0ea5e9)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 [English README](README.md)
 
-> **ローカル検証版 — 1.1.0-dev.2。** 今回の精度改善はGitHub Pagesへ未反映です。モデルは各端末で別途選択します。この版のファイル直接起動、モデル内蔵版の配布、スマホ実機確認は未検証です。[検証記録](docs/YOLOE_VALIDATION.md) を参照してください。
+> **モデル内蔵版 — 1.1.0-dev.3。** 6.44 MiBのYOLOE-26nを単一HTMLに内蔵しています。追加のモデル選択は不要です。Android Chromeでの実機検証はこれから行います。
 
 写真の中のものを、**手動操作や確認済みの自動検出候補で数える**ための単一HTMLアプリです。点・矩形のマーカーで「どこまで数えたか」を残し、迷った対象は要確認にして後から見直せます。選択した画像はアプリからサーバーへアップロードされません。
 
@@ -56,14 +56,14 @@ Undo / Redoの結果も自動保存されます。画像補正をリセットす
 3. 通常版 `dist/index.html` が生成されます。
 4. gzip自己展開版 `dist/index.self-extract.html` も同時に生成されます。
 
-初回ビルドで固定バージョンのONNX Runtime JS/WASMを取得してHTMLへ内包します。実行時のライブラリ取得はありません。モデルは同梱せず、ローカルファイルを選択します。
+初回ビルドで固定バージョンのONNX Runtime JS/WASMを取得してHTMLへ内包します。実行時のライブラリ取得はありません。小容量モデルもHTMLに内蔵しており、実行時の追加取得はありません。
 
 ## 自動検出を試す
 
 ![自動検出で候補を確認する画面](assets/auto-detection.jpg)
 
 1. 追加先の種類を選び、Canvas付近の **自動検出** を開きます。
-2. **モデル設定（開発版）** で専用ONNXモデルを選択します。標準（CPU）はFP32、高速（対応GPU）はFP32／FP16を使います。
+2. 内蔵モデルをそのまま使えます。標準（CPU）・FP32が初期設定です。必要な場合だけ **詳細設定・モデル変更** で対応する外部モデルを選択します。
 3. 見本を1個以上囲みます。キーボードでは **数値で見本を囲む** から上下左右の割合を入力できます。
 4. **検出する** を押し、不要な候補をクリックまたは一覧のチェックで外します。プレビュー中はカウントが変わりません。
 5. **候補をマーカーに追加** で確定します。非表示や別種類も含めた既存マーカーとの重複は除外され、1回のUndoで全件戻せます。
@@ -256,7 +256,7 @@ GitHub Pages版では最初のHTML取得だけは通信します。ネットワ�
 
 Copyright © 2026 ttomohisa
 
-既存アプリのソースは [MIT License](LICENSE) です。モデルの権利やYOLOE統合全体のライセンス適合を保証するものではありません。配布前に [第三者表記](THIRD_PARTY_NOTICES.md) とモデルの利用条件を確認します。
+モデル統合版は [GNU AGPL v3](LICENSE) で公開しています。従来の [MIT表記](LICENSE-MIT) も保持しています。モデル・元の公開チェックポイント・変換コードをこのリポジトリで提供します。[第三者表記](THIRD_PARTY_NOTICES.md) を参照してください。
 
 カメラ画面を閉じると撮影を停止します。起動待ちのカメラも、取得完了後に停止します。
 

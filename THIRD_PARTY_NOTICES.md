@@ -11,13 +11,23 @@ Homepage: https://onnxruntime.ai/ · Source: https://github.com/microsoft/onnxru
 
 Exact package versions, original SHA-256 hashes and storage sizes are recorded in the generated dependency manifest. These assets are embedded in the editor, not the exported result viewer. The npm bundle headers retain their included license notices.
 
-## User-supplied model and build-time reference
+## Embedded YOLOE-26n and corresponding source
 
-No model weights, ONNX models, Python packages or reference PoC ZIP are tracked or embedded in the release HTML. The developer regenerated local FP32/FP16 models from the supplied PoC v0.2.0 reference, using Ultralytics 8.4.131 and yoloe-26n-seg.pt. Reference files and generated binaries remain in ignored local build storage.
+The 1.1.0-dev.3 editor embeds the 6.44 MiB compact YOLOE-26n model under
+GNU AGPL version 3. Copyright Ultralytics; upstream source:
+https://github.com/ultralytics/ultralytics (8.4.131).
+Licensing: https://www.ultralytics.com/license.
 
-Ultralytics describes its code/model licensing through AGPL-3.0 or an Enterprise license: https://www.ultralytics.com/license (checked 2026-10-22). Keeping weights external is not a finding that the combined integration is exempt. The existing app's MIT license does not grant model rights or establish compatibility for an integrated distribution. Resolving applicable obligations and any corresponding-source requirements is a separate release gate. This development branch must not be presented as an unrestricted MIT-only model/application distribution.
+The integrated distribution uses the root AGPL `LICENSE`, preserving the historical
+app notice in `LICENSE-MIT` and ORT's MIT notice below and in the HTML. The in-app
+Help offers the complete AGPL and historical MIT texts offline, plus a prominent
+link to https://github.com/ttomohisa/htmlapps-image-counter-ex for corresponding source.
 
-The supplied PoC informed the runtime prompt contract and letterbox/mask/NMS implementation. The first integration does not include its tile pipeline or Python source in release HTML.
+`assets/models/metadata.json` pins the shipped ONNX and original official checkpoint.
+Both are tracked; `scripts/model_lab/` supplies the complete export/compaction source,
+pinned dependencies and build instructions. Only the compact ONNX and license text
+are embedded, not the original checkpoint, Python tooling or evaluation photos.
+The user has elected the source-publication route under AGPL for this distribution.
 
 ## Other development tooling
 

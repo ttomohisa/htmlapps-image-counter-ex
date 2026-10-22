@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.1
+- **Version:** 1.1.0-dev.3
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -267,5 +267,5 @@ Compatibility exception: the former native resize handler could create an exact 
 - Click a candidate or uncheck its list item to exclude it. Existing rectangles match by IoU >= 0.5 or intersection/smaller-area >= 0.8; an existing point inside a candidate also excludes it. This includes hidden and other-category markers. Recheck duplicates against current markers and accepted batch on Apply.
 - Apply creates ordinary schema-4 rectangle markers in the active category with needsReview:false. One history entry, one autosave request, completed image becomes incomplete. Zero accepted candidates change nothing. Undo/Redo restores markers and completion together.
 - Candidates, examples, prompts, model files and runtime state never enter project/draft/viewer/CSV. Existing native app identifier and storage slug image-counter remain unchanged for compatibility; product/repository labels use EX.
-- Model embedding/redistribution, cross-image prompt reuse and tiles are later milestones. The user-authorized GitHub Pages deployment is a development test build with external model selection, not a stable release. License integration review remains open; separate model selection is not a license exemption.
+- The compact 6.44 MiB YOLOE-26n model is embedded and selected by default (CPU / FP32). No model picker is required. Advanced settings can load a custom model or restore the built-in model. Model weights inflate lazily on Detect; each Worker receives a fresh transferable copy. The integrated release is AGPL v3 with offline license text and public corresponding source. Cross-image prompt reuse and tiles remain deferred.
 - See docs/YOLOE_VALIDATION.md for measured results and explicitly untested environments; direct file-origin detection is not considered verified solely by a successful build or HTTP test.

@@ -10,7 +10,7 @@ Each Detect action decodes the selected embedded ORT assets lazily and starts a 
 
 Cancel/close terminates the Worker and revokes its module URLs. Settings/model changes clear candidates; source replacement is checked on result and render. Duplicate filtering includes all existing markers and repeats at application time. Existing positive imported rectangles smaller than the new `.003` drawing minimum still participate in duplicate checks. One `pushHistory()` encloses the complete append; no-op applications leave history/redo/completion intact.
 
-ORT Web is embedded through `dependencies.json`: WASM 1.29.0 bundle + threaded WASM with `numThreads=1`; WebGPU 1.27.0 bundle + asyncify WASM. `wasmBinary` avoids fetch under `connect-src 'none'`. The editor's `wasm-unsafe-eval` allows compilation while keeping JavaScript eval disallowed. Model distribution, tiles and cross-image prompt reuse are deferred. See `docs/YOLOE_VALIDATION.md` for actual test coverage.
+ORT Web is embedded through `dependencies.json`: WASM 1.29.0 bundle + threaded WASM with `numThreads=1`; WebGPU 1.27.0 bundle + asyncify WASM. `wasmBinary` avoids fetch under `connect-src 'none'`. The editor's `wasm-unsafe-eval` allows compilation while keeping JavaScript eval disallowed. The compact model is a pinned `source: local` dependency, with paths confined to the repository and required SHA-256 checks. Its stable descriptor is the default model; `bytesAsync` supplies fresh transferable copies from a lazily decoded cache. Tiles and cross-image prompt reuse are deferred. See `docs/YOLOE_VALIDATION.md` for actual test coverage.
 
 The repository separates editable source from the release artifact:
 

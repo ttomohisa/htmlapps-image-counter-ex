@@ -128,7 +128,7 @@ test('job ownership rejects stale generation, replaced project and changed model
   assert.equal(c.autoJobCurrent(3,file),true);assert.equal(c.autoJobCurrent(2,file),false);assert.equal(c.autoJobCurrent(3,{}),false);
   c.P={};assert.equal(c.autoJobCurrent(3,file),false);
 });
-function detectionUI(){
+function detectionUI(useDefault=false){
   const c=engine(),nodes=new Map(),events=new Map(),revoked=[];let terminated=0;
   const element=key=>{
     if(!nodes.has(key)){
@@ -147,12 +147,39 @@ function detectionUI(){
     imageCache:new Map(),model,worker:{terminate:()=>terminated++}});
   vm.runInContext(section('function toDisplayNorm(','function canvasCssSize('),c);
   vm.runInContext(section('// AUTO:UI:BEGIN','// AUTO:UI:END'),c);
-  vm.runInContext("autoState.owner={project:P,imageId:'one',dataUrl:'pixels'};autoState.model=model;autoState.examples=[{x:.1,y:.1,w:.2,h:.2}]",c);
+  vm.runInContext("autoState.owner={project:P,imageId:'one',dataUrl:'pixels'};autoState.examples=[{x:.1,y:.1,w:.2,h:.2}]",c);
+  if(!useDefault)vm.runInContext('autoState.model=model',c);
   const pointer=(name,{id=1,primary=true,x=78,y=68}={})=>{
     element('#autoCanvas').listeners.get(name)({pointerId:id,isPrimary:primary,button:0,pointerType:'touch',clientX:x,clientY:y,preventDefault(){}});
   };
   return{c,element,events,revoked,im,pointer,terminated:()=>terminated};
 }
+test('embedded model is ready without a file selection and survives transfer on repeated runs',async()=>{
+  const {c,element}=detectionUI(true),reads=[];
+  c.StandaloneAssets={bytesAsync:async(...args)=>{reads.push(args);return new Uint8Array([1,2,3])}};
+  c.renderAutoControls();assert.equal(element('#autoRun').disabled,false);
+  assert.equal(reads.length,0,'opening detection must not inflate weights');
+  const model=vm.runInContext('autoState.model',c);
+  assert.equal(model.size,6756087);
+  const first=await model.arrayBuffer();structuredClone(first,{transfer:[first]});
+  assert.equal(first.byteLength,0);
+  assert.deepEqual([...new Uint8Array(await model.arrayBuffer())],[1,2,3]);
+  assert.deepEqual(reads,[['yoloe-26n','model'],['yoloe-26n','model']]);
+  assert.equal(element('#autoPrecision').disabled,true);
+});
+test('restoring the embedded model clears stale custom-model results and restores CPU FP32',()=>{
+  const {c,element}=detectionUI();
+  element('#autoBackend').value='webgpu';element('#autoPrecision').value='fp16';
+  element('#autoModel').value='custom.onnx';
+  vm.runInContext('autoState.candidates=[{x:.1,y:.1,w:.2,h:.2,score:.9}]',c);
+  const token=vm.runInContext('autoState.generation',c);
+  element('#autoUseBuiltin').onclick();
+  assert.equal(c.autoJobCurrent(token,c.model),false);
+  assert.equal(vm.runInContext('autoState.model.size',c),6756087);
+  assert.equal(vm.runInContext('autoState.candidates.length',c),0);
+  assert.equal(element('#autoBackend').value,'wasm');assert.equal(element('#autoPrecision').value,'fp32');
+  assert.equal(element('#autoRun').disabled,false);assert.equal(element('#autoModel').value,'');
+});
 test('returning from page cache after interrupted detection restores usable controls',()=>{
   for(const phase of ['loading-runtime','processing']){
     const {c,element,events,revoked,terminated}=detectionUI();

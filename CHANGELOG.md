@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0-dev.3 — 2026-10-23
+
+- Embed the validated 6.44 MiB compact YOLOE-26n in both single-HTML variants; detection defaults to CPU / FP32 without a model-file picker.
+- Load weights on demand, preserve repeat/cancel behavior and retain optional custom-model settings with a built-in reset.
+- Publish the integrated release under AGPL v3, with offline license text, source link, original checkpoint and conversion code; retain historical MIT notices.
+- Pin local model assets by SHA-256 in the build manifest. Allow 22 MiB self-extract / 25 MiB readable warning budgets to include the model and existing ORT runtimes.
+
 ## 1.1.0-dev.2 — 2026-10-23 (unreleased)
 
 - Add 1% and 5% visual-search presets; default to 5% after fixed-example diagnosis, with bilingual guidance about false positives and uncalibrated scores.

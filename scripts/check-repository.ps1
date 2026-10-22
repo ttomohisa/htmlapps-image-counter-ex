@@ -142,6 +142,9 @@ $buildArguments = @{ CheckReleaseAlias = $true }
 if ($ForceDownload) { $buildArguments.ForceDownload = $true }
 & (Join-Path $Root "build-standalone.ps1") @buildArguments
 
+& node --test (Join-Path $Root "scripts\test-local-assets.cjs")
+if ($LASTEXITCODE -ne 0) { throw "Local asset verification failed." }
+
 $previousCameraTarget = $env:IMAGE_COUNTER_HTML
 try {
   foreach ($relative in @("src/index.template.html", "dist/index.html", "image-counter.html", "dist/index.self-extract.html")) {

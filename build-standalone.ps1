@@ -204,7 +204,13 @@ foreach ($dependency in $dependencies) {
   if ($ids.ContainsKey($id)) { throw "Duplicate dependency id: $id" }
   $ids[$id] = $true
 
-  $package = Get-NpmPackage ([string]$dependency.package) ([string]$dependency.version)
+  $source = "npm"
+  if ($dependency.PSObject.Properties.Name -contains "source") { $source = [string]$dependency.source }
+  if ($source -eq "local") {
+    $package = @{ Root = $Root; ArchiveSha256 = $null }
+  } elseif ($source -eq "npm") {
+    $package = Get-NpmPackage ([string]$dependency.package) ([string]$dependency.version)
+  } else { throw "Unsupported dependency source: $source" }
   $dependencyAssets = [ordered]@{}
   $manifestAssets = @()
   $assetKeys = @{}
@@ -228,6 +234,12 @@ foreach ($dependency in $dependencies) {
       $shaAlgorithm.Dispose()
     }
     $sha = ($hashBytes | ForEach-Object { $_.ToString("x2") }) -join ""
+    $expectedSha = ""
+    if ($asset.PSObject.Properties.Name -contains "sha256") { $expectedSha = [string]$asset.sha256 }
+    if ($source -eq "local" -and $expectedSha -notmatch '^[a-f0-9]{64}$') {
+      throw "Local asset $id/$key requires a pinned SHA-256."
+    }
+    if ($expectedSha -and $sha -ne $expectedSha) { throw "SHA-256 mismatch for $id/$key." }
 
     $compressionSetting = "none"
     if ($asset.PSObject.Properties.Name -contains "compression") { $compressionSetting = ([string]$asset.compression).ToLowerInvariant() }
@@ -278,6 +290,7 @@ foreach ($dependency in $dependencies) {
     version = [string]$dependency.version
     license = $license
     homepage = $homepage
+    source = $source
     tarballSha256 = $package.ArchiveSha256
     assets = $manifestAssets
   }

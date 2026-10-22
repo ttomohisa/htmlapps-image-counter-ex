@@ -1,13 +1,13 @@
 # Image Counter EX
 
-Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer unwanted candidates, then review the boxes. Scores are not accuracy percentages. Select **FP32** for the compact CPU model: its stored weights are FP16, but computation remains FP32. See the [diagnosis and validation](docs/DETECTION_ACCURACY.md).
+Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer unwanted candidates, then review the boxes. Scores are not accuracy percentages. The built-in model uses **FP32** computation: its stored weights are FP16, but computation remains FP32. See the [diagnosis and validation](docs/DETECTION_ACCURACY.md).
 
 [![GitHub Pages](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml)
 [![Single HTML](https://img.shields.io/badge/distribution-single%20HTML-0ea5e9)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 [日本語版 README](README.ja.md)
 
-> **Local validation build — 1.1.0-dev.2.** This calibration update has not been deployed to GitHub Pages. Select the compatible model separately on each device. Direct-file operation, embedded-model distribution and physical-device validation remain unverified for this build. See [validation](docs/YOLOE_VALIDATION.md).
+> **Embedded-model build — 1.1.0-dev.3.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. Physical Android Chrome validation is pending.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -56,7 +56,7 @@ Open the [GitHub Pages demo](https://ttomohisa.github.io/htmlapps-image-counter-
 3. Use the generated `dist/index.html` as the normal standalone app.
 4. `dist/index.self-extract.html` is also generated as a gzip self-extracting variant.
 
-The first build downloads pinned ONNX Runtime JS/WASM packages. Generated HTML embeds them; no runtime library download is needed. Models are selected locally and are not bundled.
+The first build downloads pinned ONNX Runtime JS/WASM packages. Generated HTML embeds them; no runtime library download is needed. The compact YOLOE-26n model is also embedded; there is no additional runtime download.
 
 ## Local auto detection
 
@@ -65,7 +65,7 @@ The first build downloads pinned ONNX Runtime JS/WASM packages. Generated HTML e
 Navigating away cancels running detection and leaves controls usable when a cached page returns. Android Chrome hardware and direct-file operation remain pending; see the [device check procedure](docs/ANDROID_FILE_TEST.md).
 
 1. Select the target marker type and open **Auto detect** beside the canvas.
-2. Select the compatible custom ONNX model under **Model setup (development)**. Use FP32 with Standard (CPU), or select Fast (compatible GPU) for FP32/FP16.
+2. Use the built-in model with the default CPU / FP32 settings. **Advanced settings / model** optionally accepts a compatible custom model; **Use built-in model** restores the default.
 3. Outline one or more examples. Keyboard users can enter the left/top/right/bottom percentages under **Enter example bounds**.
 4. Select **Detect**. Click boxes or uncheck candidates you do not want. Counts stay unchanged during preview.
 5. Select **Add candidates as markers**. Existing overlaps are excluded, including other/hidden types. One Undo reverses the entire batch.
@@ -256,7 +256,7 @@ Bug reports and feature proposals are welcome through GitHub Issues. See [CONTRI
 
 Copyright © 2026 ttomohisa
 
-Existing app source is under the [MIT License](LICENSE). This does not grant rights to model weights or establish licensing compatibility for the integrated YOLOE workflow. Review [third-party notices](THIRD_PARTY_NOTICES.md) and the model rights before distribution.
+The model-integrated release is published under [GNU AGPL v3](LICENSE), retaining the [historical MIT notice](LICENSE-MIT). The model, original public checkpoint and conversion source are supplied in this repository. See [third-party notices](THIRD_PARTY_NOTICES.md).
 
 Camera capture stops when its dialog closes. Pending permission requests are discarded and their tracks stopped when they finish.
 

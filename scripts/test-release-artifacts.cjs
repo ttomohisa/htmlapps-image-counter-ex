@@ -10,6 +10,18 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 const { canonicalReleaseHtml } = require('./release-equivalence.cjs');
 
+test('release embeds the validated model and offline license, without the source checkpoint',()=>{
+  const html=read('dist/index.html'),bundle=JSON.parse(html.match(/,ASSETS=(\{[^\r\n]+\});/)[1]);
+  const assets=bundle.dependencies['yoloe-26n'].assets;
+  assert.deepEqual(Object.keys(assets).sort(),['license','model']);
+  const model=zlib.gunzipSync(Buffer.from(assets.model.base64,'base64'));
+  assert.equal(model.length,6756087);
+  assert.equal(crypto.createHash('sha256').update(model).digest('hex'),'d33ebb16c8cb03ef4b5e1888e759b96b4e0366769287f003798c3c1c75db41ba');
+  const license=zlib.gunzipSync(Buffer.from(assets.license.base64,'base64')).toString('utf8');
+  assert.ok(license.includes(read('LICENSE').trim()));assert.ok(license.includes(read('LICENSE-MIT').trim()));
+  assert.match(html,/<a href="https:\/\/github.com\/ttomohisa\/htmlapps-image-counter-ex"[^>]+data-i18n="appSource"/);
+});
+
 test('checked-in root release matches the fresh readable build', () => {
   assert.ok(canonicalReleaseHtml(read('image-counter.html')) === canonicalReleaseHtml(read('dist/index.html')),
     'image-counter.html is stale; run ./build-standalone.ps1 and commit the regenerated alias');
