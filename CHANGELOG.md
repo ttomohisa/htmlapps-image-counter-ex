@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0-dev.9 — 2026-10-23
+
+- Add 1–8× pinch/button zoom, two-finger pan, Pan view and Fit beside the example preview so small boxes can be adjusted at a larger scale.
+- Keep corner handles at a fixed screen size and reuse the view transform for image, overlays and pointer geometry. Zoom/pan remain temporary; saved boxes, PNG snapshots and inference inputs are unchanged.
+- Abandon unfinished box edits when a pinch starts, preserve selection and reject late releases. Reset the view at dialog/source/reference transitions while retaining it between Add and Select / edit.
+- Show an early startup notice and truthful self-extract loading/unpacking/starting stages; decode the loader payload in chunks so the browser can update progress. The bundled model/runtime transfer remains part of the initial HTML; no browser startup speedup is claimed.
+- Keep physical Android touch and direct-file validation separate from automated and desktop-browser results.
+
 ## 1.1.0-dev.8 — 2026-10-23
 
 - Add explicit Add and Select / edit modes for local examples and pinned-reference drafts, with canvas or numbered-list selection and selected-only deletion.

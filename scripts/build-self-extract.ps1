@@ -146,15 +146,18 @@ $wrapper = @"
     body.failed .spinner { display: none; }
     body.failed pre { display: block; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
   </style>
 </head>
-<body>
+<body data-phase="loading">
   <main>
     <div class="spinner" aria-hidden="true"></div>
-    <h1>&#x30A2;&#x30D7;&#x30EA;&#x3092;&#x5C55;&#x958B;&#x3057;&#x3066;&#x3044;&#x307E;&#x3059; / Unpacking the app</h1>
-    <p>&#x3053;&#x306E;&#x51E6;&#x7406;&#x306F;&#x7AEF;&#x672B;&#x5185;&#x3067;&#x884C;&#x308F;&#x308C;&#x3001;&#x5916;&#x90E8;&#x901A;&#x4FE1;&#x306F;&#x767A;&#x751F;&#x3057;&#x307E;&#x305B;&#x3093;&#x3002;</p>
-    <p>The compressed single-file app is being restored locally.</p>
-    <p>&#x5916;&#x90E8;&#x901A;&#x4FE1;&#x306F;&#x3042;&#x308A;&#x307E;&#x305B;&#x3093;&#x3002; / No network request is made.</p>
+    <h1 id="status" role="status" aria-live="polite">&#x30A2;&#x30D7;&#x30EA;&#x30D5;&#x30A1;&#x30A4;&#x30EB;&#x3092;&#x8AAD;&#x307F;&#x8FBC;&#x3093;&#x3067;&#x3044;&#x307E;&#x3059; / Loading the application file</h1>
+    <p id="progress" aria-hidden="true"></p>
+    <p>&#x30AA;&#x30D5;&#x30E9;&#x30A4;&#x30F3;&#x3067;&#x4F7F;&#x3046;&#x305F;&#x3081;&#x306B;&#x5FC5;&#x8981;&#x306A;&#x30C7;&#x30FC;&#x30BF;&#x3092;&#x3001;&#x3053;&#x306E;&#x30D5;&#x30A1;&#x30A4;&#x30EB;&#x306B;&#x3059;&#x3079;&#x3066;&#x542B;&#x3081;&#x3066;&#x3044;&#x307E;&#x3059;&#x3002;&#x901A;&#x4FE1;&#x74B0;&#x5883;&#x3084;&#x7AEF;&#x672B;&#x306B;&#x3088;&#x3063;&#x3066;&#x306F;&#x3001;&#x8AAD;&#x307F;&#x8FBC;&#x307F;&#x306B;&#x6642;&#x9593;&#x304C;&#x304B;&#x304B;&#x308A;&#x307E;&#x3059;&#x3002;</p>
+    <p>This file includes everything needed to use the app offline. Loading may take time on slower connections or devices.</p>
+    <p>&#x30D5;&#x30A1;&#x30A4;&#x30EB;&#x306E;&#x8AAD;&#x307F;&#x8FBC;&#x307F;&#x5F8C;&#x306F;&#x3001;&#x8FFD;&#x52A0;&#x306E;&#x30C0;&#x30A6;&#x30F3;&#x30ED;&#x30FC;&#x30C9;&#x306A;&#x3057;&#x3067;&#x7AEF;&#x672B;&#x5185;&#x3067;&#x8D77;&#x52D5;&#x3057;&#x307E;&#x3059;&#x3002;</p>
+    <p>After the file loads, it opens on your device without extra downloads.</p>
     <pre id="error" role="alert"></pre>
   </main>
   <script id="self-extract-payload" type="application/octet-stream">$payloadBase64</script>
@@ -162,7 +165,19 @@ $wrapper = @"
   (() => {
     "use strict";
 
+    const status = document.getElementById("status");
+    const progress = document.getElementById("progress");
+    const setStage = (phase, message) => {
+      document.body.dataset.phase = phase;
+      status.textContent = message;
+      progress.textContent = "";
+    };
+    // A task boundary keeps the notice responsive without waiting on animation
+    // frames, which may stop completely when this tab is in the background.
+    const yieldToBrowser = () => new Promise(resolve => setTimeout(resolve, 0));
+
     const fail = (error) => {
+      setStage("error", "\u30a2\u30d7\u30ea\u3092\u958b\u3051\u307e\u305b\u3093\u3067\u3057\u305f / Could not open the app");
       document.body.classList.add("failed");
       const detail = error instanceof Error ? error.name + ": " + error.message : String(error);
       document.getElementById("error").textContent =
@@ -171,10 +186,11 @@ $wrapper = @"
       console.error(error);
     };
 
-    const decodeBase64 = (base64) => {
+    const decodeBase64 = async (base64) => {
       const clean = base64.replace(/\s+/g, "");
       const byteChunks = [];
       const base64ChunkSize = 32768;
+      let yieldStarted = performance.now();
       for (let offset = 0; offset < clean.length; offset += base64ChunkSize) {
         const binary = atob(clean.slice(offset, offset + base64ChunkSize));
         const bytes = new Uint8Array(binary.length);
@@ -182,6 +198,11 @@ $wrapper = @"
           bytes[index] = binary.charCodeAt(index);
         }
         byteChunks.push(bytes);
+        if (offset + base64ChunkSize < clean.length && performance.now() - yieldStarted >= 12) {
+          progress.textContent = Math.round((offset + base64ChunkSize) / clean.length * 100) + "%";
+          await yieldToBrowser();
+          yieldStarted = performance.now();
+        }
       }
       return new Blob(byteChunks, { type: "application/gzip" });
     };
@@ -192,7 +213,11 @@ $wrapper = @"
       }
 
       const payload = document.getElementById("self-extract-payload").textContent;
-      const compressedBlob = decodeBase64(payload);
+      setStage("decoding", "\u7aef\u672b\u5185\u3067\u30d5\u30a1\u30a4\u30eb\u3092\u6e96\u5099\u3057\u3066\u3044\u307e\u3059 / Preparing the file locally");
+      await yieldToBrowser();
+      const compressedBlob = await decodeBase64(payload);
+      setStage("unpacking", "\u7aef\u672b\u5185\u3067\u30a2\u30d7\u30ea\u3092\u5c55\u958b\u3057\u3066\u3044\u307e\u3059 / Unpacking the app locally");
+      await yieldToBrowser();
       const decompressedStream = compressedBlob.stream().pipeThrough(new DecompressionStream("gzip"));
       const html = await new Response(decompressedStream).text();
 
@@ -200,6 +225,8 @@ $wrapper = @"
         throw new Error("The restored payload is not an HTML document.");
       }
 
+      setStage("starting", "\u30a2\u30d7\u30ea\u3092\u8d77\u52d5\u3057\u3066\u3044\u307e\u3059 / Starting the app");
+      await yieldToBrowser();
       document.open("text/html", "replace");
       document.write(html);
       document.close();

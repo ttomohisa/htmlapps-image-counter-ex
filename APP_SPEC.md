@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.8
+- **Version:** 1.1.0-dev.9
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -185,6 +185,8 @@ result.zip
 - At widths up to 760 px, the start card uses a compact, left-aligned introduction, full-width stacked photo/camera actions and a separate two-column row for import/sample (stacked up to 380 px). Hide desktop-only drop/paste instructions on mobile. Keep the start screen free of bottom-bar space when no workspace is open.
 - After Types or Export closes across a desktop/mobile layout change, a hidden or wholly offscreen paired opener can yield focus to its visible desktop/mobile counterpart. This applies only while focus remains on the recorded opener, BODY, or inside that now-closed dialog; a reopened dialog, another modal, or unrelated focused control keeps ownership. Other launchers and ordinary native Tab/BODY stops remain unchanged.
 - Japanese/English switching updates accessible labels, tooltips, camera preview alternative text, confirmation buttons, and dynamic type controls without changing project values or unfinished type-name input.
+- Show an early, readable startup notice while the bundled application is loading and remove it when the app is ready. Explain in Help that the initial single-HTML download includes the model/runtime assets and can take time on slower connections or devices; asset decoding for detection remains lazy.
+- The self-extract loader reports **Loading application file → Unpacking locally → Starting** at the corresponding stages. Decode its Base64 payload in chunks with opportunities for the browser to update the loading UI before native gzip expansion. Do not present local unpacking as a model download or claim a measured startup speedup.
 
 ## 7. Privacy and network
 
@@ -231,6 +233,7 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 - Viewer can download current JPEG and ZIP.
 - Viewer HTML can be imported back into the main app with images and marker data intact.
 - At 390 px viewport width, the application has no page-level horizontal overflow; the canvas type dock and mobile bottom bar remain usable.
+- Both release variants retain their startup notice until ready; the self-extract stages describe the work actually in progress. Verify stage visibility under throttled loading separately from Node decoding measurements.
 
 
 ## UI / UX layout notes
@@ -308,3 +311,12 @@ Compatibility exception: the former native resize handler could create an exact 
 - Edits to a pinned reference remain a temporary copy until Save example changes. Discard, Escape, dialog close and stale ownership discard the draft. A changed, valid save is one Undo/Redo transaction; an unchanged save creates no history. At least one valid example is required to save.
 - Unpinned examples remain local to the dialog until explicitly pinned. Example editing never adds count markers. Model assets, dependencies, the project schema and storage identifiers are unchanged.
 - Acceptance checks cover local and pinned examples, canvas/list selection, selected-only deletion, all four handles, numeric updates, pointer cancellation/multitouch, rotated targets, save/discard/close, Undo/Redo and draft/viewer round trips. Desktop browser, direct-file and physical Android results must be recorded separately; automated checks alone do not establish those passes.
+
+### Example-preview zoom and pan (1.1.0-dev.9)
+
+- Local examples and pinned-reference drafts support 1–8× preview zoom. Pinch keeps the image point beneath the gesture anchored; two-finger movement pans the view. **Pan view** provides one-pointer panning without adding or editing a box. Choosing Add or Select / edit exits Pan view.
+- Keep **−**, **+**, the zoom level and **Fit** beside the preview at desktop and mobile widths. Each button step divides or multiplies zoom by 1.5 within the limits; Fit restores the whole-image view. Controls support keyboard activation. Corner handles retain a fixed CSS size as the image zooms.
+- Reuse the same viewport transform for image rendering, overlays and pointer-to-image coordinates. Add, select, move, resize and numeric bounds continue to use normalized source-image geometry at every rotation. View changes never modify boxes, the saved PNG, counts, inference input or project history.
+- A second pointer abandons any pending add/move/resize while retaining the selected example, then starts the view gesture. Extra pointers, cancellation and surviving/late pointer events cannot commit an abandoned edit.
+- Zoom/pan are temporary and are not saved in drafts or exports. Reset the view on dialog open/close, source changes, entering/saving/discarding pinned-reference editing, pin/unpin and next-photo transitions. Switching between Add and Select / edit keeps the current view.
+- Acceptance checks include magnified small-box edits, anchored pinch/two-finger pan, limits/Fit, pointer cancellation, source-boundary resets and unchanged saved data. Record physical Android touch tests separately from desktop pointer simulation and narrow-width layout checks.

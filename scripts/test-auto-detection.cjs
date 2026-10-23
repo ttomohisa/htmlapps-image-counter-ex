@@ -144,11 +144,12 @@ function detectionUI(useDefault=false){
   const c=engine(),nodes=new Map(),events=new Map(),revoked=[];let terminated=0;
   const node=tag=>{
     const listeners=new Map(),captured=new Set(),attrs=new Map(),classes=new Set();
-    return {disabled:false,dataset:{},textContent:'',open:true,listeners,children:[],tagName:tag.toUpperCase(),
+    return {disabled:false,dataset:{},style:{},textContent:'',open:true,listeners,children:[],tagName:tag.toUpperCase(),
       setAttribute:(name,value)=>attrs.set(name,String(value)),getAttribute:name=>attrs.get(name)??null,
       classList:{add:(...names)=>names.forEach(name=>classes.add(name)),remove:(...names)=>names.forEach(name=>classes.delete(name)),contains:name=>classes.has(name),toggle(name,force){const on=force??!classes.has(name);on?classes.add(name):classes.delete(name);return on}},
       replaceChildren(...children){this.children=children},append(...children){this.children.push(...children)},
       focus(){c.document.activeElement=this},
+      showModal(){this.open=true},close(){this.open=false;listeners.get('close')?.()},
       addEventListener:(name,handler)=>listeners.set(name,handler),querySelector:()=>null,
       getBoundingClientRect:()=>({left:30,top:50,width:240,height:180}),
       setPointerCapture:id=>captured.add(id),hasPointerCapture:id=>captured.has(id),releasePointerCapture:id=>captured.delete(id)};
@@ -162,14 +163,15 @@ function detectionUI(useDefault=false){
   Object.assign(c,{$:element,P:project,activeImage:()=>im,activeCategory:()=>project.categories[0],t:key=>key,
     URL:{revokeObjectURL:url=>revoked.push(url)},addEventListener:(name,handler)=>events.set(name,handler),
     renderAll(){},document:{activeElement:null,createElement:node},imageCache:new Map(),model,worker:{terminate:()=>terminated++}});
-  vm.runInContext(section('function toDisplayNorm(','function canvasCssSize('),c);
+  vm.runInContext(section('function displayDims(','function canvasCssSize('),c);
   vm.runInContext(section('// AUTO:UI:BEGIN','// AUTO:UI:END'),c);
   vm.runInContext("autoState.owner={project:P,imageId:'one',dataUrl:'pixels'};autoState.examples=[{x:.1,y:.1,w:.2,h:.2}]",c);
   if(!useDefault)vm.runInContext('autoState.model=model',c);
-  const pointer=(name,{id=1,primary=true,x=78,y=68}={})=>{
-    element('#autoCanvas').listeners.get(name)({pointerId:id,isPrimary:primary,button:0,pointerType:'touch',clientX:x,clientY:y,preventDefault(){}});
+  const pointer=(name,{id=1,primary=true,x=78,y=68,type='touch',button=0}={})=>{
+    element('#autoCanvas').listeners.get(name)({pointerId:id,isPrimary:primary,button,pointerType:type,clientX:x,clientY:y,preventDefault(){}});
   };
-  return{c,element,events,revoked,im,pointer,terminated:()=>terminated};
+  const resize=()=>{const handler=events.get('resize');assert.equal(typeof handler,'function','The preview must respond to viewport resize');handler()};
+  return{c,element,events,revoked,im,pointer,resize,terminated:()=>terminated};
 }
 test('embedded model is ready without a file selection and survives transfer on repeated runs',async()=>{
   const {c,element}=detectionUI(true),reads=[];
@@ -463,13 +465,17 @@ for(const guard of ['busy','owner','fixed'])test(`${guard} blocks deletion and n
   c.deleteAutoExample();c.updateAutoExampleBounds();assert.deepEqual(exampleState(c),before);
 });
 
-test('detecting after selecting an example restores canvas candidate-tap behavior',async()=>{
-  const {c,pointer}=detectionUI(true),releases=[];
+for(const mode of ['select','pan'])test(`detecting after ${mode} mode restores canvas candidate-tap behavior`,async()=>{
+  const {c,pointer,element}=detectionUI(true),releases=[];
   Object.assign(c,{Worker:class{},OffscreenCanvas:class{},createImageBitmap(){},StandaloneAssets:{bytesAsync:()=>new Promise(resolve=>releases.push(()=>resolve(new Uint8Array([1]))))}});
-  c.selectAutoExample(0);const pending=c.startAutoDetection();assert.equal(vm.runInContext('autoState.exampleMode',c),'add');
+  c.selectAutoExample(0);if(mode==='pan'){element('#autoZoomIn').onclick();element('#autoPanMode').onclick();pointer('pointerdown',{x:150,y:140})}
+  const pending=c.startAutoDetection();assert.equal(vm.runInContext('autoState.exampleMode',c),'add');
+  if(mode==='pan'){assert.equal(vm.runInContext('autoState.viewMode',c),'edit');assert.equal(vm.runInContext('autoPointers.size',c),0);nearPoint(previewPoint(c,30,50),1/6,1/6)}
   c.autoStopJob();for(const release of releases)release();await pending;
   vm.runInContext("autoState.candidates=[{x:.1,y:.2,w:.2,h:.2,score:.9}];autoState.phase='result'",c);
-  const before=exampleState(c);pointer('pointerdown',{x:198,y:86});pointer('pointerup',{x:199,y:87});
+  const before=exampleState(c),point=mode==='pan'?{x:222,y:59}:{x:198,y:86};
+  if(mode==='pan'){pointer('pointerup',point);assert.equal(vm.runInContext('autoState.excluded.has(0)',c),false)}
+  pointer('pointerdown',point);pointer('pointerup',{x:point.x+1,y:point.y+1});
   assert.equal(vm.runInContext('autoState.excluded.has(0)',c),true);assert.deepEqual(exampleState(c),before);
 });
 
@@ -498,4 +504,200 @@ test('dragging the explicitly selected overlapping example preserves the newer c
   pointer('pointerdown',{x:102,y:104});assert.equal(vm.runInContext('autoState.selectedExample',c),0);
   pointer('pointermove',{x:126,y:122});pointer('pointerup',{x:126,y:122});
   nearBox(exampleState(c)[0],{x:.3,y:.3,w:.2,h:.2});assert.deepEqual(exampleState(c)[1],containing);
+});
+
+function pinchPreview(pointer,{startA={x:90,y:140},startB={x:150,y:140},endA={x:60,y:140},endB={x:180,y:140}}={}){
+  pointer('pointerdown',startA);pointer('pointerdown',{...startB,id:2,primary:false});
+  pointer('pointermove',endA);pointer('pointermove',{...endB,id:2,primary:false});
+  pointer('pointerup',{...endB,id:2,primary:false});pointer('pointerup',endA);
+}
+const previewPoint=(c,x,y)=>c.autoCanvasPoint({clientX:x,clientY:y});
+function nearPoint(actual,u,v){assert.ok(Math.abs(actual.u-u)<1e-10,`u: ${actual.u} should be ${u}`);assert.ok(Math.abs(actual.v-v)<1e-10,`v: ${actual.v} should be ${v}`)}
+
+test('off-center preview pinch keeps its image anchor and changes inverse pointer coordinates',()=>{
+  const {c,pointer}=detectionUI(),before=exampleState(c),project=JSON.stringify(c.P);
+  pinchPreview(pointer);
+  nearPoint(previewPoint(c,120,140),.375,.5);
+  nearPoint(previewPoint(c,150,140),.4375,.5);
+  assert.deepEqual(exampleState(c),before);assert.equal(JSON.stringify(c.P),project);
+});
+
+test('starting a pinch restores example selection changed by the first finger',()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;c.selectAutoExample(0);
+  pinchPreview(pointer);
+  assert.equal(vm.runInContext('autoState.selectedExample',c),0);
+  assert.equal(vm.runInContext('autoState.exampleMode',c),'select');
+});
+
+const centeredPinch={startA:{x:90,y:140},startB:{x:210,y:140},endA:{x:30,y:140},endB:{x:270,y:140}};
+for(const [rotation,wanted]of [
+  [0,{x:.3,y:.35,w:.3,h:.2}],[90,{x:.35,y:.4,w:.2,h:.3}],
+  [180,{x:.4,y:.45,w:.3,h:.2}],[270,{x:.45,y:.3,w:.2,h:.3}]
+])test(`zoomed example drawing stores original coordinates at ${rotation} degrees`,()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=rotation;vm.runInContext('autoState.examples=[]',c);
+  const before=JSON.stringify(c.P);pinchPreview(pointer,centeredPinch);
+  pointer('pointerdown',{x:54,y:86});pointer('pointermove',{x:198,y:158});pointer('pointerup',{x:198,y:158});
+  assert.equal(exampleState(c).length,1);nearBox(exampleState(c)[0],wanted);assert.equal(JSON.stringify(c.P),before);
+});
+
+test('zoomed pinned drawing keeps snapshot coordinates and saved reference immutable',async()=>{
+  const {c,im,ref,pointer}=editableReference();im.adjustments.rotation=270;await c.editAutoReference();c.setAutoExampleMode('add');
+  const before=JSON.stringify(c.P);pinchPreview(pointer,centeredPinch);
+  pointer('pointerdown',{x:54,y:86});pointer('pointermove',{x:198,y:158});pointer('pointerup',{x:198,y:158});
+  nearBox(exampleState(c)[1],{x:.3,y:.35,w:.3,h:.2});assert.equal(JSON.stringify(c.P),before);assert.equal(c.autoCurrentReference(),ref);assert.equal(c.historyCount,undefined);
+});
+
+for(const action of ['move','resize'])test(`zoomed selected-example ${action} uses image deltas while retaining screen hit targets`,()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;
+  vm.runInContext('autoState.examples=[{x:.35,y:.35,w:.2,h:.2}]',c);c.selectAutoExample(0);pinchPreview(pointer,centeredPinch);
+  const before=exampleState(c),start=action==='move'?{x:126,y:122}:{x:174,y:158},end=action==='move'?{x:150,y:140}:{x:198,y:194};
+  pointer('pointerdown',start);pointer('pointermove',end);assert.deepEqual(exampleState(c),before);pointer('pointerup',end);
+  nearBox(exampleState(c)[0],action==='move'?{x:.4,y:.4,w:.2,h:.2}:{x:.35,y:.35,w:.25,h:.3});
+});
+
+for(const type of ['touch','mouse'])test(`zoomed ${type} corner hit radius stays fixed in CSS pixels`,()=>{
+  const {c,im}=detectionUI();im.adjustments.rotation=0;vm.runInContext('autoState.examples=[{x:.4,y:.4,w:.2,h:.2}]',c);c.selectAutoExample(0);
+  for(const zoom of [1,4]){
+    vm.runInContext(`autoState.view={zoom:${zoom},panX:0,panY:0}`,c);
+    const radius=type==='touch'?22:12,cornerX=zoom===1?126:54,cornerY=zoom===1?122:68;
+    const within=c.autoHitExample(previewPoint(c,cornerX-radius+1,cornerY),type),outside=c.autoHitExample(previewPoint(c,cornerX-radius-1,cornerY),type);
+    assert.equal(within?.handle,'nw');assert.equal(outside,null);
+  }
+});
+
+test('zoomed selection taps keep a CSS-pixel drift threshold and retain candidates',()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;vm.runInContext('autoState.examples=[{x:.35,y:.35,w:.2,h:.2}]',c);c.selectAutoExample(0);pinchPreview(pointer,centeredPinch);
+  vm.runInContext('autoState.candidates=[{x:.7,y:.7,w:.1,h:.1,score:.9}]',c);const before=exampleState(c);
+  pointer('pointerdown',{x:126,y:122});pointer('pointerup',{x:128,y:123});assert.deepEqual(exampleState(c),before);assert.equal(vm.runInContext('autoState.candidates.length',c),1);
+  pointer('pointerdown',{x:126,y:122});pointer('pointerup',{x:130,y:122});
+  nearBox(exampleState(c)[0],{x:.35+1/120,y:.35,w:.2,h:.2});assert.equal(vm.runInContext('autoState.candidates.length',c),0);
+});
+
+test('zoomed candidate taps toggle the visible original-image box without changing examples',()=>{
+  const {c,pointer}=detectionUI();vm.runInContext('autoState.examples=[];autoState.candidates=[{x:.44,y:.52,w:.05,h:.06,score:.9}]',c);
+  const before=JSON.stringify(c.P);pinchPreview(pointer,centeredPinch);
+  pointer('pointerdown',{x:126,y:128});pointer('pointerup',{x:127,y:129});
+  assert.equal(vm.runInContext('autoState.excluded.has(0)',c),true);assert.equal(exampleState(c).length,0);assert.equal(JSON.stringify(c.P),before);
+});
+
+for(const released of [1,2])for(const extraPointer of [false,true])test(`pinch release of pointer ${released}${extraPointer?' with a third finger':''} cannot become an example or candidate tap`,()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;
+  vm.runInContext('autoState.examples=[{x:.35,y:.35,w:.2,h:.2}];autoState.candidates=[{x:.35,y:.35,w:.2,h:.2,score:.9}]',c);c.selectAutoExample(0);
+  const before=JSON.stringify({examples:exampleState(c),project:c.P});
+  pointer('pointerdown',{x:126,y:122});pointer('pointermove',{x:150,y:140});pointer('pointerdown',{id:2,primary:false,x:210,y:140});
+  if(extraPointer)pointer('pointerdown',{id:3,primary:false,x:180,y:180});
+  pointer('pointermove',{id:2,primary:false,x:240,y:140});pointer('pointerup',{id:released,primary:released===1,x:150,y:140});
+  const remaining=released===1?2:1;pointer('pointermove',{id:remaining,primary:remaining===1,x:200,y:180});pointer('pointerup',{id:remaining,primary:remaining===1,x:200,y:180});
+  if(extraPointer){pointer('pointermove',{id:3,primary:false,x:126,y:122});pointer('pointerup',{id:3,primary:false,x:126,y:122})}
+  pointer('pointermove',{x:126,y:122});pointer('pointerup',{x:126,y:122});
+  assert.equal(JSON.stringify({examples:exampleState(c),project:c.P}),before);assert.equal(vm.runInContext('autoState.excluded.size',c),0);assert.equal(vm.runInContext('autoState.drag',c),null);
+});
+
+for(const cancellation of ['pointercancel','lostpointercapture'])test(`${cancellation} during pinch leaves survivors inert and permits a fresh gesture`,()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;vm.runInContext('autoState.examples=[]',c);
+  pointer('pointerdown',{x:90,y:140});pointer('pointerdown',{id:2,primary:false,x:210,y:140});pointer('pointermove',{id:2,primary:false,x:270,y:140});
+  pointer(cancellation);pointer('pointermove',{id:2,primary:false,x:150,y:140});pointer('pointerup',{id:2,primary:false,x:150,y:140});
+  assert.equal(exampleState(c).length,0);assert.equal(vm.runInContext('autoState.drag',c),null);
+  vm.runInContext('autoState.view={zoom:1,panX:0,panY:0}',c);
+  pointer('pointerdown',{id:3,x:78,y:86});pointer('pointermove',{id:3,x:150,y:140});pointer('pointerup',{id:3,x:150,y:140});
+  nearBox(exampleState(c)[0],{x:.2,y:.2,w:.3,h:.3});
+});
+
+test('zoom controls clamp the preview, preserve geometry, and Fit restores the full image',()=>{
+  const {c,element}=detectionUI(),before=exampleState(c),project=JSON.stringify(c.P);
+  assert.equal(typeof element('#autoZoomIn').onclick,'function');assert.equal(typeof element('#autoZoomOut').onclick,'function');assert.equal(typeof element('#autoFit').onclick,'function');
+  element('#autoZoomIn').onclick();nearPoint(previewPoint(c,30,50),1/6,1/6);
+  for(let i=0;i<20;i++)element('#autoZoomIn').onclick();nearPoint(previewPoint(c,30,50),.4375,.4375);
+  for(let i=0;i<30;i++)element('#autoZoomOut').onclick();nearPoint(previewPoint(c,30,50),0,0);nearPoint(previewPoint(c,270,230),1,1);
+  element('#autoZoomIn').onclick();element('#autoFit').onclick();nearPoint(previewPoint(c,30,50),0,0);nearPoint(previewPoint(c,270,230),1,1);
+  assert.deepEqual(exampleState(c),before);assert.equal(JSON.stringify(c.P),project);
+});
+
+test('explicit pan moves the zoomed image within its bounds without modifying selected examples',()=>{
+  const {c,element,pointer}=detectionUI();c.selectAutoExample(0);pinchPreview(pointer,centeredPinch);const before=exampleState(c),project=JSON.stringify(c.P);
+  assert.equal(typeof element('#autoPanMode').onclick,'function');element('#autoPanMode').onclick();
+  pointer('pointerdown',{x:150,y:140});pointer('pointermove',{x:198,y:176});pointer('pointerup',{x:198,y:176});nearPoint(previewPoint(c,150,140),.4,.4);
+  pointer('pointerdown',{x:150,y:140});pointer('pointermove',{x:1500,y:1400});pointer('pointerup',{x:1500,y:1400});nearPoint(previewPoint(c,30,50),0,0);nearPoint(previewPoint(c,270,230),.5,.5);
+  pointer('pointerdown',{x:150,y:140});pointer('pointermove',{x:-1500,y:-1400});pointer('pointerup',{x:-1500,y:-1400});nearPoint(previewPoint(c,30,50),.5,.5);nearPoint(previewPoint(c,270,230),1,1);
+  assert.deepEqual(exampleState(c),before);assert.equal(JSON.stringify(c.P),project);assert.equal(vm.runInContext('autoState.selectedExample',c),0);
+});
+
+test('changing example selection or edit mode retains the current preview position',()=>{
+  const {c,pointer}=detectionUI();pinchPreview(pointer);const at=previewPoint(c,150,140);
+  c.selectAutoExample(0);nearPoint(previewPoint(c,150,140),at.u,at.v);c.setAutoExampleMode('add');nearPoint(previewPoint(c,150,140),at.u,at.v);
+  c.setAutoExampleMode('select');nearPoint(previewPoint(c,150,140),at.u,at.v);c.deleteAutoExample();nearPoint(previewPoint(c,150,140),at.u,at.v);
+});
+
+for(const boundary of ['enter-reference','cancel-reference','save-reference','close','unpin'])test(`${boundary} resets preview coordinates and abandons pending gestures`,async()=>{
+  const {c,element,ref,pointer}=editableReference();
+  if(boundary!=='enter-reference')await c.editAutoReference();
+  pinchPreview(pointer,centeredPinch);pointer('pointerdown',{x:150,y:140});pointer('pointermove',{x:174,y:158});
+  if(boundary==='enter-reference')await c.editAutoReference();
+  if(boundary==='cancel-reference')c.cancelAutoReferenceEdit();
+  if(boundary==='save-reference'){c.addAutoExample(box(.5,.5,.1,.1));c.saveAutoReferenceEdit()}
+  if(boundary==='close')element('#autoDlg').listeners.get('close')();
+  if(boundary==='unpin'){c.cancelAutoReferenceEdit();pinchPreview(pointer,centeredPinch);element('#autoUnpin').onclick()}
+  nearPoint(previewPoint(c,30,50),0,0);nearPoint(previewPoint(c,270,230),1,1);assert.equal(vm.runInContext('autoState.drag',c),null);
+  const after=JSON.stringify({examples:exampleState(c),project:c.P});pointer('pointerup',{x:198,y:194});assert.equal(JSON.stringify({examples:exampleState(c),project:c.P}),after);
+  if(boundary==='cancel-reference'||boundary==='close')assert.equal(c.autoCurrentReference(),ref);
+});
+
+test('opening detection starts from a fitted preview and ignores the previous dialog pointer',async()=>{
+  const {c,im,pointer}=detectionUI();Object.assign(c,{activeCategoryId:'a',pointers:new Map(),gesture:null,cancelMarkerInteraction(){}});
+  c.imageCache.set(im.id,{});c.renderAutoPreview=()=>{};pinchPreview(pointer,centeredPinch);pointer('pointerdown',{x:150,y:140});
+  await c.openAutoDetection();nearPoint(previewPoint(c,30,50),0,0);nearPoint(previewPoint(c,270,230),1,1);
+  pointer('pointerup',{x:198,y:194});assert.equal(exampleState(c).length,0);assert.equal(vm.runInContext('autoState.drag',c),null);
+});
+
+test('next-image detection resets the preview before handing the new source to inference',async()=>{
+  const {c,pointer}=detectionUI();c.renderAutoReference=()=>{};
+  const ref={sourceName:'reference',examples:[box(.1,.1,.2,.2)]};c.P.categories[0].detectionReference=ref;
+  const next={...c.P.images[0],id:'two',dataUrl:'next',markers:[]};c.P.images.push(next);c.applyAutoCandidates=()=>0;c.switchImage=async()=>{c.activeImage=()=>next};
+  vm.runInContext("autoState.phase='result';autoState.candidates=[{x:.4,y:.4,w:.2,h:.2,score:.9}]",c);pinchPreview(pointer,centeredPinch);
+  let calls=0;c.startAutoDetection=async()=>{calls++;nearPoint(previewPoint(c,30,50),0,0);nearPoint(previewPoint(c,270,230),1,1)};
+  await c.autoApplyAndNext();assert.equal(calls,1);assert.equal(vm.runInContext('autoState.drag',c),null);
+});
+
+test('pinching a zoomed preview translates the image and limits excessive scale without moving examples',()=>{
+  const {c,pointer}=detectionUI(),before=exampleState(c);pinchPreview(pointer,centeredPinch);
+  pinchPreview(pointer,{startA:{x:90,y:140},startB:{x:210,y:140},endA:{x:138,y:176},endB:{x:258,y:176}});
+  nearPoint(previewPoint(c,150,140),.4,.4);
+  pinchPreview(pointer,{startA:{x:149,y:140},startB:{x:151,y:140},endA:{x:-500,y:140},endB:{x:800,y:140}});
+  const left=previewPoint(c,30,140),right=previewPoint(c,270,140);assert.ok(Math.abs(right.u-left.u-.125)<1e-10);
+  assert.deepEqual(exampleState(c),before);
+});
+
+function previewDrawing(){
+  const f=detectionUI(),{c,im,element}=f;im.adjustments.rotation=0;
+  const rects=[],labels=[],stack=[];let matrix={a:1,d:1,e:0,f:0};
+  const context={fillStyle:'',save(){stack.push({...matrix,fillStyle:this.fillStyle})},restore(){const saved=stack.pop();this.fillStyle=saved.fillStyle;matrix=saved},translate(x,y){matrix.e+=matrix.a*x;matrix.f+=matrix.d*y},scale(x,y){matrix.a*=x;matrix.d*=y},setTransform(a,b,cc,d,e,f){assert.equal(b,0);assert.equal(cc,0);matrix={a,d,e,f}},drawImage(){},clearRect(){},setLineDash(){},strokeRect(){},fillText:label=>labels.push(label),measureText:()=>({width:30}),fillRect(x,y,w,h){rects.push({fill:this.fillStyle,x:matrix.e+x*matrix.a,y:matrix.f+y*matrix.d,w:w*matrix.a,h:h*matrix.d})}};
+  element('#autoCanvas').getContext=()=>context;c.imageCache.set(im.id,{naturalWidth:600,naturalHeight:800});
+  return{...f,rects,labels,clearDrawing(){rects.length=0;labels.length=0;matrix={a:1,d:1,e:0,f:0}}};
+}
+test('selected preview handles render at 12 CSS pixels after zoom',()=>{
+  const {c,element,rects,clearDrawing}=previewDrawing();
+  vm.runInContext('autoState.examples=[{x:.4,y:.4,w:.2,h:.2}]',c);c.selectAutoExample(0);
+  for(const zoom of [1,4]){
+    clearDrawing();vm.runInContext(`autoState.view={zoom:${zoom},panX:0,panY:0}`,c);c.renderAutoPreview();
+    const canvas=element('#autoCanvas'),handles=rects.filter(rect=>rect.fill==='#fff');assert.equal(handles.length,4);
+    for(const handle of handles){assert.ok(Math.abs(handle.w*240/canvas.width-12)<1e-10);assert.ok(Math.abs(handle.h*180/canvas.height-12)<1e-10)}
+    const first=handles[0],centerX=(first.x+first.w/2)*240/canvas.width,centerY=(first.y+first.h/2)*180/canvas.height;
+    assert.ok(Math.abs(centerX-(zoom===1?96:24))<1e-10);assert.ok(Math.abs(centerY-(zoom===1?72:18))<1e-10);
+  }
+});
+
+test('zoomed preview does not paint labels for fully offscreen example boxes',()=>{
+  const {c,labels}=previewDrawing();c.t=(key,values)=>key==='autoExampleShort'?`Example ${values.count}`:key;
+  vm.runInContext('autoState.view={zoom:4,panX:0,panY:0};autoState.examples=[{x:.4,y:.1,w:.1,h:.1},{x:.4,y:.8,w:.1,h:.1},{x:.1,y:.4,w:.1,h:.1},{x:.8,y:.4,w:.1,h:.1},{x:.4,y:.4,w:.2,h:.2}]',c);
+  c.renderAutoPreview();assert.deepEqual(labels,['Example 5']);
+});
+
+test('preview resize redraws fixed-size handles and abandons a pending example edit',()=>{
+  const {c,element,rects,clearDrawing,pointer,resize}=previewDrawing();
+  vm.runInContext('autoState.view={zoom:4,panX:0,panY:0};autoState.examples=[{x:.4,y:.4,w:.2,h:.2}]',c);c.selectAutoExample(0);resize();
+  const before=exampleState(c);pointer('pointerdown',{x:150,y:140});pointer('pointermove',{x:174,y:158});
+  element('#autoCanvas').getBoundingClientRect=()=>({left:30,top:50,width:120,height:90});clearDrawing();resize();
+  const canvas=element('#autoCanvas'),handles=rects.filter(rect=>rect.fill==='#fff');assert.equal(handles.length,4);
+  for(const handle of handles){assert.ok(Math.abs(handle.w*120/canvas.width-12)<1e-10);assert.ok(Math.abs(handle.h*90/canvas.height-12)<1e-10)}
+  pointer('pointerup',{x:198,y:194});assert.deepEqual(exampleState(c),before);assert.equal(vm.runInContext('autoState.drag',c),null);
 });

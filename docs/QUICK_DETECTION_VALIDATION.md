@@ -59,3 +59,29 @@ Final required repository check exited 0: 3,067 tests passed, zero failures, plu
 - On the final readable build, a later example was expanded to cover the first. Selecting the first by number and dragging its center kept selection 0 and moved the first; the larger box stayed in place. Discard preserved the saved reference.
 - Self-extract build: keyboard Delete removed a selected draft example; Escape discarded it and reopened with four saved examples. Unpin, Add, Select / edit and numeric update worked for an unpinned example. Actual embedded-model inference then returned 26 duplicate candidates; tapping a candidate changed the summary to 25 duplicates and one unchecked candidate. Undo restored the four pinned examples. Neither build captured console errors or warnings.
 - Physical Android and direct `file://` execution remain unverified in this change. The verification browser previously rejected local-file URLs; localhost results are not a substitute. Model, runtime and storage schema are unchanged.
+
+## Example-preview zoom and startup — 1.1.0-dev.9
+
+Required repository check passed on 2026-10-23 (exit 0): **3,238 tests passed, 0 failed**, across source, readable, root alias and unpacked self-extract variants. Log: `.cache/reference-zoom-repository-final.log`. The focused source suite passed 107 detection, 17 quick-detection and 7 startup tests. Self-extract byte parity, ASCII loader, favicon inheritance and restrictive CSP passed; the embedded model/runtime bundle is byte-identical to dev.8.
+
+### Startup baseline
+
+Before this change, the readable HTML was 21,154,621 bytes and self-extract HTML was 21,125,579 bytes. The observed GitHub Pages gzip response had a 15,993,852-byte Content-Length (about 15.25 MiB). This is transfer-size evidence, not a measured browser startup delay. Both formats include the complete model/runtime bundle in the initial file; the inner detection assets are decoded lazily on Detect.
+
+Local Node measurements of the loader payload took 42.7–53.7 ms for Base64 decoding and 162.7–223.3 ms for gzip expansion. These are desktop Node measurements, not browser or Android timings, and they do not demonstrate a startup speedup. The change provides a readable early notice, staged self-extract status and cooperative Base64 chunk decoding; final artifacts are 21,165,495 bytes (readable) and 21,131,996 bytes (self-extract). Browser startup timing has not been measured.
+
+### Verification performed
+
+- Production-handler tests cover focal pinch and two-finger pan, 1–8× clamping, 90/180/270° coordinate conversion, transformed add/move/resize/candidate taps, fixed 12-CSS-pixel handles, source resets, cancelled/extra/surviving pointers, resize interruption, offscreen labels and Pan → Detect → candidate review. These are controlled VM pointer events, not physical touchscreen input.
+- Actual Chromium in-app browser: loaded the readable HTML from localhost, restored the two-photo draft, zoomed to 150/225%, panned, selected example 3, moved and resized it, saved, and verified Undo/Redo and reload persistence. Count stayed 29. The self-extract HTML also opened successfully on localhost. A separate fresh local origin showed the empty start screen, then sample loading and zoom controls worked.
+- Checked Japanese and English, 320/390-pixel mobile layouts and desktop layout; no page-level horizontal overflow. Zoom button keyboard activation worked and focus was visible. Preview controls stayed adjacent; Save/Discard remained reachable. No warnings/errors in the inspected browser console. Mobile screenshot: `.cache/reference-zoom-mobile.png`.
+- Exported `見本拡大テスト.html` using the edited filename, without photo recompression. Compared its JSON to `見本個別修正テスト.html`: only the selected third box changed; other three boxes and the saved reference PNG were identical; marker counts stayed `[29, 0]`; no viewport state was serialized. Reloaded draft bounds matched the export.
+- Loader VM tests exercise **Loading application file → Preparing locally → Unpacking locally → Starting**, yielding during Base64 decoding, missing decompressor/corrupt/non-HTML payload failures, and the readable notice disappearing before a slow draft read completes. Browser checks confirm both variants reach the ready UI; no throttled browser timing or animation smoothness claim is made.
+
+### Remaining device checks
+
+- On physical Android Chrome, pinch and pan the example preview, adjust a small box near the edge, interrupt a gesture, rotate the device, and verify scrolling outside the preview and control reachability. Record device/browser and whether the run used Pages or a local file.
+- Test both generated variants directly with `file://` in a permitted browser. The verification browser previously rejected local-file URLs; localhost results do not establish direct-file behavior.
+- Observe startup stages on a slow connection/device and separately record transfer and local expansion times before claiming a speedup. Runtime network isolation is checked by source/CSP regression tests; no new browser network trace was recorded in this change.
+
+Physical Android touch behavior, direct-file execution and a browser startup speedup remain unverified. The startup change retains the single-HTML transfer cost; it does not download the model separately or change inference performance.

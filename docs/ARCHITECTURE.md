@@ -58,6 +58,12 @@ The starter includes the canonical confirmation and toast APIs in the default so
 13. Write manifests, `build-size-report.json`, and `dist/.nojekyll`; emit warning-only size-budget messages when configured thresholds are exceeded.
 14. Reject the declared unresolved build placeholders and common external runtime resource references.
 
+### Startup visibility
+
+The readable HTML places a startup notice before the embedded bundle and clears it when application initialization completes. The self-extract shell distinguishes loading the application file from local unpacking and starting the app. Its Base64 decoder processes bounded chunks and yields to let the browser update the status before expanding gzip with `DecompressionStream`. The loader remains ASCII-only, inherits the favicon and must restore the readable HTML byte-for-byte.
+
+Both variants still transfer their complete embedded model/runtime bundle as part of the initial HTML. ORT/model asset decoding remains lazy on Detect. Cooperative loader decoding and status text improve visibility of the wait; Node timings and file sizes do not establish browser or Android startup latency. See `docs/QUICK_DETECTION_VALIDATION.md` for the baseline evidence and pending browser checks.
+
 ## Build placeholders
 
 The source template contains exactly one of each:
@@ -148,3 +154,7 @@ Pinned-reference editing uses `autoState.referenceEdit` as a transient owner/ref
 Example selection and manipulation are transient dialog state shared by unpinned examples and pinned-reference drafts. Explicit Add and Select / edit modes separate new-box creation from canvas/list selection, selected-only deletion and selected-box geometry updates. A selected box exposes four corner handles and displayed-image percentage bounds; the existing display/original coordinate transforms also apply to moves, resizes and numeric updates. Pinned drafts use the saved snapshot at rotation zero. Selection alone does not invalidate example geometry or change count data.
 
 Pointer edits stage geometry until a valid release. Cancellation, lost capture or another pointer abandons the staged edit, and late events cannot commit it. Committed example changes invalidate obsolete detection candidates while keeping the saved pinned reference immutable. Save validates the complete draft, replaces the reference once and creates one history entry; unchanged saves, discard and close do not create history. Local examples, mode, selection and gesture state are not serialized. The model/runtime assets, dependencies, schema-4 reference representation and storage identifiers remain unchanged.
+
+The example preview has a transient 1–8× viewport transform shared by image/overlay rendering and pointer-to-source mapping. Pinch zoom anchors the image under the moving gesture center, two-finger translation pans, and Pan view supports one-pointer movement. The adjacent −/+ controls step by a factor of 1.5; Fit restores 1×. Corner handles use CSS dimensions independent of zoom. Box geometry and numeric bounds remain normalized source-image values, including rotated targets and rotation-zero reference snapshots.
+
+When a second pointer arrives, the pending box edit is discarded while selection survives. The view gesture owns the participating pointers, and remaining/late releases cannot become an edit commit. Source and modal transitions, entering/saving/discarding reference editing, pin/unpin and next-photo navigation reset zoom/pan. Choosing Add/Select exits Pan view and preserves the viewport. View changes create no history, do not invalidate the saved PNG or inference geometry, and are absent from draft/viewer serialization.

@@ -7,7 +7,7 @@ Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer 
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.8.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection and example-editing workflows still need physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.9.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -19,6 +19,8 @@ Pin examples for repeated inspections: after outlining, choose **Pin these examp
 ### [Open Image Counter on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 GitHub Pages delivers the initial HTML. After it loads, image decoding, counting, marker editing, camera handling, autosave, image correction, and export are processed locally on your device. Images selected in the app are not uploaded by the app.
+
+The initial HTML includes the model and detection runtimes, so opening it can take time on a slower connection or device. A startup notice remains until the app is ready. The self-extract variant shows **Loading application file**, **Unpacking locally**, then **Starting**. Detection assets are decoded when you run Detect; they are already included in the initial file. These notices explain the wait; they do not promise faster loading.
 
 [![Image Counter screenshot](assets/screenshot-en.png)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
@@ -64,7 +66,9 @@ The first build downloads pinned ONNX Runtime JS/WASM packages. Generated HTML e
 
 Use **Add / edit examples** to adjust a pinned reference on its saved source image. Choose **Add** to draw another box, or **Select / edit** to select a box on the image or by its number in the example list. Drag inside the selected box to move it, drag any of its four corner handles to resize it, or change the percentage bounds and choose **Update selected example**. Boxes stay within the image. Delete removes only the selected example; it is unavailable with no selection. These controls also work for examples before pinning them.
 
-Pinned changes stay pending until **Save example changes**; one **Undo** restores the previous reference. **Discard changes** or closing the dialog keeps the saved reference. Interrupted pointer actions or a second touch discard the unfinished add, move or resize. Example edits do not change counts. **Unpin examples** starts over on the current photo. Dashed boxes are existing count markers and are hidden by default; overlapping results cannot be counted again.
+For small boxes, pinch the preview or use **− / +** to zoom from 1× to 8×. Move two fingers together to pan, or choose **Pan view** and drag with one pointer. **Fit** restores the whole image. The controls stay beside the preview, and the corner handles stay the same screen size. Choosing Add or Select / edit exits Pan view and keeps the view; closing the dialog or changing its source resets it. Zoom changes only the view, so saved boxes, source pixels and detection inputs are unchanged.
+
+Pinned changes stay pending until **Save example changes**; one **Undo** restores the previous reference. **Discard changes** or closing the dialog keeps the saved reference. Interrupted pointer actions or a second touch discard the unfinished add, move or resize; a pinch keeps the selected example, and lifting the remaining finger cannot commit the abandoned edit. Example edits do not change counts. **Unpin examples** starts over on the current photo. Dashed boxes are existing count markers and are hidden by default; overlapping results cannot be counted again.
 
 Pin examples for the selected type in **Examples / detection settings**. Then use **Detect this photo** or **Detect all photos** directly beside the canvas. Results are added automatically as **Needs review** markers; existing overlaps are skipped. **Stop** keeps completed results, and one **Undo** reverts the entire run. After checking the photo, **Mark this photo reviewed** clears all its review flags at once. One Undo restores them; photo completion remains a separate action. All-photo detection includes completed photos.
 
