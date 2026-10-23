@@ -142,21 +142,26 @@ test('job ownership rejects stale generation, replaced project and changed model
 });
 function detectionUI(useDefault=false){
   const c=engine(),nodes=new Map(),events=new Map(),revoked=[];let terminated=0;
+  const node=tag=>{
+    const listeners=new Map(),captured=new Set(),attrs=new Map(),classes=new Set();
+    return {disabled:false,dataset:{},textContent:'',open:true,listeners,children:[],tagName:tag.toUpperCase(),
+      setAttribute:(name,value)=>attrs.set(name,String(value)),getAttribute:name=>attrs.get(name)??null,
+      classList:{add:(...names)=>names.forEach(name=>classes.add(name)),remove:(...names)=>names.forEach(name=>classes.delete(name)),contains:name=>classes.has(name),toggle(name,force){const on=force??!classes.has(name);on?classes.add(name):classes.delete(name);return on}},
+      replaceChildren(...children){this.children=children},append(...children){this.children.push(...children)},
+      focus(){c.document.activeElement=this},
+      addEventListener:(name,handler)=>listeners.set(name,handler),querySelector:()=>null,
+      getBoundingClientRect:()=>({left:30,top:50,width:240,height:180}),
+      setPointerCapture:id=>captured.add(id),hasPointerCapture:id=>captured.has(id),releasePointerCapture:id=>captured.delete(id)};
+  };
   const element=key=>{
-    if(!nodes.has(key)){
-      const listeners=new Map(),captured=new Set();
-      nodes.set(key,{disabled:false,dataset:{},textContent:'',open:true,listeners,
-        addEventListener:(name,handler)=>listeners.set(name,handler),querySelector:()=>null,
-        getBoundingClientRect:()=>({left:30,top:50,width:240,height:180}),
-        setPointerCapture:id=>captured.add(id),hasPointerCapture:id=>captured.has(id),releasePointerCapture:id=>captured.delete(id)});
-    }
+    if(!nodes.has(key))nodes.set(key,node('div'));
     return nodes.get(key);
   };
   const im={id:'one',dataUrl:'pixels',width:600,height:800,adjustments:{rotation:90},markers:[],completed:true},
     project={categories:[{id:'a',name:'A'}],images:[im]},model={};
   Object.assign(c,{$:element,P:project,activeImage:()=>im,activeCategory:()=>project.categories[0],t:key=>key,
     URL:{revokeObjectURL:url=>revoked.push(url)},addEventListener:(name,handler)=>events.set(name,handler),
-    renderAll(){},imageCache:new Map(),model,worker:{terminate:()=>terminated++}});
+    renderAll(){},document:{activeElement:null,createElement:node},imageCache:new Map(),model,worker:{terminate:()=>terminated++}});
   vm.runInContext(section('function toDisplayNorm(','function canvasCssSize('),c);
   vm.runInContext(section('// AUTO:UI:BEGIN','// AUTO:UI:END'),c);
   vm.runInContext("autoState.owner={project:P,imageId:'one',dataUrl:'pixels'};autoState.examples=[{x:.1,y:.1,w:.2,h:.2}]",c);
@@ -348,7 +353,7 @@ for(const action of ['cancel','close','replace'])test(`late saved reference load
  resolve({naturalWidth:640,naturalHeight:640});await task;assert.equal(vm.runInContext('autoState.referenceEdit',c),null);assert.equal(vm.runInContext('autoState.busy',c),false);
 });
 test('saved reference edit uses snapshot coordinates independent of target rotation',async()=>{
- const {c,pointer}=editableReference();await c.editAutoReference();pointer('pointerdown');pointer('pointermove',{x:174,y:122});pointer('pointerup',{x:174,y:122});
+ const {c,pointer}=editableReference();await c.editAutoReference();c.setAutoExampleMode('add');pointer('pointerdown');pointer('pointermove',{x:174,y:122});pointer('pointerup',{x:174,y:122});
  const b=plain(vm.runInContext('autoState.examples[1]',c));for(const [k,v]of Object.entries({x:.2,y:.1,w:.4,h:.3}))assert.ok(Math.abs(b[k]-v)<1e-10);
 });
 
@@ -364,4 +369,133 @@ test('unchanged or empty edited examples do not create a history entry or overwr
 });
 test('saving an edit cannot overwrite a newer category reference',async()=>{
  const {c}=editableReference();await c.editAutoReference();c.addAutoExample(box(.5,.5,.1,.1));const replacement={examples:[]};c.P.categories[0].detectionReference=replacement;c.saveAutoReferenceEdit();assert.equal(c.autoCurrentReference(),replacement);assert.equal(c.historyCount,undefined);
+});
+
+const exampleState=c=>plain(vm.runInContext('autoState.examples',c));
+function setExampleBounds(element,values){for(const [i,id]of ['autoLeft','autoTop','autoRight','autoBottom'].entries()){element('#'+id).valueAsNumber=values[i];element('#'+id).value=String(values[i])}}
+function nearBox(actual,wanted){for(const key of ['x','y','w','h'])assert.ok(Math.abs(actual[key]-wanted[key])<1e-10,`${key}: ${actual[key]} should be ${wanted[key]}`)}
+
+test('deleting the selected middle example preserves both neighbors and all saved data until Save',async()=>{
+  const {c,ref,im}=editableReference();ref.examples=[box(.1,.2,.2,.2),box(.4,.2,.15,.2),box(.7,.2,.2,.2)];const original=plain(ref.examples),imageBefore=JSON.stringify(im);
+  await c.editAutoReference();c.selectAutoExample(1);c.deleteAutoExample();
+  assert.deepEqual(exampleState(c),[original[0],original[2]]);assert.deepEqual(plain(ref.examples),original);assert.equal(c.autoCurrentReference(),ref);assert.equal(c.historyCount,undefined);assert.equal(JSON.stringify(im),imageBefore);
+  c.saveAutoReferenceEdit();assert.equal(c.historyCount,1);assert.deepEqual(plain(c.autoCurrentReference().examples),[original[0],original[2]]);assert.equal(c.autoCurrentReference().dataUrl,ref.dataUrl);
+});
+
+test('single-example deletion disables saving and discard restores the original pinned example',async()=>{
+  const {c,ref,element}=editableReference();await c.editAutoReference();c.selectAutoExample(0);c.deleteAutoExample();
+  assert.equal(exampleState(c).length,0);assert.equal(element('#autoSaveEdit').disabled,true);assert.equal(vm.runInContext('autoState.selectedExample',c),-1);
+  c.cancelAutoReferenceEdit();assert.equal(c.autoCurrentReference(),ref);assert.equal(ref.examples.length,1);assert.equal(c.historyCount,undefined);
+});
+
+test('editing numeric bounds maps the displayed rectangle to a rotated original image',()=>{
+  const {c,element}=detectionUI();c.selectAutoExample(0);setExampleBounds(element,[20,20,70,60]);c.updateAutoExampleBounds();
+  nearBox(exampleState(c)[0],{x:.2,y:.3,w:.4,h:.5});
+});
+
+test('editing pinned numeric bounds ignores target rotation and preserves saved boxes until Save',async()=>{
+  const {c,ref,element}=editableReference();await c.editAutoReference();c.selectAutoExample(0);setExampleBounds(element,[20,20,70,60]);c.updateAutoExampleBounds();
+  nearBox(exampleState(c)[0],{x:.2,y:.2,w:.5,h:.4});nearBox(ref.examples[0],{x:.1,y:.2,w:.2,h:.2});assert.equal(c.historyCount,undefined);
+});
+
+test('invalid numeric edits keep the selected box unchanged',()=>{
+  const {c,element}=detectionUI();c.selectAutoExample(0);const before=exampleState(c);
+  for(const values of [[NaN,10,30,30],[-1,10,30,30],[10,10,101,30],[30,10,10,30],[10,10,10,30],[10,10,10.1,30]]){
+    setExampleBounds(element,values);c.updateAutoExampleBounds();assert.deepEqual(exampleState(c),before);
+  }
+});
+
+test('moving examples at every rotation preserves size and clamps to the image',()=>{
+  const {c}=detectionUI();
+  for(const rotation of [0,90,180,270])for(const end of [{u:-2,v:-2},{u:3,v:3}]){
+    const original={x:.2,y:.3,w:.25,h:.4},moved=c.autoTransformExample(original,{u:.5,v:.5},end,null,rotation);
+    assert.equal(c.autoValidRect(moved),true);assert.ok(Math.abs(moved.w-original.w)<1e-10);assert.ok(Math.abs(moved.h-original.h)<1e-10);assert.deepEqual(original,{x:.2,y:.3,w:.25,h:.4});
+  }
+});
+
+test('each resize handle anchors the opposite corner and cannot flip or escape the image',()=>{
+  const {c}=detectionUI();
+  for(const rotation of [0,90,180,270])for(const handle of ['nw','ne','sw','se']){
+    const original={x:.2,y:.3,w:.25,h:.4},before=c.autoDisplayBox(original,rotation),west=handle.includes('w'),north=handle.includes('n'),fixed={u:west?before.x+before.w:before.x,v:north?before.y+before.h:before.y};
+    for(const end of [{u:west?2:-1,v:north?2:-1},{u:west?-1:2,v:north?-1:2}]){
+      const resized=c.autoTransformExample(original,{u:west?before.x:before.x+before.w,v:north?before.y:before.y+before.h},end,handle,rotation),shown=c.autoDisplayBox(resized,rotation);
+      assert.equal(c.autoValidRect(resized),true);assert.ok(Math.abs((west?shown.x+shown.w:shown.x)-fixed.u)<1e-10);assert.ok(Math.abs((north?shown.y+shown.h:shown.y)-fixed.v)<1e-10);
+    }
+  }
+});
+
+test('moving a selected example is transient until release and then clears stale candidates',()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;c.selectAutoExample(0);const before=exampleState(c),project=JSON.stringify(c.P);
+  vm.runInContext('autoState.candidates=[{x:.6,y:.6,w:.1,h:.1,score:.9}]',c);
+  pointer('pointerdown',{x:78,y:86});pointer('pointermove',{x:102,y:104});assert.deepEqual(exampleState(c),before);
+  pointer('pointerup',{x:102,y:104});nearBox(exampleState(c)[0],{x:.2,y:.2,w:.2,h:.2});assert.equal(vm.runInContext('autoState.candidates.length',c),0);assert.equal(JSON.stringify(c.P),project);
+});
+
+test('a selected corner resizes only that example after release and cancellation preserves its size',()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;c.selectAutoExample(0);const before=exampleState(c);
+  pointer('pointerdown',{x:102,y:104});pointer('pointermove',{x:126,y:122});assert.deepEqual(exampleState(c),before);pointer('pointercancel');assert.deepEqual(exampleState(c),before);
+  pointer('pointerdown',{x:102,y:104});pointer('pointermove',{x:126,y:122});pointer('pointerup',{x:126,y:122});nearBox(exampleState(c)[0],{x:.1,y:.1,w:.3,h:.3});
+});
+
+test('an owner change during an example drag prevents release from changing the boxes',()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;c.selectAutoExample(0);const before=exampleState(c);
+  pointer('pointerdown',{x:78,y:86});pointer('pointermove',{x:102,y:104});vm.runInContext('autoState.owner.project={}',c);pointer('pointerup',{x:102,y:104});assert.deepEqual(exampleState(c),before);
+});
+
+for(const end of ['pointercancel','lostpointercapture','second-finger'])test(`${end} discards an example move without changing boxes or counts`,()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;c.selectAutoExample(0);const before=exampleState(c),project=JSON.stringify(c.P);
+  pointer('pointerdown',{x:78,y:86});pointer('pointermove',{x:102,y:104});
+  if(end==='second-finger')pointer('pointerdown',{id:2,primary:false,x:150,y:140});else pointer(end);
+  pointer('pointerup',{x:102,y:104});pointer('pointerup',{id:2,primary:false,x:150,y:140});assert.deepEqual(exampleState(c),before);assert.equal(JSON.stringify(c.P),project);assert.equal(vm.runInContext('autoState.drag',c),null);
+});
+
+test('a cancelled old pointer cannot cancel or commit a newer example move',()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;c.selectAutoExample(0);
+  pointer('pointerdown',{x:78,y:86});pointer('pointercancel');pointer('pointerdown',{id:3,x:78,y:86});pointer('pointermove',{id:3,x:102,y:104});
+  pointer('pointercancel');pointer('lostpointercapture');pointer('pointerup',{x:200,y:200});assert.ok(vm.runInContext('autoState.drag',c));pointer('pointerup',{id:3,x:102,y:104});nearBox(exampleState(c)[0],{x:.2,y:.2,w:.2,h:.2});
+});
+
+for(const guard of ['busy','owner','fixed'])test(`${guard} blocks deletion and numeric editing of examples`,()=>{
+  const {c,element}=detectionUI();c.selectAutoExample(0);setExampleBounds(element,[20,20,70,60]);const before=exampleState(c);
+  if(guard==='busy')vm.runInContext('autoState.busy=true',c);
+  if(guard==='owner')vm.runInContext('autoState.owner.project={}',c);
+  if(guard==='fixed')c.P.categories[0].detectionReference={examples:[box(.4,.4,.1,.1)]};
+  c.deleteAutoExample();c.updateAutoExampleBounds();assert.deepEqual(exampleState(c),before);
+});
+
+test('detecting after selecting an example restores canvas candidate-tap behavior',async()=>{
+  const {c,pointer}=detectionUI(true),releases=[];
+  Object.assign(c,{Worker:class{},OffscreenCanvas:class{},createImageBitmap(){},StandaloneAssets:{bytesAsync:()=>new Promise(resolve=>releases.push(()=>resolve(new Uint8Array([1]))))}});
+  c.selectAutoExample(0);const pending=c.startAutoDetection();assert.equal(vm.runInContext('autoState.exampleMode',c),'add');
+  c.autoStopJob();for(const release of releases)release();await pending;
+  vm.runInContext("autoState.candidates=[{x:.1,y:.2,w:.2,h:.2,score:.9}];autoState.phase='result'",c);
+  const before=exampleState(c);pointer('pointerdown',{x:198,y:86});pointer('pointerup',{x:199,y:87});
+  assert.equal(vm.runInContext('autoState.excluded.has(0)',c),true);assert.deepEqual(exampleState(c),before);
+});
+
+test('a valid narrow saved example can move but cannot be made smaller than its original minimum',async()=>{
+  const {c,ref}=editableReference();ref.examples=[{x:.2,y:.3,w:.002,h:.02}];await c.editAutoReference();
+  c.commitAutoExample(0,{x:.4,y:.5,w:.002,h:.02});nearBox(exampleState(c)[0],{x:.4,y:.5,w:.002,h:.02});nearBox(ref.examples[0],{x:.2,y:.3,w:.002,h:.02});
+  c.commitAutoExample(0,{x:.4,y:.5,w:.001,h:.02});nearBox(exampleState(c)[0],{x:.4,y:.5,w:.002,h:.02});
+  c.saveAutoReferenceEdit();assert.equal(c.historyCount,1);nearBox(c.autoCurrentReference().examples[0],{x:.4,y:.5,w:.002,h:.02});
+});
+
+test('selection taps with small touch drift do not move a box or discard candidates',()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;c.selectAutoExample(0);const before=exampleState(c);
+  vm.runInContext('autoState.candidates=[{x:.6,y:.6,w:.1,h:.1,score:.9}]',c);
+  pointer('pointerdown',{x:78,y:86});pointer('pointermove',{x:79,y:87});pointer('pointerup',{x:79,y:87});
+  assert.deepEqual(exampleState(c),before);assert.equal(vm.runInContext('autoState.candidates.length',c),1);
+});
+
+test('a stale saved reference edit cannot append new examples',async()=>{
+  const {c}=editableReference();await c.editAutoReference();const before=exampleState(c);c.P.categories[0].detectionReference={examples:[box(.6,.6,.1,.1)]};
+  c.addAutoExample(box(.5,.5,.1,.1));assert.deepEqual(exampleState(c),before);
+});
+
+test('dragging the explicitly selected overlapping example preserves the newer containing example',()=>{
+  const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;
+  vm.runInContext('autoState.examples=[{x:.2,y:.2,w:.2,h:.2},{x:.1,y:.1,w:.6,h:.6}]',c);c.selectAutoExample(0);const containing=exampleState(c)[1];
+  pointer('pointerdown',{x:102,y:104});assert.equal(vm.runInContext('autoState.selectedExample',c),0);
+  pointer('pointermove',{x:126,y:122});pointer('pointerup',{x:126,y:122});
+  nearBox(exampleState(c)[0],{x:.3,y:.3,w:.2,h:.2});assert.deepEqual(exampleState(c)[1],containing);
 });

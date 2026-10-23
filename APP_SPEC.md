@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.7
+- **Version:** 1.1.0-dev.8
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -297,3 +297,14 @@ Compatibility exception: the former native resize handler could create an exact 
 - Add / edit examples opens the saved 640 px source snapshot with a mutable copy of the pinned boxes. Display and drawing use snapshot coordinates, independent of target rotation or source-photo existence. Detection and candidate application are unavailable during editing.
 - Save replaces the category reference as one Undo transaction; Discard, dialog close or stale loading never changes the saved reference or any count. Saving no changes preserves history. Clearing all boxes requires adding at least one valid box before saving.
 - Existing count markers are hidden by default in the detection preview, with an explicit dashed-marker display toggle. Fixed-mode guidance explains how to add examples or unpin/start over on another photo. Duplicate-only results explain why they cannot be added again.
+
+### Selecting and adjusting examples (1.1.0-dev.8)
+
+- Both unpinned current-photo examples and the pinned-reference draft editor provide explicit Add and Select / edit modes. Add draws a new example; Select / edit selects an existing example from its canvas box or numbered list control without creating a box.
+- Show the selected example distinctly. Delete affects only that selected example and is disabled when nothing is selected. Selecting another example does not change any geometry or count.
+- Drag inside the selected box to move it; drag one of its four corner handles to resize it. Keep positive-size geometry inside the image at all supported rotations. Pinned-reference editing continues to use the saved snapshot at rotation zero.
+- Selecting an example fills the left/top/right/bottom percentage bounds for the displayed image. The numeric action updates that selected example in Select / edit mode and adds an example in Add mode. Validate finite values within 0–100%, ordered edges and valid size before committing; invalid input leaves the box unchanged. Keep keyboard-accessible selection, deletion and numeric controls.
+- Pointer cancellation, lost capture and the start of a multitouch gesture discard the pending add/move/resize. Late pointer events must not commit an abandoned gesture. Examples, counts, saved references and project history remain unchanged by cancellation.
+- Edits to a pinned reference remain a temporary copy until Save example changes. Discard, Escape, dialog close and stale ownership discard the draft. A changed, valid save is one Undo/Redo transaction; an unchanged save creates no history. At least one valid example is required to save.
+- Unpinned examples remain local to the dialog until explicitly pinned. Example editing never adds count markers. Model assets, dependencies, the project schema and storage identifiers are unchanged.
+- Acceptance checks cover local and pinned examples, canvas/list selection, selected-only deletion, all four handles, numeric updates, pointer cancellation/multitouch, rotated targets, save/discard/close, Undo/Redo and draft/viewer round trips. Desktop browser, direct-file and physical Android results must be recorded separately; automated checks alone do not establish those passes.

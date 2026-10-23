@@ -7,12 +7,12 @@ Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer 
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.7.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the new main-screen batch workflow still needs physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.8.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection and example-editing workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
 
-Pin examples for repeated inspections: after outlining, choose **Pin these examples**. Each counting type keeps its own reference. Other photos can use **Detect** immediately; after review, **Add and detect next** advances through the image list. Pinned references survive draft restoration and viewer HTML import, even if the original photo is removed. Use **Unpin examples** to replace them. Results still need checking on every photo.
+Pin examples for repeated inspections: after outlining, choose **Pin these examples**. Each counting type keeps its own reference. Other photos can use **Detect** immediately; after review, **Add and detect next** advances through the image list. Pinned references survive draft restoration and viewer HTML import, even if the original photo is removed. Use **Add / edit examples** to adjust them on the saved image, or **Unpin examples** to start over on another photo. Results still need checking on every photo.
 
 ## 🚀 Live demo
 
@@ -62,7 +62,9 @@ The first build downloads pinned ONNX Runtime JS/WASM packages. Generated HTML e
 
 ## Local auto detection
 
-Use **Add / edit examples** to extend a pinned reference on its saved source image, then **Save example changes**. **Discard changes** preserves the original; **Unpin** starts over on the current photo. Dashed boxes are existing count markers and are hidden by default; overlapping results cannot be counted again.
+Use **Add / edit examples** to adjust a pinned reference on its saved source image. Choose **Add** to draw another box, or **Select / edit** to select a box on the image or by its number in the example list. Drag inside the selected box to move it, drag any of its four corner handles to resize it, or change the percentage bounds and choose **Update selected example**. Boxes stay within the image. Delete removes only the selected example; it is unavailable with no selection. These controls also work for examples before pinning them.
+
+Pinned changes stay pending until **Save example changes**; one **Undo** restores the previous reference. **Discard changes** or closing the dialog keeps the saved reference. Interrupted pointer actions or a second touch discard the unfinished add, move or resize. Example edits do not change counts. **Unpin examples** starts over on the current photo. Dashed boxes are existing count markers and are hidden by default; overlapping results cannot be counted again.
 
 Pin examples for the selected type in **Examples / detection settings**. Then use **Detect this photo** or **Detect all photos** directly beside the canvas. Results are added automatically as **Needs review** markers; existing overlaps are skipped. **Stop** keeps completed results, and one **Undo** reverts the entire run. After checking the photo, **Mark this photo reviewed** clears all its review flags at once. One Undo restores them; photo completion remains a separate action. All-photo detection includes completed photos.
 
@@ -72,7 +74,7 @@ Navigating away cancels running detection and leaves controls usable when a cach
 
 1. Select the target marker type and open **Examples / detection settings** beside the canvas.
 2. Use the built-in model with the default CPU / FP32 settings. **Advanced settings / model** optionally accepts a compatible custom model; **Use built-in model** restores the default.
-3. Outline one or more examples. Keyboard users can enter the left/top/right/bottom percentages under **Enter example bounds**.
+3. In **Add** mode, outline one or more examples or enter left/top/right/bottom percentages under **Enter example bounds**. To adjust a box, choose **Select / edit**, select it on the canvas or by its list number, then move, resize, delete or update its numeric bounds. The numbered controls and numeric fields also support keyboard operation.
 4. Select **Detect**. Click boxes or uncheck candidates you do not want. Counts stay unchanged during preview.
 5. Select **Add candidates as markers**. Existing overlaps are excluded, including other/hidden types. One Undo reverses the entire batch.
 

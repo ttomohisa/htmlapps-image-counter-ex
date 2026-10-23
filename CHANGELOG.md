@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0-dev.8 — 2026-10-23
+
+- Add explicit Add and Select / edit modes for local examples and pinned-reference drafts, with canvas or numbered-list selection and selected-only deletion.
+- Move selected boxes, resize from all four corners within the image, and update precise percentage bounds without redrawing them.
+- Discard interrupted pointer and multitouch edits. Keep pinned changes pending until Save, with discard/close preserving the saved reference and one Undo for a saved update.
+- Keep model assets, dependencies and the existing storage schema unchanged. Physical-device and direct-file checks remain pending.
+
 ## 1.1.0-dev.7 — 2026-10-23
 
 - Add editing of pinned examples on their saved source snapshot, with save/discard and one-step Undo.
