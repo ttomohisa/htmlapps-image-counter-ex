@@ -324,3 +324,44 @@ test('pin and unpin immediately refresh the main-screen reference state',()=>{
   c.pinAutoExamples();assert.equal(seen.length,1);assert.equal(seen[0],c.autoCurrentReference());
   element('#autoUnpin').onclick();assert.equal(seen.length,2);assert.equal(seen[1],null);
 });
+
+function editableReference(){
+ const f=detectionUI(true),c=f.c;
+ c.renderAutoReference=()=>{};c.renderAutoPreview=()=>{};c.touch=()=>{};c.Toast={show(){}};c.undo=()=>{};c.validateDetectionReference=()=>{};c.validateProject=()=>{};
+ const ref={version:1,sourceName:'removed-source.jpg',dataUrl:'saved-pixels',examples:[box(.1,.2,.2,.2)]};c.P.categories[0].detectionReference=ref;
+ c.loadImage=async()=>({naturalWidth:640,naturalHeight:640});c.pushHistory=()=>{c.historyCount=(c.historyCount||0)+1};
+ return{...f,ref};
+}
+test('editing a fixed reference preserves old boxes, allows new boxes on the saved source and commits once',async()=>{
+ const {c,ref,element}=editableReference();await c.editAutoReference();
+ assert.equal(c.autoCurrentReference(),ref);assert.equal(element('#autoRun').disabled,true);
+ c.addAutoExample(box(.5,.5,.1,.1));assert.equal(ref.examples.length,1);assert.equal(vm.runInContext('autoState.examples.length',c),2);
+ c.saveAutoReferenceEdit();assert.equal(c.autoCurrentReference().examples.length,2);assert.equal(c.autoCurrentReference().dataUrl,ref.dataUrl);assert.equal(c.autoCurrentReference().sourceName,ref.sourceName);assert.equal(c.historyCount,1);
+});
+test('cancelling fixed reference edits leaves the saved reference and markers untouched',async()=>{
+ const {c,ref,im}=editableReference();const before=JSON.stringify(im);await c.editAutoReference();c.addAutoExample(box(.5,.5,.1,.1));c.cancelAutoReferenceEdit();
+ assert.equal(c.autoCurrentReference(),ref);assert.equal(c.historyCount,undefined);assert.equal(JSON.stringify(im),before);assert.equal(vm.runInContext('autoState.examples.length',c),0);
+});
+for(const action of ['cancel','close','replace'])test(`late saved reference loading cannot reopen editing after ${action}`,async()=>{
+ const {c,element}=editableReference();let resolve;c.loadImage=()=>new Promise(r=>resolve=r);const task=c.editAutoReference();
+ if(action==='cancel')c.cancelAutoReferenceEdit();if(action==='close')element('#autoDlg').listeners.get('close')();if(action==='replace')c.P.categories[0].detectionReference={};
+ resolve({naturalWidth:640,naturalHeight:640});await task;assert.equal(vm.runInContext('autoState.referenceEdit',c),null);assert.equal(vm.runInContext('autoState.busy',c),false);
+});
+test('saved reference edit uses snapshot coordinates independent of target rotation',async()=>{
+ const {c,pointer}=editableReference();await c.editAutoReference();pointer('pointerdown');pointer('pointermove',{x:174,y:122});pointer('pointerup',{x:174,y:122});
+ const b=plain(vm.runInContext('autoState.examples[1]',c));for(const [k,v]of Object.entries({x:.2,y:.1,w:.4,h:.3}))assert.ok(Math.abs(b[k]-v)<1e-10);
+});
+
+test('duplicate-only result explains why markers cannot be added',()=>{
+ const {c,im,element}=detectionUI();const b=box(.1,.1,.2,.2);im.markers=[{...b,shape:'rect'}];vm.runInContext("autoState.candidates=[{x:.1,y:.1,w:.2,h:.2,score:.9}];autoState.phase='result'",c);c.renderAutoControls();
+ assert.equal(element('#autoApply').disabled,true);assert.equal(element('#autoDuplicateNote').hidden,false);
+ vm.runInContext("autoState.candidates=[];autoState.phase='ready'",c);c.renderAutoControls();assert.equal(element('#autoDuplicateNote').hidden,true);
+});
+
+test('unchanged or empty edited examples do not create a history entry or overwrite the reference',async()=>{
+ const {c,ref,element}=editableReference();await c.editAutoReference();c.saveAutoReferenceEdit();assert.equal(c.historyCount,undefined);assert.equal(c.autoCurrentReference(),ref);
+ await c.editAutoReference();element('#autoClearExamples').onclick();assert.equal(element('#autoSaveEdit').disabled,true);c.saveAutoReferenceEdit();assert.equal(c.autoCurrentReference(),ref);assert.equal(c.historyCount,undefined);
+});
+test('saving an edit cannot overwrite a newer category reference',async()=>{
+ const {c}=editableReference();await c.editAutoReference();c.addAutoExample(box(.5,.5,.1,.1));const replacement={examples:[]};c.P.categories[0].detectionReference=replacement;c.saveAutoReferenceEdit();assert.equal(c.autoCurrentReference(),replacement);assert.equal(c.historyCount,undefined);
+});

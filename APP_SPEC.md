@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.6
+- **Version:** 1.1.0-dev.7
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -291,3 +291,9 @@ Compatibility exception: the former native resize handler could create an exact 
 
 - When the current photo contains review flags, show its flagged count and Mark this photo reviewed beside the photo workflow. The action clears all review flags in that photo, including hidden and other types, with one Undo/Redo transaction and autosave. Counts, geometry, other photos and completion remain unchanged. No-op actions preserve history/redo; inference blocks review edits.
 - Pin/unpin immediately synchronizes the main-screen reference count, action availability and history controls. New local examples must be pinned to reuse them outside the dialog.
+
+### Editing pinned examples (1.1.0-dev.7)
+
+- Add / edit examples opens the saved 640 px source snapshot with a mutable copy of the pinned boxes. Display and drawing use snapshot coordinates, independent of target rotation or source-photo existence. Detection and candidate application are unavailable during editing.
+- Save replaces the category reference as one Undo transaction; Discard, dialog close or stale loading never changes the saved reference or any count. Saving no changes preserves history. Clearing all boxes requires adding at least one valid box before saving.
+- Existing count markers are hidden by default in the detection preview, with an explicit dashed-marker display toggle. Fixed-mode guidance explains how to add examples or unpin/start over on another photo. Duplicate-only results explain why they cannot be added again.

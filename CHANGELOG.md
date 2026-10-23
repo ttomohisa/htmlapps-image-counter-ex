@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0-dev.7 — 2026-10-23
+
+- Add editing of pinned examples on their saved source snapshot, with save/discard and one-step Undo.
+- Hide existing marker overlays by default and provide an explicit dashed-marker toggle.
+- Clarify fixed-example controls and why duplicate-only detections cannot be added.
+
 ## 1.1.0-dev.6 — 2026-10-23
 
 - Add a photo-level Mark this photo reviewed action with flagged count, one-step Undo/Redo and autosave.

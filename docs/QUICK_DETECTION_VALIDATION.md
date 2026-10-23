@@ -33,3 +33,16 @@ Final required repository check exited 0: 2,943 tests passed with zero failures,
 - Japanese 320/390 px layout had no horizontal document overflow. English action text and Enter-key activation worked. Both readable and self-extract HTML completed review/Undo; no captured console warnings or errors.
 - Edited export filename `写真確認テスト.html`; parsed marker/review counts were `(29,0), (0,0), (29,0), (29,29), (29,0)`. Reload/restore retained 29 remaining flags and count 116.
 - Physical Android and direct-file opening were not tested in this change.
+
+
+## Editing pinned examples — 1.1.0-dev.7
+
+Final required repository check exited 0: 2,979 tests passed, zero failures, plus build/asset/help validation across all four artifacts.
+
+- Added a transactional reference editor. Existing example boxes are copied from the stored 640×640 source snapshot; Save replaces them in one Undo step, while Discard, Escape and closing the dialog preserve the saved reference. The source PNG is retained unchanged.
+- Actual localhost Chromium: pointer-drag addition changed three examples to four; Save, Undo and Redo showed four, three and four respectively. Clearing all examples disabled Save, and Discard restored four. At 390 px a fifth pointer-drawn example could be discarded. At 320 px the document had equal client/scroll widths, and Save/Discard remained visible. English numeric bounds and Enter activation added and saved a fifth example.
+- Exported `見本編集テスト.html` contained five reference boxes, an identical source PNG and unchanged photo marker counts `[29, 0]`. Reload/restore retained five examples. Real inference with the embedded model then completed with 29 duplicates, zero additions, and the new explanatory duplicate-only message.
+- The self-extract build restored the same data. Editing while the wide photo was selected correctly opened the saved detail-photo reference. Save/removal and Undo worked; clearing then pressing Escape preserved five saved examples.
+- The new nine automated cases cover preserved boxes, one-step history, discarded/unchanged/empty edits, delayed image completion after cancel/close/reference replacement, stale saves, snapshot coordinates with a rotated target, and duplicate-only controls. Code review found a duplicate translation key, which was renamed before the final build; the browser subsequently displayed the intended message.
+- Neither readable nor self-extract testing captured console errors or warnings.
+- Physical Android touch behavior remains untested. Direct `file://` navigation was rejected by the verification browser's URL policy, so only localhost execution is claimed for both variants. The unchanged CSP continues to block runtime connections; no Android network trace was collected.
