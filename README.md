@@ -7,7 +7,7 @@ Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer 
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.5.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the new main-screen batch workflow still needs physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.6.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the new main-screen batch workflow still needs physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -62,7 +62,7 @@ The first build downloads pinned ONNX Runtime JS/WASM packages. Generated HTML e
 
 ## Local auto detection
 
-Pin examples for the selected type in **Examples / detection settings**. Then use **Detect this photo** or **Detect all photos** directly beside the canvas. Results are added automatically as **Needs review** markers; existing overlaps are skipped. **Stop** keeps completed results, and one **Undo** reverts the entire run. Review the flagged markers before marking a photo complete. All-photo detection includes completed photos.
+Pin examples for the selected type in **Examples / detection settings**. Then use **Detect this photo** or **Detect all photos** directly beside the canvas. Results are added automatically as **Needs review** markers; existing overlaps are skipped. **Stop** keeps completed results, and one **Undo** reverts the entire run. After checking the photo, **Mark this photo reviewed** clears all its review flags at once. One Undo restores them; photo completion remains a separate action. All-photo detection includes completed photos.
 
 ![Reviewing local detection candidates](assets/auto-detection.jpg)
 

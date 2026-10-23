@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.5
+- **Version:** 1.1.0-dev.6
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -286,3 +286,8 @@ Compatibility exception: the former native resize handler could create an exact 
 - Show progress, filename, added counts, per-photo results and a Stop action. Stop retains completed photos’ additions; the active photo cannot commit late results. Bad images are reported and skipped; inference/runtime errors stop the run.
 - Lock editing, navigation, imports and hidden toast actions during processing. Reject stale project/image/model/reference ownership before committing. Release worker/bitmaps/Blob URLs on finish, cancellation and page navigation.
 - Pinned examples and resulting markers persist through existing draft/viewer flows. Transient progress reports do not persist.
+
+### Photo review (1.1.0-dev.6)
+
+- When the current photo contains review flags, show its flagged count and Mark this photo reviewed beside the photo workflow. The action clears all review flags in that photo, including hidden and other types, with one Undo/Redo transaction and autosave. Counts, geometry, other photos and completion remain unchanged. No-op actions preserve history/redo; inference blocks review edits.
+- Pin/unpin immediately synchronizes the main-screen reference count, action availability and history controls. New local examples must be pinned to reuse them outside the dialog.

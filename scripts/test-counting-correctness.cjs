@@ -86,3 +86,22 @@ test('viewer arrow keys advance the pending target, retaining modifier and edita
   pending[1].resolve({name:'C'});pending[0].resolve({name:'B'});await new Promise(resolve=>setImmediate(resolve));
   assert.equal(c.idx,2);assert.equal(c.img.name,'C');
 });
+
+function photoReview(){
+  const {c,saved}=editor();c.Toast={show(){}};c.t=k=>k;c.quickDetectionBusy=()=>false;
+  vm.runInContext(section('function markImageReviewed()', 'async function toggleComplete()'),c);
+  return{c,saved};
+}
+test('photo review clears all types only on the active photo with one undoable saved change',()=>{
+  const {c,saved}=photoReview();const im=c.P.images[0];im.completed=false;
+  im.markers=[{id:'a',categoryId:'a',needsReview:true},{id:'b',categoryId:'hidden',needsReview:true},{id:'c',needsReview:false}];
+  c.P.images.push({...structuredClone(im),id:'two'});const before=structuredClone(c.P);
+  c.markImageReviewed();assert.equal(c.history.length,1);assert.ok(c.P.images[0].markers.every(m=>!m.needsReview));
+  assert.deepEqual(c.P.images[1],before.images[1]);assert.equal(c.P.images[0].completed,false);assert.equal(saved.length,1);
+  c.undo();assert.deepEqual(c.P.images,before.images);c.redo();assert.ok(c.P.images[0].markers.every(m=>!m.needsReview));
+});
+test('photo review no-op or active inference preserves history, redo and existing flags',()=>{
+  const {c,saved}=photoReview();c.future.push({sentinel:true});c.markImageReviewed();assert.equal(c.future.length,1);assert.equal(saved.length,0);
+  c.P.images[0].markers=[{needsReview:true}];c.quickDetectionBusy=()=>true;c.markImageReviewed();assert.equal(c.P.images[0].markers[0].needsReview,true);assert.equal(c.history.length,0);
+  c.activeImage=()=>null;assert.doesNotThrow(()=>c.markImageReviewed());
+});

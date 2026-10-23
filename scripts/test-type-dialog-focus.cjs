@@ -66,7 +66,7 @@ function setup(language = 'en') {
     setTimeout: fn => timers.push(fn), scheduleSave: () => saves++, renderStorageSoon() {},
     renderCanvas() { renders.push('canvas'); renderHook(); },
   });
-  for (const name of ['renderModes', 'renderImages', 'renderCategories', 'renderStatus', 'renderSummary', 'renderAdjust', 'renderDisplay']) c[name] = () => renders.push(name);
+  for (const name of ['renderModes', 'renderImages', 'renderCategories', 'renderStatus', 'renderPhotoReview', 'renderSummary', 'renderAdjust', 'renderDisplay']) c[name] = () => renders.push(name);
   vm.runInContext([
     section('const I18N=', 'const Toast='),
     section('function activeImage()', 'function normalizeProject('),

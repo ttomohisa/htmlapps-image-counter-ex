@@ -156,7 +156,7 @@ function detectionUI(useDefault=false){
     project={categories:[{id:'a',name:'A'}],images:[im]},model={};
   Object.assign(c,{$:element,P:project,activeImage:()=>im,activeCategory:()=>project.categories[0],t:key=>key,
     URL:{revokeObjectURL:url=>revoked.push(url)},addEventListener:(name,handler)=>events.set(name,handler),
-    imageCache:new Map(),model,worker:{terminate:()=>terminated++}});
+    renderAll(){},imageCache:new Map(),model,worker:{terminate:()=>terminated++}});
   vm.runInContext(section('function toDisplayNorm(','function canvasCssSize('),c);
   vm.runInContext(section('// AUTO:UI:BEGIN','// AUTO:UI:END'),c);
   vm.runInContext("autoState.owner={project:P,imageId:'one',dataUrl:'pixels'};autoState.examples=[{x:.1,y:.1,w:.2,h:.2}]",c);
@@ -313,4 +313,14 @@ test(`candidate tap toggles exclusion without adding counts at ${rotation} degre
     assert.equal(JSON.stringify({project:c.P,examples:plain(vm.runInContext('autoState.examples',c))}),before);
     assert.equal(vm.runInContext('autoState.candidates.length',c),1);
   }
+});
+
+test('pin and unpin immediately refresh the main-screen reference state',()=>{
+  const {c,im,element}=detectionUI(true);c.renderAutoReference=()=>{};c.renderAutoPreview=()=>{};
+  c.imageCache.set(im.id,{naturalWidth:640,naturalHeight:640});
+  c.document={createElement:()=>({getContext:()=>({fillRect(){},drawImage(){}}),toDataURL:()=>'snapshot'})};
+  c.validateDetectionReference=()=>{};c.validateProject=()=>{};c.pushHistory=()=>{};c.touch=()=>{};c.Toast={show(){}};c.undo=()=>{};
+  const seen=[];c.renderAll=()=>seen.push(c.autoCurrentReference());
+  c.pinAutoExamples();assert.equal(seen.length,1);assert.equal(seen[0],c.autoCurrentReference());
+  element('#autoUnpin').onclick();assert.equal(seen.length,2);assert.equal(seen[1],null);
 });

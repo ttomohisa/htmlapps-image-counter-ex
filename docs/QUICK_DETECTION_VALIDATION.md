@@ -22,3 +22,14 @@ Actual in-app Chromium tests over localhost, using the embedded compact model at
 ## Limits
 
 No physical Android-device or direct file-origin browser test was performed in this change. See ANDROID_FILE_TEST.md for the updated device procedure. The unchanged CSP blocks runtime connections, and the build verifies embedded runtime/model assets; this does not substitute for a network trace on Android. Existing small-object/scale and false-positive limitations remain. All-photo processing uses a fresh worker per photo to bound resource lifetime, so initialization is repeated.
+
+## Photo review and reference refresh — 1.1.0-dev.6
+
+Final required repository check exited 0: 2,943 tests passed with zero failures, plus build/asset/help validation across all four artifacts.
+
+- Reproduced a stale main-screen state: after unpinning and closing settings, the hint still showed three pinned examples and both detection buttons stayed enabled. Pin/unpin now redraw the main-screen controls immediately. The regression test failed before the fix and passed afterward.
+- Pointer dragging after unpinning worked in desktop and 390 px Chromium tests. A newly drawn single example could be pinned, immediately shown as one example in the main screen, then unpinned with both detection buttons disabled. Other reported re-outline symptoms remain unspecified; this test does not establish Android touch behavior.
+- Photo-level review cleared 29 flags on one photo, leaving total count 116 and other photos unchanged. One Undo restored all 29 flags; Redo cleared them. Photo completion stayed unchanged. Controlled tests also cover hidden/other types, no-op history preservation and blocking during inference.
+- Japanese 320/390 px layout had no horizontal document overflow. English action text and Enter-key activation worked. Both readable and self-extract HTML completed review/Undo; no captured console warnings or errors.
+- Edited export filename `写真確認テスト.html`; parsed marker/review counts were `(29,0), (0,0), (29,0), (29,29), (29,0)`. Reload/restore retained 29 remaining flags and count 116.
+- Physical Android and direct-file opening were not tested in this change.

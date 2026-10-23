@@ -140,3 +140,5 @@ Pinned references are optional category metadata in schema 4. Normalization vali
 ### Main-screen sequential detection
 
 `QUICK:CORE` owns captured project/category/reference/model/source identities and a single lazy history transaction. `QUICK:RUNNER` creates and tears down a fresh worker, transferred target/reference bitmaps and module URLs for each photo. `QUICK:UI` exposes progress/cancellation outside the inert editor, mobile bar and toast. Main-screen actions append `needsReview` rectangles; the dialog keeps explicit candidate selection. Pending `addFiles` calls block starts so a delayed import cannot erase a run’s Undo history. Cancellation synchronously invalidates the run, rejects pending inference and guards late asset/bitmap/result callbacks. Reports are transient; references and markers use existing persistence.
+
+Photo-level review uses the existing marker `needsReview` field and one `pushHistory()` snapshot. It preserves image completion and other photos, autosaves through `touch()`, and is disabled during quick inference. Pin/unpin now call the full render path to synchronize the modal, main-screen quick actions and history controls.
