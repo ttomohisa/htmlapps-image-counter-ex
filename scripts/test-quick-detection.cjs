@@ -123,39 +123,84 @@ test('bad photos are reported and skipped, while a model failure stops the batch
     assert.equal(run.rows[1].error,error);assert.equal(run.rows[0].truncated,2);assert.equal(run.phase,error==='autoInvalidImage'?'done':'error');
   }
 });
+function reply(worker,data){worker.onmessage({data:{requestId:worker.data.requestId,...data}})}
 function runner(mode='append'){
   const {c,run,images}=setup(mode),bitmaps=[],revoked=[],workers=[];run.backend='wasm';run.precision='fp32';run.threshold=.05;run.model.arrayBuffer=async()=>new ArrayBuffer(3);
   Object.assign(c,{Blob,StandaloneAssets:{bytesAsync:async()=>new Uint8Array(3)},loadImage:async src=>({src}),createImageBitmap:async image=>{const b={image,closed:0,close(){this.closed++}};bitmaps.push(b);return b},autoWorkerSource:()=>'',I18N:{ja:{autoModelError:'error'}},URL:{createObjectURL:()=>`blob:${Math.random()}`,revokeObjectURL:u=>revoked.push(u)},Worker:class{constructor(){workers.push(this);this.terminated=0}postMessage(data,transfers){this.data=data;this.transfers=transfers}terminate(){this.terminated++}}});
   vm.runInContext(section('// QUICK:RUNNER:BEGIN','// QUICK:RUNNER:END'),c);return{c,run,images,bitmaps,revoked,workers};
 }
-test('headless runner transfers distinct source/target bitmaps and releases each worker on result',async()=>{
+test('headless runner retains the same worker for later photos and releases it at batch completion',async()=>{
   const {c,run,images,bitmaps,revoked,workers}=runner(),pending=c.quickInferImage(run,images[1]);
   await new Promise(resolve=>setImmediate(resolve));const w=workers[0];
   assert.equal(w.data.bitmap.image.src,'two');assert.equal(w.data.referenceBitmap.image.src,'ref');assert.equal(w.transfers.length,4);
-  w.onmessage({data:{phase:'processing'}});assert.equal(run.phase,'processing');
-  w.onmessage({data:{phase:'result',candidates:[box()],truncated:4}});const result=await pending;
-  assert.equal(result.candidates.length,1);assert.equal(result.truncated,4);assert.equal(w.terminated,1);assert.equal(revoked.length,2);assert.equal(run.cancelInference,null);
+  reply(w,{phase:'processing'});assert.equal(run.phase,'processing');
+  reply(w,{phase:'result',candidates:[box()],truncated:4});const result=await pending;
+  assert.equal(result.candidates.length,1);assert.equal(result.truncated,4);assert.equal(w.terminated,0);assert.equal(revoked.length,0);assert.equal(typeof run.cancelInference,'function');
+  const next=c.quickInferImage(run,images[2]);await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(workers.length,1);assert.equal(w.data.bitmap.image.src,'three');assert.equal(w.data.referenceBitmap,undefined);assert.equal(w.data.model,undefined);assert.equal(w.transfers.length,1);assert.equal(w.data.requestId,2);
+  reply(w,{phase:'result',candidates:[],truncated:0});await next;
+  assert.equal(bitmaps.length,3,'two targets and one reference');c.finishQuickDetection(run,'done');
+  assert.equal(w.terminated,1);assert.equal(revoked.length,2);assert.equal(run.cancelInference,null);
   // Transferred bitmaps belong to the worker and must not be closed by the sender.
   assert.ok(bitmaps.every(b=>b.closed===0));
 });
+
+test('a failed target decode is skipped without rebuilding the surviving batch runtime',async()=>{
+  const {c,run,images,workers}=runner();let assets=0,models=0;const loaded=[];
+  c.StandaloneAssets.bytesAsync=async()=>{assets++;return new Uint8Array(3)};run.model.arrayBuffer=async()=>{models++;return new ArrayBuffer(3)};
+  c.loadImage=async src=>{loaded.push(src);if(src==='two')throw new Error('bad photo');return{src}};
+  const batch=c.quickProcessImages(run);await new Promise(resolve=>setImmediate(resolve));reply(workers[0],{phase:'result',candidates:[box()],truncated:0});
+  await new Promise(resolve=>setImmediate(resolve));assert.equal(workers.length,1);assert.equal(workers[0].data.bitmap.image.src,'three');
+  reply(workers[0],{phase:'result',candidates:[box()],truncated:0});await batch;
+  assert.equal(run.phase,'done');assert.equal(run.rows[1].error,'autoInvalidImage');assert.equal(assets,2);assert.equal(models,1);assert.equal(loaded.filter(src=>src==='ref').length,1);
+  assert.deepEqual(images.map(im=>im.markers.length),[1,0,1]);assert.equal(workers[0].terminated,1);assert.equal(run.inferenceRuntime,undefined);
+});
+
+test('late earlier-photo replies cannot complete the next photo request',async()=>{
+  const {c,run,images,workers}=runner();const first=c.quickInferImage(run,images[0]);await new Promise(resolve=>setImmediate(resolve));
+  const w=workers[0];reply(w,{phase:'result',candidates:[box()],truncated:0});await first;
+  let settled=false;const second=c.quickInferImage(run,images[1]).then(result=>{settled=true;return result});await new Promise(resolve=>setImmediate(resolve));
+  reply(w,{requestId:1,phase:'result',candidates:[box(.6)],truncated:0});await new Promise(resolve=>setImmediate(resolve));assert.equal(settled,false);
+  reply(w,{phase:'result',candidates:[],truncated:0});assert.equal((await second).candidates.length,0);c.finishQuickDetection(run,'done');
+});
+
+for(const requestId of [undefined,NaN,3,'1'])test(`invalid worker request identity ${String(requestId)} fails without adding markers`,async()=>{
+  const {c,run,images,workers}=runner();const pending=c.quickInferImage(run,images[0]);await new Promise(resolve=>setImmediate(resolve));
+  workers[0].onmessage({data:{requestId,phase:'result',candidates:[box()],truncated:0}});await assert.rejects(pending,/autoInvalidOutput/);
+  assert.equal(workers[0].terminated,1);assert.equal(images[0].markers.length,0);assert.equal(run.inferenceRuntime,undefined);
+});
+
+test('a worker error during the next target decode rejects promptly and closes a late bitmap',async()=>{
+  const {c,run,images,workers,bitmaps}=runner();const first=c.quickInferImage(run,images[0]);await new Promise(resolve=>setImmediate(resolve));reply(workers[0],{phase:'result',candidates:[],truncated:0});await first;
+  let release;const makeBitmap=c.createImageBitmap;c.createImageBitmap=async image=>{const bitmap=await makeBitmap(image);await new Promise(resolve=>release=resolve);return bitmap};
+  const second=c.quickInferImage(run,images[1]);await new Promise(resolve=>setImmediate(resolve));workers[0].onerror({preventDefault(){}});await assert.rejects(second,/autoModelError/);
+  release();await new Promise(resolve=>setImmediate(resolve));assert.equal(workers[0].terminated,1);assert.equal(bitmaps[2].closed,1);
+});
+
+test('a new batch creates fresh runtime state instead of reusing a previous run',async()=>{
+  const {c,run,images,workers}=runner();const first=c.quickInferImage(run,images[0]);await new Promise(resolve=>setImmediate(resolve));reply(workers[0],{phase:'result',candidates:[],truncated:0});await first;c.finishQuickDetection(run,'done');
+  const next={...run,rows:[]};c.quickState.run=next;const second=c.quickInferImage(next,images[0]);await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(workers.length,2);assert.equal(workers[1].data.requestId,1);assert.equal(workers[1].data.referenceBitmap.image.src,'ref');assert.ok(workers[1].data.model);
+  reply(workers[1],{phase:'result',candidates:[],truncated:0});await second;c.finishQuickDetection(next,'done');assert.equal(workers[1].terminated,1);
+});
 test('cancelling during asset loading rejects immediately without starting a late worker',async()=>{
-  const {c,run,images,workers}=runner();let release;const gate=new Promise(resolve=>release=resolve);c.StandaloneAssets.bytesAsync=async()=>{await gate;return new Uint8Array(3)};
-  const pending=c.quickInferImage(run,images[0]);run.cancelInference();await assert.rejects(pending,/autoCancelled/);
-  release(new Uint8Array(3));await new Promise(resolve=>setImmediate(resolve));assert.equal(workers.length,0);
+  const {c,run,images,workers,bitmaps}=runner();let release;const gate=new Promise(resolve=>release=resolve);c.StandaloneAssets.bytesAsync=async()=>{await gate;return new Uint8Array(3)};
+  const pending=c.quickInferImage(run,images[0]);await new Promise(resolve=>setImmediate(resolve));assert.equal(bitmaps.length,1);run.cancelInference();await assert.rejects(pending,/autoCancelled/);
+  release(new Uint8Array(3));await new Promise(resolve=>setImmediate(resolve));assert.equal(workers.length,0);assert.equal(bitmaps[0].closed,1);
 });
 for(const [label,result] of [['explicit zero',{phase:'result',candidates:[],truncated:0}],['omitted truncation count',{phase:'result',candidates:[]}]])test(`a validated empty worker result (${label}) completes replacement and records the photo for review`,async()=>{
   const {c,run,images,workers}=runner('replace');run.targets=[images[0]];images[0].markers=[pendingMarker('old')];
-  const pending=c.quickProcessImages(run);await new Promise(resolve=>setImmediate(resolve));workers[0].onmessage({data:result});await pending;
+  const pending=c.quickProcessImages(run);await new Promise(resolve=>setImmediate(resolve));reply(workers[0],result);await pending;
   assert.equal(run.phase,'done');assert.equal(images[0].markers.length,0);assert.equal(images[0].detectionChecks[0].reviewed,false);assert.equal(run.rows[0].added,0);assert.equal(run.rows[0].removed,1);assert.equal(c.history.length,1);
 });
 for(const candidates of [[],[box(.6)]])test(`capped replacement output (${candidates.length} returned candidates) preserves prior markers and review metadata`,async()=>{
   const {c,run,images,workers}=runner('replace');run.targets=[images[0]];images[0].markers=[pendingMarker('old')];images[0].detectionChecks=[{categoryId:'a',detectedAt:123,reviewed:true}];c.future.push({sentinel:1});c.P.updatedAt=123;const before=plain(images[0]);
-  const pending=c.quickProcessImages(run);await new Promise(resolve=>setImmediate(resolve));workers[0].onmessage({data:{phase:'result',candidates,truncated:1}});await pending;
+  const pending=c.quickProcessImages(run);await new Promise(resolve=>setImmediate(resolve));reply(workers[0],{phase:'result',candidates,truncated:1});await pending;
   assert.deepEqual(plain(images[0]),before);assert.equal(c.history.length,0);assert.equal(c.future.length,1);assert.equal(c.P.updatedAt,123);assert.equal(run.phase,'error');assert.equal(run.rows[0].error,'autoReplaceTruncated');assert.equal(workers[0].terminated,1);
 });
 test('capped append output keeps prior markers and reports the omitted candidate count',async()=>{
   const {c,run,images,workers}=runner('append');run.targets=[images[0]];images[0].markers=[pendingMarker('old')];const before=plain(images[0].markers[0]);
-  const pending=c.quickProcessImages(run);await new Promise(resolve=>setImmediate(resolve));workers[0].onmessage({data:{phase:'result',candidates:[box(.6)],truncated:3}});await pending;
+  const pending=c.quickProcessImages(run);await new Promise(resolve=>setImmediate(resolve));reply(workers[0],{phase:'result',candidates:[box(.6)],truncated:3});await pending;
   assert.equal(run.phase,'done');assert.deepEqual(plain(images[0].markers[0]),before);assert.equal(images[0].markers.length,2);assert.equal(images[0].detectionChecks.length,1);assert.equal(images[0].detectionChecks[0].reviewed,false);assert.equal(run.rows[0].truncated,3);assert.equal(run.rows[0].added,1);assert.equal(run.rows[0].removed,0);
 });
 for(const [label,result] of [
@@ -169,7 +214,7 @@ for(const [label,result] of [
   ['string truncated count',{phase:'result',candidates:[],truncated:'1'}],
 ])test(`malformed inference (${label}) cannot erase pending results in replace mode`,async()=>{
   const {c,run,images,workers}=runner('replace');run.targets=[images[0]];images[0].markers=[pendingMarker('old')];images[0].detectionChecks=[{categoryId:'a',detectedAt:123,reviewed:false}];c.future.push({sentinel:1});const before=plain(images[0]);
-  const pending=c.quickProcessImages(run);await new Promise(resolve=>setImmediate(resolve));workers[0].onmessage({data:result});await pending;
+  const pending=c.quickProcessImages(run);await new Promise(resolve=>setImmediate(resolve));reply(workers[0],result);await pending;
   assert.deepEqual(plain(images[0]),before);assert.equal(c.history.length,0);assert.equal(c.future.length,1);assert.equal(run.phase,'error');assert.equal(run.rows[0].error,'autoInvalidOutput');assert.equal(workers[0].terminated,1);
 });
 function ui(){
@@ -191,6 +236,13 @@ test('changing the selector after an all-photo run starts cannot change its capt
   const pending=c.startQuickDetection(true);c.$('#quickMode').value='append';
   assert.equal(captured.mode,'replace');assert.deepEqual(Array.from(captured.targets),images);release();await pending;
 });
+
+test('finished quick reports capture a fixed elapsed duration without serializing it into the project',async()=>{
+  const {c}=ui();let now=1000,captured;c.Date={now:()=>now};c.quickProcessImages=async run=>captured=run;
+  await c.startQuickDetection();assert.equal(captured.startedAt,1000);now=2750;c.finishQuickDetection(captured,'done');c.renderQuickDetection();
+  assert.equal(captured.elapsedMs,1750);assert.ok(c.$('#quickProgressText').textContent.includes('quickElapsed'));
+  now=9000;c.renderQuickDetection();assert.equal(captured.elapsedMs,1750);assert.equal(JSON.stringify(c.P).includes('elapsedMs'),false);
+});
 test('quick detection waits for an already-pending photo import instead of losing its Undo',async()=>{
   const {c}=ui();let release,starts=0;c.fileToRecord=()=>new Promise(resolve=>release=resolve);c.MAX_IMAGES=30;c.MAX_PROJECT_BYTES=10000;c.projectBytes=()=>0;c.showWorkspace=()=>{};c.switchImage=async()=>{};
   vm.runInContext(section('async function addFiles(','async function switchImage('),c);c.quickProcessImages=async()=>{starts++};
@@ -205,6 +257,6 @@ test('cancelling during reference bitmap creation closes both bitmaps and never 
 });
 test('cancelling an active headless worker ignores late results and cleans resources',async()=>{
   const {c,run,images,workers,revoked}=runner(),pending=c.quickInferImage(run,images[0]);await new Promise(resolve=>setImmediate(resolve));
-  const w=workers[0];run.cancelInference();await assert.rejects(pending,/autoCancelled/);w.onmessage({data:{phase:'result',candidates:[box()]}});
+  const w=workers[0];run.cancelInference();await assert.rejects(pending,/autoCancelled/);reply(w,{phase:'result',candidates:[box()]});
   assert.equal(w.terminated,1);assert.equal(revoked.length,2);assert.equal(images[0].markers.length,0);
 });

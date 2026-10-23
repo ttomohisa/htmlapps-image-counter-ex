@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0-dev.11 — 2026-10-24
+
+- Reuse a worker, model session and visual reference embedding within each main-screen detection run. Release them on completion, cancellation or failure; retain one-step Undo and atomic replacement.
+- Show elapsed time in the completed run summary. Model, preprocessing, thresholds and the saved schema are unchanged.
+- Clarify Save work / Open work, portable HTML versus browser autosave, and the read-only viewer versus reopening in the editor. Add Open work inside Save & export.
+- Validate a selected work file before asking to replace active work. Protect the current project against cancelled, invalid and stale imports, including photo additions that finish after work replacement. Capture content and filename at save start and prevent duplicate saves.
+
 ## 1.1.0-dev.10 — 2026-10-23
 
 - Show Undetected, In progress, Needs review and Complete photo states in thumbnails, the current-photo bar and project status totals.

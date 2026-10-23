@@ -113,6 +113,48 @@ test('two-pass model run uses extracted prompt and zero target mask, and dispose
   const out=await c.autoRunModel(f.ort,f.session,new Float32Array(3*640*640),mask);
   assert.equal(f.calls(),2);assert.equal(out.boxes.length,33600);assert.ok(f.tensors.every(t=>t.disposed));
 });
+
+test('a batch reuses its copied prompt for later targets and disposes every per-image tensor',async()=>{
+  const c=engine(),f=runtimeFixture(),mask=new Float32Array(6400),cache={};mask[0]=1;
+  const first=await c.autoRunModel(f.ort,f.session,new Float32Array(3*640*640),mask,undefined,cache);
+  const second=await c.autoRunModel(f.ort,f.session,new Float32Array(3*640*640),null,undefined,cache);
+  assert.equal(f.calls(),3,'one reference pass and two target passes');
+  assert.deepEqual(second,first);assert.ok(f.tensors.every(t=>t.disposed));
+});
+
+test('batch Worker creates one session, extracts one prompt and closes all transferred bitmaps',async()=>{
+  const c=core(),f=runtimeFixture(),messages=[],bitmaps=[];let creates=0,releases=0;
+  Object.assign(f.ort,{env:{wasm:{}},InferenceSession:{async create(){creates++;return f.session}}});f.session.release=async()=>{releases++};
+  Object.assign(c,{self:{postMessage:data=>messages.push(data)},performance:{now:()=>0},importOrt:async()=>f.ort,OffscreenCanvas:class{getContext(){return{fillRect(){},drawImage(){},getImageData(){return{data:new Uint8Array(640*640*4)}}}}}});
+  vm.runInContext(section('// AUTO:ENGINE:BEGIN','// AUTO:ENGINE:END').replace('import(data.moduleUrl)','importOrt(data.moduleUrl)'),c);await c.autoDetectWorker();
+  const bitmap=()=>{const b={width:640,height:640,closed:0,close(){this.closed++}};bitmaps.push(b);return b};
+  await c.self.onmessage({data:{batch:true,requestId:1,moduleUrl:'local',wasm:new ArrayBuffer(1),model:new ArrayBuffer(1),bitmap:bitmap(),referenceBitmap:bitmap(),examples:[box(0,0,1,1)],backend:'wasm',precision:'fp32',threshold:.05}});
+  await c.self.onmessage({data:{batch:true,requestId:2,bitmap:bitmap(),threshold:.05}});
+  assert.equal(creates,1);assert.equal(f.calls(),3);assert.equal(releases,0);
+  assert.deepEqual(messages.filter(m=>m.phase==='result').map(m=>m.requestId),[1,2]);assert.ok(bitmaps.every(b=>b.closed===1));assert.ok(f.tensors.every(t=>t.disposed));
+});
+
+test('ordinary dialog Worker remains two-pass and releases its session after the result',async()=>{
+  const c=core(),f=runtimeFixture(),messages=[],bitmaps=[];let releases=0;
+  Object.assign(f.ort,{env:{wasm:{}},InferenceSession:{create:async()=>f.session}});f.session.release=async()=>{releases++};
+  Object.assign(c,{self:{postMessage:data=>messages.push(data)},performance:{now:()=>0},importOrt:async()=>f.ort,OffscreenCanvas:class{getContext(){return{fillRect(){},drawImage(){},getImageData(){return{data:new Uint8Array(640*640*4)}}}}}});
+  vm.runInContext(section('// AUTO:ENGINE:BEGIN','// AUTO:ENGINE:END').replace('import(data.moduleUrl)','importOrt(data.moduleUrl)'),c);await c.autoDetectWorker();
+  const bitmap={width:640,height:640,closed:0,close(){this.closed++}};
+  await c.self.onmessage({data:{moduleUrl:'local',wasm:new ArrayBuffer(1),model:new ArrayBuffer(1),bitmap,examples:[box(0,0,1,1)],backend:'wasm',precision:'fp32',threshold:.05}});
+  assert.equal(f.calls(),2);assert.equal(releases,1);assert.equal(bitmap.closed,1);assert.deepEqual(messages.map(m=>m.phase),['processing','result']);assert.equal(messages[1].requestId,undefined);assert.ok(f.tensors.every(t=>t.disposed));
+});
+
+test('a later batch inference failure releases the retained session and both target bitmaps',async()=>{
+  const c=core(),f=runtimeFixture(),messages=[];let releases=0;
+  Object.assign(f.ort,{env:{wasm:{}},InferenceSession:{create:async()=>f.session}});f.session.release=async()=>{releases++};
+  const run=f.session.run;f.session.run=async feeds=>{const out=await run(feeds);if(f.calls()===3)out.scores.data[0]=NaN;return out};
+  Object.assign(c,{self:{postMessage:data=>messages.push(data)},performance:{now:()=>0},importOrt:async()=>f.ort,OffscreenCanvas:class{getContext(){return{fillRect(){},drawImage(){},getImageData(){return{data:new Uint8Array(640*640*4)}}}}}});
+  vm.runInContext(section('// AUTO:ENGINE:BEGIN','// AUTO:ENGINE:END').replace('import(data.moduleUrl)','importOrt(data.moduleUrl)'),c);await c.autoDetectWorker();
+  const bitmaps=[0,1].map(()=>({width:640,height:640,closed:0,close(){this.closed++}}));
+  await c.self.onmessage({data:{batch:true,requestId:1,moduleUrl:'local',wasm:new ArrayBuffer(1),model:new ArrayBuffer(1),bitmap:bitmaps[0],examples:[box(0,0,1,1)],backend:'wasm',precision:'fp32',threshold:.05}});
+  await c.self.onmessage({data:{batch:true,requestId:2,bitmap:bitmaps[1],threshold:.05}});
+  assert.equal(releases,1);assert.equal(messages.at(-1).phase,'error');assert.equal(messages.at(-1).code,'autoInvalidOutput');assert.equal(messages.at(-1).requestId,2);assert.ok(bitmaps.every(b=>b.closed===1));assert.ok(f.tensors.every(t=>t.disposed));
+});
 test('incompatible model outputs stop before the second run and still dispose tensors',async()=>{
   const c=engine(),f=runtimeFixture(true),mask=new Float32Array(6400);mask[0]=1;
   await assert.rejects(c.autoRunModel(f.ort,f.session,new Float32Array(3*640*640),mask),/autoInvalidOutput/);

@@ -80,3 +80,35 @@ test('ZIP image option is an initially checked native input with a translated ac
   const input=source.match(/<input\b[^>]*id="zipIncludeImages"[^>]*>/);assert.ok(input,'ZIP image option must exist');assert.match(input[0],/type="checkbox"/);assert.match(input[0],/\bchecked\b/);assert.match(source,/<label[^>]*for="zipIncludeImages"[^>]*data-i18n="includeAnnotatedJpegs"/);
   const c={};vm.createContext(c);vm.runInContext(section('const I18N=', 'let lang=').replace('const I18N=','globalThis.I18N='),c);for(const lang of ['ja','en'])assert.ok(c.I18N[lang].includeAnnotatedJpegs);
 });
+
+
+function workSaveFixture(){
+  const f=fixture();f.c.structuredClone=structuredClone;let finish;
+  f.c.compressProjectForViewer=async snapshot=>{f.snapshot=snapshot;await new Promise(resolve=>finish=resolve);return snapshot};
+  f.c.viewerHtml=snapshot=>JSON.stringify(snapshot);
+  vm.runInContext(section('async function saveViewer(', 'function parseViewerProject('),f.c);
+  f.finish=()=>finish();return f;
+}
+test('save work captures filename and project before async preparation and prevents duplicate downloads',async()=>{
+  const f=workSaveFixture();f.$('#exportName').value='My work.HTML';const before=JSON.stringify(f.c.P),saving=f.c.saveViewer();
+  assert.equal(f.$('#saveViewer').disabled,true);assert.notEqual(f.snapshot,f.c.P);assert.equal(JSON.stringify(f.snapshot),before);
+  f.c.P.images[0].markers=[];f.$('#exportName').value='Changed after save';await f.c.saveViewer();assert.equal(f.saves.length,0);
+  f.finish();await saving;assert.equal(f.saves.length,1);assert.equal(f.saves[0].name,'My work.html');assert.equal(await f.saves[0].blob.text(),before);assert.equal(f.$('#saveViewer').disabled,false);
+});
+test('failed save work resets the action so a retry is possible',async()=>{
+  const f=workSaveFixture();f.c.compressProjectForViewer=async()=>{throw Error('decode')};await f.c.saveViewer();
+  assert.equal(f.saves.length,0);assert.equal(f.$('#saveViewer').disabled,false);assert.equal(f.messages.at(-1),'exportFail');
+  f.c.compressProjectForViewer=async snapshot=>snapshot;await f.c.saveViewer();assert.equal(f.saves.length,1);
+});
+
+
+test('work photo compression uses captured photo data and settings without polluting a different project cache',async()=>{
+  const f=fixture(),wait={};f.c.structuredClone=structuredClone;f.c.dataUrlBytes=()=>7;
+  f.c.P.images[0].dataUrl='first';f.c.P.images[1].dataUrl='second';const input=f.c.P,qualities=[],decoded=[];
+  f.c.imageCache.set('im1',{source:'wrong-cache'});
+  f.c.loadImage=async data=>{decoded.push(data);if(data==='first')await new Promise(resolve=>wait.finish=resolve);return{source:data}};
+  f.c.document.createElement=()=>({getContext:()=>({drawImage(){}}),toDataURL:(mime,quality)=>{qualities.push(quality);return'data:image/webp;base64,AAAA'}});
+  vm.runInContext(section('async function compressProjectForViewer(', 'function viewerHtml('),f.c);
+  const pending=f.c.compressProjectForViewer(input);input.images[1].dataUrl='changed';input.settings.viewerCompression.quality=.45;f.c.P=project();
+  wait.finish();const saved=await pending;assert.deepEqual(decoded,['first','second']);assert.deepEqual(qualities,[.82,.82]);assert.equal(saved.images.length,2);assert.equal(saved.images[0].width,1200);assert.equal(saved.images[0].markers.length,2);assert.equal(input.images[0].dataUrl,'first');assert.equal(f.c.imageCache.get('im1').source,'wrong-cache');
+});

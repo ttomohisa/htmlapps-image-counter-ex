@@ -7,7 +7,7 @@ Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer 
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.10.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection, review, example-editing and pinch workflows still need physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.11.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection, review, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -36,8 +36,8 @@ Undo / Redo results also auto-save. Resetting image corrections returns the imag
 - **Work through multiple photos** — See Not detected / In progress / Needs review / Complete states and status totals. **Review complete & next** reviews and completes a photo, then moves to the next incomplete one.
 - **Adjust hard-to-see photos without changing the original** — Brightness, contrast, grayscale, and 90° rotation are non-destructive and are preserved in exports.
 - **Capture photos from the camera** — Review a capture before adding it, retake it, or accept it and continue shooting.
-- **Keep drafts locally** — Autosave to IndexedDB, optionally compress draft image copies to WebP, and see the current project / draft storage size.
-- **Export results in practical formats** — Save a read-only single-HTML viewer, or a ZIP containing `markers.csv` and `summary.csv`, with optional annotated JPEG images.
+- **Resume or carry your work** — Autosave in this browser, or use **Save / export → Save work as HTML** to keep photos, pinned examples, markers and review progress in a file. Choose **Open work** to resume editing.
+- **Export results in practical formats** — Saved work HTML opens directly as a read-only viewer. You can also export a ZIP containing `markers.csv` and `summary.csv`, with optional annotated JPEG images.
 - **Share a viewer without giving up the data** — The exported viewer can switch images, toggle marker visibility, show image information and comments, and re-export JPEG / CSV+JPEG ZIP. Import it back into Image Counter to resume editing.
 - **Private local runtime** — No account, analytics, remote font, runtime CDN, or image upload. Runtime networking is blocked by CSP with `connect-src 'none'`.
 
@@ -74,6 +74,8 @@ Pin examples for the selected type in **Examples / detection settings**. Then us
 
 Replacement protects manual, reviewed, edited and other-type markers. It also protects results made before dev.10, whose automatic origin cannot be reliably identified. Moving, resizing, changing type or toggling review protects a marker from later replacement; marking it Needs review again does not undo that protection. Each photo changes only after successful detection. A valid zero-result replacement can remove the eligible old results; failed, cancelled or incomplete replacement results keep them. **Stop** keeps processed photos, and one **Undo** restores the whole run.
 
+A main-screen detection run prepares the model and pinned examples once, then reuses them across its photos. This avoids repeating preparation for every photo. The result shows total elapsed time, including preparation. Finish, Stop or a runtime error releases the run’s resources; the next run starts fresh. The model and detection settings are unchanged.
+
 Every successfully detected photo needs review, even when the result is zero or all candidates overlap existing markers. After checking it, **Review complete & next** clears review state, marks it complete and advances to the next incomplete photo, wrapping to the start when needed. It stays on the final photo when all are complete. **Clear review flags** clears review state without completing it. Both review actions support Undo.
 
 ![Reviewing local detection candidates](assets/auto-detection.jpg)
@@ -98,7 +100,7 @@ Cancel or close the dialog to stop inference. The model is retained only for the
 6. Use the flag button to mark an uncertain marker as **Needs review**. Review automatic results even when no new markers were found.
 7. Use the memo button beside **Complete** to add an image note. On desktop the memo panel can be dragged within the canvas; on mobile it opens below the canvas.
 8. Check the photo, then choose **Review complete & next**, or switch photos with thumbnails / arrow keys.
-9. Export a Viewer HTML or a results ZIP. Clear **Include annotated JPEGs** to export only the two CSV files.
+9. Open **Save / export** (**Save** on mobile), enter a filename, and choose **Save work as HTML** or save a results ZIP. Clear **Include annotated JPEGs** to export only the two CSV files.
 
 The top-right EN / JA and Help controls remain available on narrow screens. **How to use & notes** keeps its heading visible while the contents scroll to the end. On mobile, the start screen has full-width photo/camera buttons; Build info and the page footer are hidden. Build info remains available on desktop. Language switching and all Help close controls are unchanged.
 
@@ -138,9 +140,9 @@ Use **Display correction** when the source photo is dark or low-contrast. The co
 
 The original source image is not overwritten.
 
-## Read-only viewer HTML
+## Save and reopen work
 
-Viewer HTML is intended for **reviewing and sharing the count result**, not editing it.
+Choose **Save / export → Save work as HTML** to download photos, pinned examples, markers and review progress in one file. The save uses the content and filename present when you press Save. The saved HTML opens directly as a **read-only result viewer**; it contains the work data but not the editor or detection model.
 
 It includes:
 
@@ -156,7 +158,7 @@ It includes:
 
 Viewer-side downloads show a confirmation dialog before the file is saved.
 
-To edit again, import the viewer HTML with **Import viewer HTML** in Image Counter.
+To edit again, choose **Open work** on the app’s start screen or in **Save / export**. Existing viewer HTML files remain compatible. If another work project is open, the app checks the file first and then asks before replacing that project and the browser autosave. Cancel to save your current work first; an invalid file leaves it unchanged.
 
 ## Export files
 
@@ -179,9 +181,9 @@ result.zip
 
 `summary.csv` contains per-image, per-type, and project-level counts, including `review_count`.
 
-### Viewer HTML image compression
+### Saved HTML image compression
 
-When exporting Viewer HTML, embedded images can optionally be converted to WebP to reduce the file size. Annotated images in CSV + image ZIP exports remain JPEG.
+**Compress saved photos** converts photos to WebP to reduce file size. Turn it off to preserve fine detail for later inspection. Pinned example snapshots stay unchanged. Annotated images in CSV + image ZIP exports remain JPEG.
 
 ## Camera and captured time
 
@@ -197,7 +199,7 @@ The captured time and its source are preserved in Viewer HTML and CSV exports.
 
 The previous-work banner closes after you successfully open new photos, a sample, or viewer HTML. Cancelling file selection or a failed import keeps the saved work available to continue. Its summary, control names, and tooltips follow the selected Japanese/English language.
 
-Projects are autosaved to IndexedDB on supported browsers. The app can show:
+Projects are autosaved to IndexedDB on supported browsers. This copy belongs to this browser and page; it does not transfer to another device and can be lost when browser data is cleared. Save important work as HTML too. The app can show:
 
 - current project data size
 - saved draft size

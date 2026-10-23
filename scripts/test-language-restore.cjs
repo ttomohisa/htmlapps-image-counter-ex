@@ -143,3 +143,76 @@ test('sample acceptance also retires the old restore offer',async()=>{
 test('continue still restores the saved draft after cancelling an import selection',async()=>{
   const f=setup();await f.c.init();await f.$('#restoreDraft').onclick();assert.equal(f.read('P.title'),'Previous');assert.equal(f.read('P.images[0].markers.length'),1);assert.equal(f.$('#restoreBanner').hidden,true);
 });
+
+
+test('opening saved work during editing validates and decodes before asking to replace',async()=>{
+  const f=setup();f.seed(project('Current'));const before=f.read('JSON.stringify(P)'),pending=deferred(),asked=[];
+  f.decode(()=>pending.promise);f.confirm((...args)=>{asked.push(args);return false});
+  const opening=f.import(project('Selected'));await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(asked.length,0);assert.equal(f.read('JSON.stringify(P)'),before);
+  pending.resolve({naturalWidth:800,naturalHeight:600});await opening;
+  assert.equal(asked.length,1);assert.equal(asked[0][2],true);assert.match(asked[0][1],/Current/);assert.match(asked[0][1],/Selected/);
+  assert.equal(f.read('JSON.stringify(P)'),before);assert.deepEqual(f.writes,[]);
+});
+
+test('accepted work replacement commits only after confirmation and clears old history',async()=>{
+  const f=setup();f.seed(project('Current'));f.confirm(async()=>true);vm.runInContext('history=[1];future=[2]',f.c);
+  await f.import(project('Selected'));assert.equal(f.read('P.title'),'Selected');assert.equal(f.read('history.length+future.length'),0);assert.deepEqual(f.writes,['save']);
+});
+
+test('work replacement confirmation cannot overwrite a newer workspace',async()=>{
+  const f=setup();f.seed(project('Current'));const pending=deferred();f.confirm(()=>pending.promise);
+  const older=f.import(project('Selected'));await new Promise(resolve=>setImmediate(resolve));
+  f.seed(project('Newer'));pending.resolve(true);await older;assert.equal(f.read('P.title'),'Newer');assert.deepEqual(f.writes,[]);
+});
+
+test('latest requested work owns loading even when an earlier file finishes first',async()=>{
+  const f=setup(),first=deferred(),second=deferred();let calls=0;
+  f.decode(()=>++calls===1?first.promise:second.promise);
+  const a=f.import(project('Earlier'));await new Promise(resolve=>setImmediate(resolve));
+  const b=f.import(project('Latest'));await new Promise(resolve=>setImmediate(resolve));
+  first.resolve({naturalWidth:800,naturalHeight:600});await a;assert.equal(f.read('P'),null);
+  second.resolve({naturalWidth:800,naturalHeight:600});await b;assert.equal(f.read('P.title'),'Latest');assert.deepEqual(f.writes,['save']);
+});
+
+
+function photoRecord(id){return{...project().images[0],id,name:id+'.png',byteSize:68,markers:[]}}
+for(const starting of ['empty','active'])test(`photo decode from ${starting} work cannot append into a newly opened work file`,async()=>{
+  const f=setup(),pending=deferred();if(starting==='active')f.seed(project('Old'));f.confirm(async()=>true);f.record(()=>pending.promise);
+  const adding=f.c.addFiles([{type:'image/png',name:'late.png'}],{newProjectIfEmpty:true});await f.import(project('Opened'));
+  vm.runInContext("history=['keep'];future=['redo']",f.c);const before=f.read('JSON.stringify({P,activeImageId,activeCategoryId,history,future})'),status=f.messages.at(-1),writes=f.writes.length;
+  pending.resolve(photoRecord('late'));await adding;
+  assert.equal(f.read('JSON.stringify({P,activeImageId,activeCategoryId,history,future})'),before);assert.equal(f.messages.at(-1),status);assert.equal(f.writes.length,writes);assert.equal(f.c.addFiles.pending,0);
+});
+
+test('multi-photo addition stops reading remaining files when another work file takes ownership',async()=>{
+  const f=setup(),pending=deferred(),read=[];f.seed(project('Old'));f.confirm(async()=>true);
+  f.record(file=>{read.push(file.name);return file.name==='one'?Promise.resolve(photoRecord('one')):pending.promise});
+  const adding=f.c.addFiles(['one','two','three'].map(name=>({type:'image/png',name})));await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(read,['one','two']);await f.import(project('Opened'));const before=f.read('JSON.stringify(P)');pending.resolve(photoRecord('two'));await adding;
+  assert.equal(f.read('JSON.stringify(P)'),before);assert.deepEqual(read,['one','two']);assert.equal(f.c.addFiles.pending,0);
+});
+
+test('obsolete photo decode failure does not replace the status for newly opened work',async()=>{
+  const f=setup(),pending=deferred();f.seed(project('Old'));f.confirm(async()=>true);f.record(()=>pending.promise);
+  const adding=f.c.addFiles([{type:'image/png',name:'late.png'}]);await f.import(project('Opened'));const status=f.messages.at(-1),writes=f.writes.length;
+  pending.reject(Error('decode'));await adding;assert.equal(f.messages.at(-1),status);assert.equal(f.writes.length,writes);assert.equal(f.c.addFiles.pending,0);
+});
+
+test('photo addition waiting to display its image cannot save or announce over newly opened work',async()=>{
+  const f=setup(),pending=deferred();f.seed(project('Old'));f.confirm(async()=>true);f.record(async()=>photoRecord('added'));let calls=0;
+  f.decode(()=>++calls===1?pending.promise:Promise.resolve({naturalWidth:800,naturalHeight:600}));
+  const adding=f.c.addFiles([{type:'image/png',name:'added.png'}]);await new Promise(resolve=>setImmediate(resolve));await f.import(project('Opened'));
+  const before=f.read('JSON.stringify({P,activeImageId,history,future})'),status=f.messages.at(-1),writes=f.writes.length;
+  pending.resolve({naturalWidth:800,naturalHeight:600});await adding;
+  assert.equal(f.read('JSON.stringify({P,activeImageId,history,future})'),before);assert.equal(f.messages.at(-1),status);assert.equal(f.writes.length,writes);
+});
+
+for(const existing of [1,29])test(`concurrent photo additions preserve same-work ownership and the image limit with ${existing} existing`,async()=>{
+  const f=setup(),p=project('Same'),one=deferred(),two=deferred();p.images=Array.from({length:existing},(_,i)=>photoRecord('existing-'+i));f.seed(p);
+  f.record(file=>file.name==='one'?one.promise:two.promise);
+  const a=f.c.addFiles([{type:'image/png',name:'one'}]),b=f.c.addFiles([{type:'image/png',name:'two'}]);
+  two.resolve(photoRecord('two'));await b;one.resolve(photoRecord('one'));await a;
+  assert.equal(f.read('P.title'),'Same');assert.equal(f.read('P.images.length'),Math.min(30,existing+2));
+  assert.equal(f.read("P.images.filter(im=>im.id==='two').length"),1);assert.equal(f.read("P.images.filter(im=>im.id==='one').length"),existing===29?0:1);assert.equal(f.c.addFiles.pending,0);
+});

@@ -66,3 +66,12 @@ Run these checks for both unpinned current-photo examples and the pinned-referen
 6. Save a valid edit, reload and restore the draft, then export/import viewer HTML. Verify the saved boxes, source snapshot and counts survive. Repeat the basic selection/move/resize/save path with the self-extract variant and verify detection can run using the saved examples.
 
 These are acceptance procedures, not completed test results. Model assets, runtime dependencies and stored reference format are unchanged by dev.8.
+
+
+## Batch reuse and portable work (dev.11; device check pending)
+
+1. With pinned examples, run Detect all photos on at least six photos at CPU / FP32 / 5%. Record device/browser, completion count and elapsed seconds. Stop midway, then run again; completed additions remain and one Undo reverses the completed part of that run. Watch for tab reloads or sustained memory pressure.
+2. Choose Save → Save work as HTML and edit the filename. Reopen via Open work in the app; verify photos, pinned examples, review flags and counts. Directly opening the downloaded HTML is a read-only viewer, not the editor.
+3. From an active work, choose Save → Open work. Cancel replacement once and check the original work remains; then accept a valid saved file. Browser autosave now belongs to the newly opened work. Check controls in portrait/landscape, including scrolling the save dialog.
+
+These are device acceptance steps; desktop localhost checks are recorded separately in QUICK_DETECTION_VALIDATION.md.

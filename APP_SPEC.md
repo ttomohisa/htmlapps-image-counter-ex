@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.10
+- **Version:** 1.1.0-dev.11
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -28,7 +28,7 @@
 7. Correct image visibility if needed with brightness, contrast, grayscale, and 90° rotation. The original image data remains unchanged.
 8. Check each image, then use **Review complete & next** to clear its review state, complete it and continue to the next unfinished image.
 9. Review project-wide totals and per-type totals.
-10. Export a read-only viewer HTML or a ZIP containing CSV files with optional annotated JPEG images.
+10. Use **Save / export** (**Save** on mobile) to save work as HTML or export a ZIP containing CSV files with optional annotated JPEG images. Resume from **Open work** on the start screen or save dialog.
 
 ## 4. Functional requirements
 
@@ -99,9 +99,9 @@ Undo/Redo must schedule autosave of the restored state, just like direct edits. 
 
 ### Local draft and storage
 
-- Auto-save project state in IndexedDB.
+- Auto-save project state in IndexedDB. Label this as storage in the current browser/page, separate from a portable HTML work file. Explain that browser-data removal or changing devices can lose access to this copy.
 - The previous-work offer belongs to the start screen. Accepting photos, a sample, viewer HTML, or a restored draft retires it; cancelled selection, malformed imports, and initial-image decode failures leave the previous work available.
-- Stage viewer parsing and initial image decoding before replacing the active project. Delayed startup/restore reads or older viewer imports cannot replace newer accepted work.
+- **Open work** accepts existing schema-4 viewer HTML from either the start screen or the save dialog. Stage validation and initial image decoding before replacing the active project. If work is already open, confirm replacement of that work and the browser autosave; cancellation and invalid files keep it intact. Check both request generation and project identity before/after confirmation so older requests cannot replace newer work. Photo additions also retain their starting project across decoding and display awaits; late additions or errors cannot affect a replacement project. Delayed startup/restore reads cannot replace newer accepted work.
 - Re-render previous-work image/marker counts and timestamps in the selected language.
 - Show current project data size, saved draft size, and available browser storage when available.
 - Default to compressing the **draft copy only** to WebP to reduce local storage usage.
@@ -110,10 +110,12 @@ Undo/Redo must schedule autosave of the restored state, just like direct edits. 
 
 ## 5. Export requirements
 
-### Read-only viewer HTML
+### Saved work HTML / read-only viewer
 
+- **Save work (HTML)** is the primary save card. Preserve photos, pinned examples, markers, notes, corrections and review/completion state in the existing schema-4 HTML format. Opening the file directly remains read-only; editing resumes through **Open work** in the app. No model or detection runtime is included in the work file.
+- Capture project data and the edited filename at Save, before asynchronous image preparation. Disable duplicate Save requests until completion, and re-enable after success/failure. Compression must use that captured copy and must not consume or modify a newer project’s image cache.
 - One self-contained HTML file.
-- Optional WebP compression for embedded viewer images with adjustable quality.
+- Optional WebP compression for embedded viewer photos with adjustable quality. Pinned reference snapshots remain unchanged. Explain that turning compression off preserves photo detail.
 - Read-only presentation optimized for reviewing results, not editing.
 - Project total, image count, completed image count, needs-review count, and per-type totals at the top.
 - Image thumbnails and image navigation. Rapid navigation commits only the latest decoded image together with its markers and metadata. Decode failures keep the previously displayed image/state, report a localized error, and allow retry or another selection; current JPEG download stays disabled until an image has loaded.
@@ -172,7 +174,7 @@ result.zip
 - The canvas includes a low-profile translucent type-switching dock along its lower edge, showing type color/name/count and allowing one-tap switching without leaving the image. The dock can be minimized to a small corner control when it covers something that must be counted.
 - On smartphone widths, the old duplicate type-switching area below the canvas is hidden; type management remains available from the canvas `+` button and the fixed bottom bar.
 - Type switching is one tap.
-- Mobile fixed bottom controls prioritize **Undo / Redo / Add image / Add or manage type / Export**.
+- Mobile fixed bottom controls prioritize **Undo / Redo / Add image / Add or manage type / Save**. Desktop uses **Save / export** for the same dialog.
 - Undo/Redo must be easy to reach on both desktop and mobile.
 - The complete-image control sits around the upper-right of the canvas.
 - Needs-review state must be visible in the marker, image list/current-image status, and project summary without turning it into a separate marker type.
@@ -270,7 +272,7 @@ Compatibility exception: the former native resize handler could create an exact 
 - Click a candidate or uncheck its list item to exclude it. Existing rectangles match by IoU >= 0.5 or intersection/smaller-area >= 0.8; an existing point inside a candidate also excludes it. This includes hidden and other-category markers. Recheck duplicates against current markers and accepted batch on Apply.
 - Apply creates ordinary schema-4 rectangle markers in the active category with needsReview:false. One history entry, one autosave request, completed image becomes incomplete. Zero accepted candidates change nothing. Undo/Redo restores markers and completion together.
 - Candidates, temporary examples, computed prompts, model files and runtime state never enter project/draft/viewer/CSV. Explicitly pinned examples are stored per category as an independent 640 × 640 PNG snapshot plus normalized example boxes (one to twenty). They survive source-photo removal and draft/viewer round trips; CSV contains counts and markers only. Existing native app identifier and storage slug image-counter remain unchanged for compatibility; product/repository labels use EX.
-- The compact 6.44 MiB YOLOE-26n model is embedded and selected by default (CPU / FP32). No model picker is required. Advanced settings can load a custom model or restore the built-in model. Model weights inflate lazily on Detect; each Worker receives a fresh transferable copy. The integrated release is AGPL v3 with offline license text and public corresponding source. Cross-image prompt reuse and tiles remain deferred.
+- The compact 6.44 MiB YOLOE-26n model is embedded and selected by default (CPU / FP32). No model picker is required. Advanced settings can load a custom model or restore the built-in model. Model weights inflate lazily on Detect; each Worker receives a fresh transferable copy. The integrated release is AGPL v3 with offline license text and public corresponding source. Within-batch prompt reuse is described below; cross-run prompt caching and tiles remain deferred.
 - See docs/YOLOE_VALIDATION.md for measured results and explicitly untested environments; direct file-origin detection is not considered verified solely by a successful build or HTTP test.
 
 ### Reusable examples (1.1.0-dev.4)
@@ -281,14 +283,15 @@ Compatibility exception: the former native resize handler could create an exact 
 - Image loading, inference, cancellation and late callbacks are guarded by project, image, category, generation, model and reference identity. Cancel/close during transition must not start a later detection.
 - Imports validate snapshot PNG magic/header dimensions, version, payload limit (2 MiB), one to twenty finite in-bounds regions and aggregate project budget. Previous schema-4 projects without references remain supported.
 
-### Main-screen detection (introduced in 1.1.0-dev.5; updated in dev.10)
+### Main-screen detection (introduced in 1.1.0-dev.5; updated in dev.11)
 
 - Detect this photo / Detect all photos use the selected type’s pinned reference and current detection settings without opening the dialog. No reference or pending photo import disables both actions.
 - All photos means the complete image list, including completed photos, processed sequentially in list order. Existing overlaps of any type are excluded after applying the chosen replacement rule. New rectangles carry `needsReview:true` and `autoPending:true`; successfully checked photos become incomplete.
 - One Undo reverses the whole run, including additions, replacements, detection checks and completion changes. A successful zero-result or duplicate-only photo still records an unreviewed check and participates in that transaction.
-- Show progress, filename, added/removed counts, per-photo results and a Stop action. Stop retains processed photos’ changes; the active photo cannot commit late results. Bad images are reported and skipped; inference/runtime errors stop the run.
+- Show progress, filename, added/removed counts, per-photo results and a Stop action. On completion or interruption, show total elapsed duration including preparation. Stop retains processed photos’ changes; the active photo cannot commit late results. Bad target images are reported and skipped; inference/runtime errors stop the run.
+- Reuse one Worker, model session and computed reference prompt within each main-screen run. Prepare the reference once and process targets sequentially with guarded request IDs. Finish, Stop, runtime failure, stale ownership and page navigation terminate the Worker and release transient bitmaps/URLs/runtime state. A later run starts fresh; dialog detection keeps its one-shot lifecycle. No model, precision, threshold, preprocessing or schema change is implied by reuse.
 - Lock editing, navigation, imports and hidden toast actions during processing. Reject stale project/image/model/reference ownership before committing. Release worker/bitmaps/Blob URLs on finish, cancellation and page navigation.
-- Pinned examples, resulting markers and detection checks persist through existing draft/viewer flows. Transient progress reports and the selected rerun mode do not persist.
+- Pinned examples, resulting markers and detection checks persist through existing draft/viewer flows. Transient progress reports, elapsed duration, computed prompts, runtime state and the selected rerun mode do not persist.
 
 ### Photo review (introduced in 1.1.0-dev.6; updated in dev.10)
 

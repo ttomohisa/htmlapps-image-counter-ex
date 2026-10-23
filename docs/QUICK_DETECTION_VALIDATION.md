@@ -108,3 +108,32 @@ Actual local Chromium with the embedded CPU/FP32 model at 5% and four saved stee
 ### Limits
 
 Physical Android and direct `file://` opening were not tested for this change. Browser tests used localhost; no new browser network trace was recorded. The unchanged CSP blocks runtime connections, and automated checks verify embedded model/runtime assets. Model weights, dependency versions and inference settings are unchanged.
+
+
+## Batch setup reuse and work saving — 1.1.0-dev.11
+
+Date: 2026-10-24. Implementation keeps the model, preprocessing, default CPU / FP32 / 5% settings and schema 4 unchanged. Each main-screen run owns one Worker, session and reference prompt; resources are discarded at the end. The detection dialog remains one-shot.
+
+### Automated and review coverage
+
+Required `scripts/check-repository.ps1` exited 0: **3,654 tests passed, 0 failed**, across source, readable HTML, root alias and unpacked self-extract HTML, plus build/asset/help checks. Log: `.cache/dev11-check.log`. Final readable/self-extract sizes are 21,181,982 / 21,137,928 bytes; embedded assets are unchanged.
+
+Production-bound tests now cover batch session/prompt reuse, target-only follow-up messages, request IDs, malformed output, invalid target skipping, late bitmap cleanup, cancellation, one-shot compatibility and elapsed summaries. Save/open tests cover validation before confirmation, cancellation, stale imports, consistent snapshots/filenames and duplicate saves. Independent review found a delayed photo-addition race during work replacement; project-ownership guards and seven regressions address it. The reviewer confirmed the fix.
+
+### Browser observations
+
+Actual localhost Chromium, with the embedded model and four pinned examples:
+
+- Used six photos: the same detail and wide steel-pipe scenes repeated three times. This exercises repeated-photo workflow and result equivalence, not a new accuracy dataset.
+- Baseline and revised saved HTML both contain `[29, 0, 29, 0, 29, 0]` markers. All 87 marker shapes, categories, x/y/w/h, orders and review/automatic flags match exactly. Photo data URLs and the pinned source/boxes also match exactly. Volatile marker IDs and timestamps were excluded from comparison.
+- Saved edited filenames `一括検出比較_変更前.html` and `一括検出比較_変更後.html`, with photo compression off. Open work from inside the save dialog validated the selected HTML, then displayed replacement confirmation. Cancel kept 87 markers; accepting the saved file restored six photos, 87 flags and four pinned examples.
+- Japanese at a 390 px viewport and English at 320 px: Save work and Open work remain reachable in the scrolling dialog, with no horizontal document overflow (client/scroll widths match). Mobile launcher says Save; Escape/close and keyboard activation preserve focus.
+- The self-extract build loaded the browser draft, then keyboard-started and stopped a batch at 0/6 without changing counts. A subsequent current-photo run completed with 29 duplicates and no additions/errors. No warning/error entries were captured in the inspected consoles.
+
+### Timing interpretation
+
+Early elapsed observations varied substantially: baseline 43.0, 35.0 and 9.4 seconds for six photos; revised first run 3.7 seconds. A later revised 89.2-second run overlapped another baseline run (109.6 seconds) and repository checks. These background desktop measurements are not a controlled speedup estimate; do not claim a percentage from them. The deterministic tests establish that six photos need one setup/reference pass instead of six. After the repository check finished, a sequential comparison using the same six photos and Replace unreviewed auto results took **25.2 s baseline / 10.1 s revised**, with 87 replacements and zero errors in each. This single desktop pair supports reduced setup overhead but does not establish an Android speedup or a stable percentage. Physical Android performance and browser startup timing remain unmeasured.
+
+### Limits
+
+Physical Android touch/performance and direct `file://` execution were not tested in this change. The browser previously rejected local-file navigation; localhost tests do not establish file-origin behavior. Embedded assets and CSP remain unchanged; no new network trace was collected. Work HTML is a portable read-only viewer that can reopen in the app, not a second copy of the model/application.
