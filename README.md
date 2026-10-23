@@ -7,7 +7,7 @@ Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer 
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.9.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection, example-editing and pinch workflows still need physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.10.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection, review, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -33,7 +33,7 @@ Undo / Redo results also auto-save. Resetting image corrections returns the imag
 - **Correct mistakes after counting** — Move point markers, move or resize rectangles, change the marker type, delete a marker, and use Undo / Redo. Interrupted pointer actions discard pending counts and restore moved/resized geometry without clearing redo. Starting a pinch also discards an unfinished marker edit.
 - **Switch counting types directly on the image** — Use the translucent type dock on the canvas, or number keys `1`–`9` on desktop. The dock can be minimized when it covers an object.
 - **Flag uncertain items for later review** — Add an independent **Needs review** flag without changing the marker type or count. Images with unresolved review markers cannot be marked complete.
-- **Work through multiple photos** — Add several images, move with thumbnails or `←` / `→`, mark each image complete, and jump to the next incomplete image.
+- **Work through multiple photos** — See Not detected / In progress / Needs review / Complete states and status totals. **Review complete & next** reviews and completes a photo, then moves to the next incomplete one.
 - **Adjust hard-to-see photos without changing the original** — Brightness, contrast, grayscale, and 90° rotation are non-destructive and are preserved in exports.
 - **Capture photos from the camera** — Review a capture before adding it, retake it, or accept it and continue shooting.
 - **Keep drafts locally** — Autosave to IndexedDB, optionally compress draft image copies to WebP, and see the current project / draft storage size.
@@ -70,7 +70,11 @@ For small boxes, pinch the preview or use **− / +** to zoom from 1× to 8×. M
 
 Pinned changes stay pending until **Save example changes**; one **Undo** restores the previous reference. **Discard changes** or closing the dialog keeps the saved reference. Interrupted pointer actions or a second touch discard the unfinished add, move or resize; a pinch keeps the selected example, and lifting the remaining finger cannot commit the abandoned edit. Example edits do not change counts. **Unpin examples** starts over on the current photo. Dashed boxes are existing count markers and are hidden by default; overlapping results cannot be counted again.
 
-Pin examples for the selected type in **Examples / detection settings**. Then use **Detect this photo** or **Detect all photos** directly beside the canvas. Results are added automatically as **Needs review** markers; existing overlaps are skipped. **Stop** keeps completed results, and one **Undo** reverts the entire run. After checking the photo, **Mark this photo reviewed** clears all its review flags at once. One Undo restores them; photo completion remains a separate action. All-photo detection includes completed photos.
+Pin examples for the selected type in **Examples / detection settings**. Then use **Detect this photo** or **Detect all photos** directly beside the canvas. All-photo detection includes completed photos. Choose **Add detections** (default) to keep existing markers, or **Replace unreviewed auto results** to refresh only unreviewed, untouched automatic markers of the selected type. New results are marked **Needs review**, and overlaps with retained markers are skipped.
+
+Replacement protects manual, reviewed, edited and other-type markers. It also protects results made before dev.10, whose automatic origin cannot be reliably identified. Moving, resizing, changing type or toggling review protects a marker from later replacement; marking it Needs review again does not undo that protection. Each photo changes only after successful detection. A valid zero-result replacement can remove the eligible old results; failed, cancelled or incomplete replacement results keep them. **Stop** keeps processed photos, and one **Undo** restores the whole run.
+
+Every successfully detected photo needs review, even when the result is zero or all candidates overlap existing markers. After checking it, **Review complete & next** clears review state, marks it complete and advances to the next incomplete photo, wrapping to the start when needed. It stays on the final photo when all are complete. **Clear review flags** clears review state without completing it. Both review actions support Undo.
 
 ![Reviewing local detection candidates](assets/auto-detection.jpg)
 
@@ -91,9 +95,9 @@ Cancel or close the dialog to stop inference. The model is retained only for the
 3. Select the active counting type from the translucent dock along the bottom of the canvas. On desktop, keys `1`–`9` also switch types.
 4. In Point mode, tap/click an object once. In Rectangle mode, drag around one object.
 5. Select an existing marker only when it needs correction. Point markers can be moved; rectangles can be moved and resized from four corner handles.
-6. Use the flag button to mark an uncertain marker as **Needs review**. Clear all review flags before completing the image.
+6. Use the flag button to mark an uncertain marker as **Needs review**. Review automatic results even when no new markers were found.
 7. Use the memo button beside **Complete** to add an image note. On desktop the memo panel can be dragged within the canvas; on mobile it opens below the canvas.
-8. Mark the image complete, then move to the next incomplete image or switch images with thumbnails / arrow keys.
+8. Check the photo, then choose **Review complete & next**, or switch photos with thumbnails / arrow keys.
 9. Export a Viewer HTML or a results ZIP. Clear **Include annotated JPEGs** to export only the two CSV files.
 
 The top-right EN / JA and Help controls remain available on narrow screens. **How to use & notes** keeps its heading visible while the contents scroll to the end. On mobile, the start screen has full-width photo/camera buttons; Build info and the page footer are hidden. Build info remains available on desktop. Language switching and all Help close controls are unchanged.
@@ -119,7 +123,9 @@ Point markers are fast for ordinary counting. Rectangle markers are useful when 
 
 **Needs review** is a flag layered on top of a normal marker. It does not create another marker type and does not change the count. Flagged markers show an amber `!` badge, and the remaining review count is visible in the image list and project summary.
 
-An image cannot be marked complete while one or more review flags remain.
+The photo status also tracks a pending detection check. A zero-result or duplicate-only detection therefore shows **Needs review** with zero flagged markers until you review the photo. The ordinary **Complete** button waits for both marker flags and detection checks to be reviewed.
+
+Thumbnails and the current-photo bar show **Not detected**, **In progress**, **Needs review** or **Complete**; the summary counts photos in each state. Needs review takes priority over completion. A manually counted photo is In progress, and an untouched old project is not treated as previously detected. Review state is retained in drafts and viewer HTML imports.
 
 ### Image display correction
 

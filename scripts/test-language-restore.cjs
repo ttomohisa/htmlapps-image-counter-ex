@@ -39,7 +39,7 @@ function setup() {
   const c=vm.createContext(context);
   vm.runInContext([
     section('const I18N=', 'const Toast='),section('function defaultSettings()', 'function cloneLight()'),
-    section('async function saveDraft(', 'function formatCapturedAt('),section('async function addFiles(', 'function displayDims('),
+    section('async function saveDraft(', 'function formatCapturedAt('),section('async function addFiles(', 'function displayDims('),section('function cancelMarkerInteraction()', 'function pointerCancel('),
     section('function syncCatDock()', 'function renderCategoryButtons('),section('function openTypes(', 'function setMarkersVisible('),
     section('function parseViewerProject(', 'async function startCamera('),section('async function sampleProject()', "$('#chooseStart').onclick="),
     section("$('#restoreDraft').onclick=", "document.addEventListener('dragover'"),section('async function init()', '\ninit();'),

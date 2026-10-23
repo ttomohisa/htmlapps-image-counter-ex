@@ -18,6 +18,48 @@ function setup(){const c={MAX_IMAGES:30,MAX_FILE_BYTES:35*1024*1024,MAX_PROJECT_
 test('native viewer JSON and compressed logical dimensions roundtrip without mutating input',()=>{const c=setup(),p=project(),before=JSON.stringify(p),n=c.normalizeProject(p,{viewer:true});assert.equal(JSON.stringify(p),before);assert.equal(n.images[0].markers[0].x,.5);const html=c.viewerHtml(n);const parsed=JSON.parse(html.match(/<script id="imageCounterProject" type="application\/json">([\s\S]*?)<\/script>/)[1]);assert.equal(c.normalizeProject(parsed,{viewer:true}).images[0].width,1);p.images[0].width=4032;p.images[0].height=3024;assert.equal(c.normalizeProject(p,{viewer:true}).images[0].width,4032);});
 for(const [name,change] of Object.entries({foreign:p=>p.app='other',future:p=>p.schemaVersion=99,missingVersion:p=>delete p.schemaVersion,tooMany:p=>p.images=Array.from({length:31},(_,i)=>({...p.images[0],id:'i'+i})),duplicateCategory:p=>p.categories.push({...p.categories[0]}),duplicateImage:p=>p.images.push({...p.images[0]}),duplicateMarker:p=>p.images[0].markers.push({...p.images[0].markers[0]}),reference:p=>p.images[0].markers[0].categoryId='missing',shape:p=>p.images[0].markers[0].shape='circle',nan:p=>p.images[0].markers[0].x=NaN,stringCoordinate:p=>p.images[0].markers[0].x='.5',outside:p=>p.images[0].markers[0].x=2,rectangle:p=>Object.assign(p.images[0].markers[0],{shape:'rect',w:.9,h:.2}),zeroDimension:p=>p.images[0].width=0,external:p=>p.images[0].dataUrl='https://example.com/pixel.png',svg:p=>p.images[0].dataUrl='data:image/svg+xml;base64,PHN2Zy8+',badBase64:p=>p.images[0].dataUrl='data:image/png;base64,!!!!',fakeRaster:p=>p.images[0].dataUrl='data:image/png;base64,PHN2Zy8+',badName:p=>p.images[0].name={},badBoolean:p=>p.images[0].completed='false',badSettings:p=>p.settings.opacity=Infinity,badDate:p=>p.images[0].capturedAt=1e99})){test('reject '+name,()=>{const c=setup(),p=project();change(p);assert.throws(()=>c.normalizeProject(p,{viewer:true}));});}
 test('local unversioned drafts retain intentional optional defaults',()=>{const c=setup(),p=project();delete p.app;delete p.schemaVersion;delete p.images[0].markers[0].shape;const n=c.normalizeProject(p);assert.equal(n.schemaVersion,4);assert.equal(n.images[0].markers[0].shape,'point');assert.equal(n.images[0].markers[0].needsReview,false);});
+
+test('quick detection provenance and zero-result review survive actual draft and viewer roundtrips',async()=>{
+  const c=setup(),p=project();
+  Object.assign(p.images[0].markers[0],{shape:'rect',w:.1,h:.1,needsReview:true,autoPending:true});
+  p.images[0].detectionChecks=[{categoryId:'cat',detectedAt:1720000000000,reviewed:false}];
+  p.images.push({...p.images[0],id:'zero-result',markers:[],detectionChecks:[{categoryId:'cat',detectedAt:1720000000001,reviewed:false}]});
+  const before=JSON.stringify(p);c.P=c.normalizeProject(p);c.P.settings.draftCompression.enabled=false;
+  vm.runInContext(section('async function makeDraft(','async function saveDraft(')+section('function parseViewerProject(','async function importViewerFile('),c);
+  const draft=await c.makeDraft();
+  for(const restored of [c.normalizeProject(draft),c.normalizeProject(c.parseViewerProject(c.viewerHtml(draft)),{viewer:true})]){
+    assert.equal(restored.images[0].markers[0].autoPending,true);
+    assert.equal(restored.images[0].markers[0].needsReview,true);
+    assert.deepEqual(JSON.parse(JSON.stringify(restored.images[0].detectionChecks)),[{categoryId:'cat',detectedAt:1720000000000,reviewed:false}]);
+    assert.deepEqual(JSON.parse(JSON.stringify(restored.images[1].detectionChecks)),[{categoryId:'cat',detectedAt:1720000000001,reviewed:false}]);
+    assert.equal(restored.images[1].markers.length,0);
+  }
+  assert.equal(JSON.stringify(p),before,'normalization must not alter imported metadata');
+});
+
+test('legacy flagged rectangles stay protected instead of gaining automatic replacement provenance',()=>{
+  const c=setup(),p=project();Object.assign(p.images[0].markers[0],{shape:'rect',w:.1,h:.1,needsReview:true});
+  const n=c.normalizeProject(p);
+  assert.equal(n.images[0].markers[0].autoPending,undefined);
+  assert.equal(n.images[0].detectionChecks,undefined);
+});
+
+for(const [name,alter] of Object.entries({
+  'nonboolean provenance':p=>p.images[0].markers[0].autoPending='true',
+  'provenance on a reviewed result':p=>Object.assign(p.images[0].markers[0],{shape:'rect',w:.1,h:.1,needsReview:false,autoPending:true}),
+  'provenance on a point':p=>Object.assign(p.images[0].markers[0],{needsReview:true,autoPending:true}),
+  'nonarray checks':p=>p.images[0].detectionChecks={},
+  'unknown check category':p=>p.images[0].detectionChecks[0].categoryId='missing',
+  'duplicate check category':p=>p.images[0].detectionChecks.push({...p.images[0].detectionChecks[0]}),
+  'nonfinite detection time':p=>p.images[0].detectionChecks[0].detectedAt=Infinity,
+  'negative detection time':p=>p.images[0].detectionChecks[0].detectedAt=-1,
+  'missing detection time':p=>delete p.images[0].detectionChecks[0].detectedAt,
+  'missing review state':p=>delete p.images[0].detectionChecks[0].reviewed,
+  'nonboolean review state':p=>p.images[0].detectionChecks[0].reviewed='false',
+}))test('reject invalid quick detection metadata: '+name,()=>{
+  const c=setup(),p=project();p.images[0].detectionChecks=[{categoryId:'cat',detectedAt:1720000000000,reviewed:false}];alter(p);
+  assert.throws(()=>c.normalizeProject(p,{viewer:true}));
+});
 test('CSV editor and actual generated viewer neutralize formula text, preserve numbers and source values',()=>{const c=setup(),p=project();Object.assign(p.images[0],{id:'=IMAGE',name:'+name',note:'\t=cmd',adjustments:{brightness:100,contrast:100,grayscale:0,rotation:0}});Object.assign(p.categories[0],{id:'-category',name:' @SUM(1,2)'});Object.assign(p.images[0].markers[0],{id:'\r=marker',categoryId:'-category',x:.5});const before=JSON.stringify(p);assert.equal(c.normalizeProject(p,{viewer:true}).images[0].id,'=IMAGE');const html=c.viewerHtml(p),script=html.match(/<script>\(\(\)=>\{([\s\S]*)\}\)\(\);<\/script>/)[1],v={P:p};vm.createContext(v);vm.runInContext(script.slice(script.indexOf('const esc='),script.indexOf('const CRC='))+'\n'+'const '+script.slice(script.indexOf('catNum='),script.indexOf(';function drawImage'))+';',v);assert.equal(c.markersCsv(p),v.mcsv());assert.equal(c.summaryCsv(p),v.scsv());for(const s of ['=x','+x','-x','@x','\tx','\rx','\nx','  =x'])assert.ok(c.csvEsc(s).includes("'"));assert.equal(c.csvEsc(-2),'-2');assert.equal(c.csvEsc(2),'2');assert.match(c.markersCsv(p),/0\.500000/);assert.equal(JSON.stringify(p),before);});
 test('image and aggregate byte limits use actual payload, not claimed sizes',()=>{const c=setup(),p=project();p.images[0].byteSize=1;const actual=c.embeddedRasterBytes(p.images[0].dataUrl);assert.equal(c.normalizeProject(p,{viewer:true}).images[0].byteSize,actual);c.MAX_FILE_BYTES=actual;assert.doesNotThrow(()=>c.normalizeProject(p,{viewer:true}));c.MAX_FILE_BYTES=actual-1;assert.throws(()=>c.normalizeProject(p,{viewer:true}));c.MAX_FILE_BYTES=1000;const metadata=JSON.stringify({...p,images:p.images.map(im=>({...im,dataUrl:''}))}).length*2;c.MAX_PROJECT_BYTES=metadata+actual;assert.doesNotThrow(()=>c.normalizeProject(p,{viewer:true}));c.MAX_PROJECT_BYTES--;assert.throws(()=>c.normalizeProject(p,{viewer:true}));});
 test('30 images and large legitimate notes remain supported without per-text caps',()=>{const c=setup(),p=project();p.images=Array.from({length:30},(_,i)=>({...p.images[0],id:'im'+i,note:'ordinary note '.repeat(10000),markers:[{...p.images[0].markers[0],id:'marker'+i}]}));assert.equal(c.normalizeProject(p,{viewer:true}).images.length,30);});

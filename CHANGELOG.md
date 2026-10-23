@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0-dev.10 — 2026-10-23
+
+- Show Undetected, In progress, Needs review and Complete photo states in thumbnails, the current-photo bar and project status totals.
+- Add Review complete & next to review and complete one photo, then move to the next incomplete photo with wraparound and one-step Undo.
+- Offer Append or Replace unreviewed auto results for main-screen detection. Replacement protects manual, reviewed, edited, other-type and older-version results.
+- Record successful detection checks even for zero or duplicate-only results, so each processed photo requires review. Save checks and replacement eligibility in the existing schema-4 draft/viewer format.
+- Commit replacements only after a valid full result; keep the current photo on failure/cancellation and reject truncated replacement results. One Undo restores the entire run, including removed markers and checks.
+
 ## 1.1.0-dev.9 — 2026-10-23
 
 - Add 1–8× pinch/button zoom, two-finger pan, Pan view and Fit beside the example preview so small boxes can be adjusted at a larger scale.

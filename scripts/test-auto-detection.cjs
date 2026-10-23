@@ -118,6 +118,12 @@ test('incompatible model outputs stop before the second run and still dispose te
   await assert.rejects(c.autoRunModel(f.ort,f.session,new Float32Array(3*640*640),mask),/autoInvalidOutput/);
   assert.equal(f.calls(),1);assert.ok(f.tensors.every(t=>t.disposed));
 });
+for(const [field,value] of [['boxes',NaN],['boxes',Infinity],['scores',NaN],['scores',Infinity],['scores',-.1],['scores',1.1]])test(`invalid raw ${field} (${value}) cannot become empty replacement output and still disposes tensors`,async()=>{
+  const c=engine(),f=runtimeFixture(),mask=new Float32Array(6400);mask[0]=1;
+  const run=f.session.run;f.session.run=async feeds=>{const out=await run(feeds);if(f.calls()===2)out[field].data[0]=value;return out};
+  await assert.rejects(c.autoRunModel(f.ort,f.session,new Float32Array(3*640*640),mask),/autoInvalidOutput/);
+  assert.equal(f.calls(),2);assert.ok(f.tensors.every(t=>t.disposed));
+});
 test('fixed examples extract their prompt from the reference photo and detect on the target photo',async()=>{
   const c=engine(),tensors=[],images=[],masks=[];
   class Tensor{constructor(type,data,dims){Object.assign(this,{type,data,dims});tensors.push(this)}dispose(){this.disposed=true}}

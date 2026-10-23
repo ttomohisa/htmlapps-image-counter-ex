@@ -25,6 +25,74 @@ test('reset correction clears completion and Undo/Redo restore both correction a
   assert.equal(saved[0].images[0].completed,false);c.undo();assert.deepEqual(c.P.images[0],before);
   c.redo();assert.equal(c.P.images[0].completed,false);assert.deepEqual(c.P.images[0].adjustments,c.defaultAdjust());
 });
+function editorNavigation(){
+  const pending=[],renders=[],messages=[];
+  const c={P:{images:['A','B','C'].map(id=>({id,dataUrl:id,markers:[{id:`marker-${id}`}]}))},activeImageId:'A',selectedMarkerId:'marker-A',interaction:{kind:'move'},draftRect:{x:1},view:{zoom:2,panX:4,panY:5},imageCache:new Map([['A',{src:'A'}]]),loadImage:src=>new Promise((resolve,reject)=>pending.push({src,resolve,reject})),resizeCanvas(){},fitView(){},Toast:{show:key=>messages.push(key)},t:key=>key};
+  c.pointers=new Map();c.gesture=null;c.wrap={classList:{remove(){}}};
+  c.activeImage=()=>c.P?.images.find(im=>im.id===c.activeImageId);c.renderAll=()=>renders.push([c.activeImageId,c.imageCache.get(c.activeImageId)?.src]);
+  vm.createContext(c);vm.runInContext(section('async function switchImage(', 'function displayDims(')+section('function cancelMarkerInteraction()', 'function pointerCancel('),c);
+  const state=()=>JSON.parse(JSON.stringify({activeImageId:c.activeImageId,selectedMarkerId:c.selectedMarkerId,interaction:c.interaction,draftRect:c.draftRect,view:c.view}));
+  return{c,pending,renders,messages,state};
+}
+test('editor navigation keeps the current display and editing state until matching pixels are decoded',async()=>{
+  const {c,pending,renders,state}=editorNavigation(),before=state(),loading=c.switchImage('B');
+  assert.deepEqual(state(),before);assert.deepEqual(renders,[]);pending[0].resolve({src:'B'});assert.equal(await loading,true);
+  assert.equal(c.activeImageId,'B');assert.equal(c.selectedMarkerId,null);assert.equal(c.interaction,null);assert.equal(c.draftRect,null);assert.equal(c.view.zoom,1);assert.deepEqual(renders,[['B','B']]);
+});
+test('editor navigation commits only the latest selection and never caches stale decoded pixels',async()=>{
+  const {c,pending,renders}=editorNavigation(),b=c.switchImage('B'),cc=c.switchImage('C');
+  pending[1].resolve({src:'C'});assert.equal(await cc,true);pending[0].resolve({src:'B'});assert.equal(await b,false);
+  assert.equal(c.activeImageId,'C');assert.equal(c.imageCache.has('B'),false);assert.deepEqual(renders,[['C','C']]);
+});
+test('editor latest decode failure preserves display and settles without allowing older success',async()=>{
+  const {c,pending,renders,messages,state}=editorNavigation(),before=state(),b=c.switchImage('B'),cc=c.switchImage('C');
+  pending[1].reject(new Error('broken'));await assert.doesNotReject(cc);pending[0].resolve({src:'B'});await b;
+  assert.deepEqual(state(),before);assert.deepEqual(renders,[]);assert.deepEqual(messages,['decodeFail']);assert.equal(c.imageCache.has('B'),false);assert.equal(c.imageCache.has('C'),false);
+});
+test('editor stale decode failure cannot change the newer photo or report an unrelated error',async()=>{
+  const {c,pending,renders,messages}=editorNavigation(),b=c.switchImage('B'),cc=c.switchImage('C');
+  pending[1].resolve({src:'C'});await cc;pending[0].reject(new Error('old'));await assert.doesNotReject(b);
+  assert.equal(c.activeImageId,'C');assert.deepEqual(renders,[['C','C']]);assert.deepEqual(messages,[]);
+});
+for(const change of ['project','source','record','selection'])for(const outcome of ['success','failure'])test(`editor ignores stale ${outcome} after ${change} ownership changes`,async()=>{
+  const {c,pending,renders,messages,state}=editorNavigation(),loading=c.switchImage('B');
+  if(change==='project')c.P={...c.P};
+  if(change==='source')c.P.images[1].dataUrl='changed pixels';
+  if(change==='record')c.P.images[1]={...c.P.images[1]};
+  if(change==='selection')c.activeImageId='C';
+  const before=state();if(outcome==='success')pending[0].resolve({src:'B'});else pending[0].reject(new Error('obsolete'));
+  await assert.doesNotReject(loading);assert.deepEqual(state(),before);assert.deepEqual(renders,[]);assert.deepEqual(messages,[]);assert.equal(c.imageCache.has('B'),false);
+});
+test('returning to the cached current photo cancels a pending navigation',async()=>{
+  const {c,pending,renders}=editorNavigation(),b=c.switchImage('B');assert.equal(await c.switchImage('A'),true);
+  pending[0].resolve({src:'B'});assert.equal(await b,false);assert.equal(c.activeImageId,'A');assert.equal(c.imageCache.has('B'),false);assert.deepEqual(renders,[['A','A']]);
+});
+test('editor navigation can retry after failure and ignores a missing target',async()=>{
+  const {c,pending,renders,state}=editorNavigation(),before=state();assert.equal(await c.switchImage('missing'),false);assert.deepEqual(state(),before);
+  const failed=c.switchImage('B');pending[0].reject(new Error('broken'));assert.equal(await failed,false);
+  const retry=c.switchImage('B');pending[1].resolve({src:'B'});assert.equal(await retry,true);assert.deepEqual(renders,[['B','B']]);
+});
+function nextDetection(){
+  const f=editorNavigation(),{c}=f,nodes=new Map(),started=[];c.P.categories=[{id:'a',detectionReference:{dataUrl:'reference',examples:[]}}];c.activeCategory=()=>c.P.categories[0];
+  c.autoState={owner:{project:c.P,imageId:'A',dataUrl:'A',categoryId:'a'},generation:0,model:{},urls:[],busy:false,phase:'result',candidates:[],examples:[],excluded:new Set()};
+  c.$=key=>{if(!nodes.has(key))nodes.set(key,{open:true,dataset:{},textContent:''});return nodes.get(key)};
+  Object.assign(c,{URL:{revokeObjectURL(){}},renderAutoControls(){},resetAutoView(){},startAutoDetection:async()=>started.push(c.activeImageId)});
+  vm.runInContext(section('// AUTO:CORE:BEGIN','// AUTO:CORE:END')+section('function autoStopJob()', 'async function autoDetectWorker(')+section('function autoStatus(', 'function invalidateAutoDetection(')+section('function autoSelected(', 'function renderAutoReference(')+section('async function autoApplyAndNext()', "$('#autoEdit').onclick="),c);
+  return{...f,started,nodes};
+}
+test('next-photo detection exits its loading state and keeps the previous owner when navigation fails',async()=>{
+  const {c,pending,started}=nextDetection(),loading=c.autoApplyAndNext();assert.equal(c.autoState.busy,true);pending[0].reject(new Error('broken'));
+  await assert.doesNotReject(loading);assert.equal(c.activeImageId,'A');assert.equal(c.autoState.busy,false);assert.equal(c.autoState.owner.imageId,'A');assert.equal(c.autoState.phase,'error');assert.equal(c.autoState.message,'autoInvalidImage');assert.deepEqual(started,[]);
+});
+test('next-photo detection starts only after navigation commits the matching target',async()=>{
+  const {c,pending,started}=nextDetection(),loading=c.autoApplyAndNext();assert.deepEqual(started,[]);pending[0].resolve({src:'B'});await loading;
+  assert.equal(c.activeImageId,'B');assert.equal(c.autoState.busy,false);assert.deepEqual(started,['B']);
+});
+test('a failed old next-photo transition cannot overwrite a newer detection owner or status',async()=>{
+  const {c,pending,started}=nextDetection(),loading=c.autoApplyAndNext();c.autoStopJob();const newer={project:c.P,imageId:'C',dataUrl:'C',categoryId:'a'};c.autoState.owner=newer;c.autoState.busy=true;c.autoState.phase='processing';
+  pending[0].reject(new Error('obsolete'));await assert.doesNotReject(loading);
+  assert.equal(c.autoState.owner,newer);assert.equal(c.autoState.busy,true);assert.equal(c.autoState.phase,'processing');assert.deepEqual(started,[]);
+});
 function viewer(){
   const build={lang:'en',safeJson:JSON.stringify,t:x=>x};vm.createContext(build);vm.runInContext(section('function csvEsc(', 'function markersCsv(')+section('function viewerHtml(', 'async function saveViewer('),build);
   const html=build.viewerHtml({title:'Test',images:[],categories:[],settings:{}});
@@ -89,7 +157,7 @@ test('viewer arrow keys advance the pending target, retaining modifier and edita
 
 function photoReview(){
   const {c,saved}=editor();c.Toast={show(){}};c.t=k=>k;c.quickDetectionBusy=()=>false;
-  vm.runInContext(section('function markImageReviewed()', 'async function toggleComplete()'),c);
+  vm.runInContext(section('function imageReviewCount(', 'function drawReviewBadge(')+section('function clearImageReview(', 'async function toggleComplete()'),c);
   return{c,saved};
 }
 test('photo review clears all types only on the active photo with one undoable saved change',()=>{

@@ -11,6 +11,7 @@ const runtime = [
   section('function cloneLight()', 'function dataUrlBytes('),
   section('function displayDims(', 'function drawBaseImage('),
   section('function markerRectScreen(', 'function drawGuide('),
+  section('function imageReviewCount(', 'function drawReviewBadge('),
   section('function hitMarker(', 'function positionMarkerPop('),
   section('function pointerDown(', 'function toggleSelectedReview('),
 ].join('\n');
@@ -101,6 +102,44 @@ test('a third pointer cannot create an annotation or let another pointer commit 
 });
 test('cancel without movement preserves existing marker and completed state',()=>{
   const f=fixture(0,'point',[point]),before=JSON.stringify(f.c.P);f.send('pointerdown',.25,.3);f.send('pointercancel',.25,.3);unchanged(f,before);
+});
+
+for(const edit of ['move','resize'])test(`committed automatic rectangle ${edit} protects it from replacement and Undo restores eligibility`,()=>{
+  const automatic={...rect,needsReview:true,autoPending:true},f=fixture(0,'rect',[automatic]);
+  const x=edit==='move'?.35:.2,y=edit==='move'?.4:.2;
+  if(edit==='resize')f.c.selectedMarkerId=automatic.id;
+  f.send('pointerdown',x,y);f.send('pointermove',x+.05,y+.05);
+  assert.equal(f.c.P.images[0].markers[0].autoPending,true,'uncommitted geometry must retain provenance');
+  f.send('pointerup',x+.05,y+.05);
+  assert.equal(f.c.P.images[0].markers[0].autoPending,undefined,'manual geometry must protect the result');
+  assert.equal(f.c.P.images[0].markers[0].needsReview,true,'editing must not silently clear the review flag');
+  assert.equal(f.c.history.length,1);assert.equal(f.saves(),1);
+  f.c.undo();assert.deepEqual(JSON.parse(JSON.stringify(f.c.P.images[0].markers)),[automatic]);
+  f.c.redo();assert.equal(f.c.P.images[0].markers[0].autoPending,undefined);
+});
+
+test('cancelled automatic rectangle edits preserve replacement eligibility and review metadata',()=>{
+  const automatic={...rect,needsReview:true,autoPending:true};
+  for(const edit of ['move','resize']){
+    const f=fixture(90,'rect',[automatic]);f.c.P.images[0].detectionChecks=[{categoryId:'count',detectedAt:1720000000000,reviewed:false}];
+    const before=JSON.stringify(f.c.P),x=edit==='move'?.35:.2,y=edit==='move'?.4:.2;
+    if(edit==='resize')f.c.selectedMarkerId=automatic.id;
+    f.send('pointerdown',x,y);f.send('pointermove',x+.05,y+.05);f.send('pointercancel',x+.05,y+.05);unchanged(f,before);
+  }
+});
+for(const outcome of ['success','failure'])test(`photo navigation ${outcome} handles an automatic rectangle drag begun during decoding`,async()=>{
+  const automatic={...rect,needsReview:true,autoPending:true},f=fixture(0,'rect',[automatic]),{c}=f;
+  c.P.images[0].dataUrl='first';c.P.images.push({...structuredClone(c.P.images[0]),id:'two',dataUrl:'second',markers:[]});
+  let resolve,reject;c.imageCache=new Map();c.loadImage=()=>new Promise((ok,ng)=>{resolve=ok;reject=ng});c.resizeCanvas=()=>{};c.Toast={show(){}};c.t=key=>key;
+  vm.runInContext(section('async function switchImage(', 'function displayDims('),c);
+  const before=JSON.stringify(c.P),loading=c.switchImage('two');f.send('pointerdown',.35,.4);f.send('pointermove',.45,.5);assert.notEqual(JSON.stringify(c.P),before);
+  if(outcome==='success'){
+    resolve({});assert.equal(await loading,true);assert.equal(c.activeImageId,'two');assert.equal(JSON.stringify(c.P),before);
+    assert.equal(c.pointers.size,0);assert.equal(c.gesture,null);assert.equal(c.interaction,null);f.send('pointerup',.45,.5);unchanged(f,before);
+  }else{
+    const dragging=JSON.stringify(c.P);reject(new Error('broken'));assert.equal(await loading,false);assert.equal(c.activeImageId,'image-1');assert.equal(JSON.stringify(c.P),dragging);
+    assert.ok(c.interaction);assert.equal(c.pointers.size,1);f.send('pointerup',.45,.5);assert.equal(c.P.images[0].markers[0].autoPending,undefined);assert.equal(c.history.length,1);assert.equal(f.saves(),1);
+  }
 });
 test('rollback preserves unrelated marker edits, notes, and existing undo/redo entries',()=>{
   const f=fixture(0,'point',[point]);f.c.history.push({undo:'keep'});const history=f.c.history,future=f.c.future;

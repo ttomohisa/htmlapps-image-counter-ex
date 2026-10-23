@@ -85,3 +85,26 @@ Local Node measurements of the loader payload took 42.7–53.7 ms for Base64 dec
 - Observe startup stages on a slow connection/device and separately record transfer and local expansion times before claiming a speedup. Runtime network isolation is checked by source/CSP regression tests; no new browser network trace was recorded in this change.
 
 Physical Android touch behavior, direct-file execution and a browser startup speedup remain unverified. The startup change retains the single-HTML transfer cost; it does not download the model separately or change inference performance.
+
+## Photo status and safe reruns — 1.1.0-dev.10
+
+Date: 2026-10-23. The required `powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/check-repository.ps1` completed with exit 0: **3,546 tests passed, zero failures**, including source, readable HTML, root alias and self-extract payload, plus build/asset/help verification. Readable HTML is 20.19 MB and self-extract HTML is 20.16 MB. Independent review has no unresolved findings.
+
+### Automated coverage
+
+Regression tests cover all status priorities; zero/duplicate-only review; review-only and review-complete navigation; wraparound/final-photo behavior; one-run Undo/Redo; optional metadata normalization and validation; and replacement protection for legacy, reviewed, moved, resized, recategorized, hidden and other-type markers. Cancelled edits retain eligibility. Malformed/capped output, failure, cancellation and stale ownership preserve prior results. Raw nonfinite model tensors and out-of-range scores are rejected before candidate filtering, with all tensors disposed. Photo navigation commits only the current successfully decoded image and preserves the previous view on failure. Successful navigation rolls back any unfinished marker drag before switching; failed navigation leaves that drag usable. Keyboard focus returns after delayed review navigation without stealing newer focus.
+
+### Browser observations
+
+Actual local Chromium with the embedded CPU/FP32 model at 5% and four saved steel-pipe examples:
+
+- A two-photo run produced duplicate-only and zero-result outputs, both visibly Needs review despite adding zero markers. Review complete & next completed the detail photo, moved to the wide photo, then announced all complete. Undo restored the wide photo's pending check; Redo restored completion.
+- Added a fresh copy of the detail photo and detected 29 automatic markers. Replace removed 29 old results and added 29; Undo/Redo retained the expected count.
+- In self-extract HTML, cleared one marker's review flag and ran Replace. It preserved that marker, removed/added 28, and reported one duplicate. The photo retained 29 markers with 28 flags.
+- Enter-key activation and Stop worked. Stopping before the first commit left all three photos unchanged and returned focus to Detect all photos. Controlled asynchronous tests cover cancellation after earlier commits.
+- Exported with the edited filename `写真進捗と再検出テスト.html`. Parsed marker counts were `[29,0,29]`, completion `[true,true,false]`, and replacement eligibility `[0,0,29]`; per-photo detection checks were reviewed/reviewed/pending. Re-import into self-extract HTML restored those states and four reference boxes. Reload/restore after protecting one marker retained 28 review flags and reset the mode to Add detections.
+- Japanese and English controls were inspected at 320 and 390 px. Document client/scroll widths matched (305/305 and 375/375 with scrollbars); the review action and mode selector fit. Cached-image keyboard review navigation retained focus. No warning/error console entries were captured in either tested variant.
+
+### Limits
+
+Physical Android and direct `file://` opening were not tested for this change. Browser tests used localhost; no new browser network trace was recorded. The unchanged CSP blocks runtime connections, and automated checks verify embedded model/runtime assets. Model weights, dependency versions and inference settings are unchanged.

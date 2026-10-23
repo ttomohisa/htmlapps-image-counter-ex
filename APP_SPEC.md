@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.9
+- **Version:** 1.1.0-dev.10
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -11,7 +11,7 @@
 
 ## 2. Product principles
 
-1. **Manual counting first.** Dialog detection produces temporary candidates. Explicit quick-detection actions may append unreviewed markers; these are flagged for human review and prevent photo completion until reviewed.
+1. **Manual counting first.** Dialog detection produces temporary candidates. Explicit quick-detection actions append unreviewed markers or replace eligible unreviewed automatic results. Every successful quick detection requires human review, including zero-result runs, before photo completion.
 2. **Local-first.** Images, markers, notes, drafts, and exports stay in the browser. Runtime network access is blocked with `connect-src 'none'`.
 3. **Fast repetitive work.** Undo/Redo, category switching, current-category emphasis, and mobile controls must remain reachable while counting.
 4. **Editable source data, read-only sharing.** The main app edits projects. Exported viewer HTML is read-only, but can be imported back into the main app to resume editing.
@@ -26,7 +26,7 @@
 5. Select an existing marker only when it needs editing.
 6. Move markers; resize selected rectangles from their corner handles; change type or delete from the contextual marker controls.
 7. Correct image visibility if needed with brightness, contrast, grayscale, and 90° rotation. The original image data remains unchanged.
-8. Mark each image complete and continue to the next unfinished image.
+8. Check each image, then use **Review complete & next** to clear its review state, complete it and continue to the next unfinished image.
 9. Review project-wide totals and per-type totals.
 10. Export a read-only viewer HTML or a ZIP containing CSV files with optional annotated JPEG images.
 
@@ -81,15 +81,15 @@
 
 ### Multi-image project
 
-- Show image thumbnails with per-image count and completion state.
+- Show image thumbnails with per-image count, review-marker count and derived photo status: Undetected, In progress, Needs review or Complete.
 - Preserve capture-time metadata: prefer JPEG EXIF DateTimeOriginal/DateTimeDigitized, fall back to the source file timestamp, and use the actual capture time for in-app camera photos.
 - Allow Left/Right arrow keys to move to the previous/next image when focus is not in an editable field or modal dialog.
 - Navigate previous/next and jump directly to any image.
 - Mark an image complete from the upper-right area of the canvas.
 - Provide **Next incomplete** navigation.
 - Editing a completed image makes it in-progress again when count data or image correction changes.
-- Show project-wide total marker count, completed image count, needs-review count, and per-type totals.
-- An image with one or more needs-review markers cannot be marked complete; the UI must state how many review items remain.
+- Show project-wide total marker count, completed image count, needs-review marker count, per-type totals and the number of photos in each status.
+- An image with needs-review markers or an unreviewed detection check cannot be marked complete through the ordinary Complete button. Keep the review-marker count distinct from a pending zero-result detection check.
 
 ### Undo / Redo
 
@@ -106,7 +106,7 @@ Undo/Redo must schedule autosave of the restored state, just like direct edits. 
 - Show current project data size, saved draft size, and available browser storage when available.
 - Default to compressing the **draft copy only** to WebP to reduce local storage usage.
 - Allow draft WebP quality adjustment.
-- Restoring a compressed draft must preserve logical image dimensions, markers, categories, notes, completion state, and adjustments.
+- Restoring a compressed draft must preserve logical image dimensions, markers, categories, notes, completion state, adjustments and optional detection checks/replacement eligibility.
 
 ## 5. Export requirements
 
@@ -207,7 +207,7 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 - OCR-based counting.
 - Cloud collaboration or shared server projects.
 - XLSX export (planned for a later version).
-- Removing or merging existing markers automatically (candidate import filters duplicates without editing existing markers).
+- Merging existing markers automatically. Quick replacement is limited to explicitly eligible, unreviewed automatic results; dialog candidate import only filters duplicates.
 
 ## 10. Acceptance criteria
 
@@ -223,7 +223,7 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 - A new marker does not show editing controls until selected later.
 - Per-type numbering and category switching work.
 - Multi-image totals, needs-review totals, and completion state work.
-- Needs-review can be toggled on both point and rectangle markers; completion is blocked until current-image review flags are cleared.
+- Needs-review can be toggled on both point and rectangle markers; ordinary completion is blocked until current-image review flags and detection checks are reviewed.
 - Camera capture presents a review before image acceptance.
 - Draft size/compression controls work when IndexedDB storage is available.
 - Image corrections persist into viewer/export data.
@@ -281,18 +281,18 @@ Compatibility exception: the former native resize handler could create an exact 
 - Image loading, inference, cancellation and late callbacks are guarded by project, image, category, generation, model and reference identity. Cancel/close during transition must not start a later detection.
 - Imports validate snapshot PNG magic/header dimensions, version, payload limit (2 MiB), one to twenty finite in-bounds regions and aggregate project budget. Previous schema-4 projects without references remain supported.
 
-### Main-screen detection (1.1.0-dev.5)
+### Main-screen detection (introduced in 1.1.0-dev.5; updated in dev.10)
 
 - Detect this photo / Detect all photos use the selected type’s pinned reference and current detection settings without opening the dialog. No reference or pending photo import disables both actions.
-- All photos means the complete image list, including completed photos, processed sequentially in list order. Existing overlaps of any type are excluded. New rectangles are automatically flagged `needsReview`; affected photos become incomplete.
-- One Undo reverses all additions from a run, including a stopped run. Zero additions leave history/redo and completion unchanged.
-- Show progress, filename, added counts, per-photo results and a Stop action. Stop retains completed photos’ additions; the active photo cannot commit late results. Bad images are reported and skipped; inference/runtime errors stop the run.
+- All photos means the complete image list, including completed photos, processed sequentially in list order. Existing overlaps of any type are excluded after applying the chosen replacement rule. New rectangles carry `needsReview:true` and `autoPending:true`; successfully checked photos become incomplete.
+- One Undo reverses the whole run, including additions, replacements, detection checks and completion changes. A successful zero-result or duplicate-only photo still records an unreviewed check and participates in that transaction.
+- Show progress, filename, added/removed counts, per-photo results and a Stop action. Stop retains processed photos’ changes; the active photo cannot commit late results. Bad images are reported and skipped; inference/runtime errors stop the run.
 - Lock editing, navigation, imports and hidden toast actions during processing. Reject stale project/image/model/reference ownership before committing. Release worker/bitmaps/Blob URLs on finish, cancellation and page navigation.
-- Pinned examples and resulting markers persist through existing draft/viewer flows. Transient progress reports do not persist.
+- Pinned examples, resulting markers and detection checks persist through existing draft/viewer flows. Transient progress reports and the selected rerun mode do not persist.
 
-### Photo review (1.1.0-dev.6)
+### Photo review (introduced in 1.1.0-dev.6; updated in dev.10)
 
-- When the current photo contains review flags, show its flagged count and Mark this photo reviewed beside the photo workflow. The action clears all review flags in that photo, including hidden and other types, with one Undo/Redo transaction and autosave. Counts, geometry, other photos and completion remain unchanged. No-op actions preserve history/redo; inference blocks review edits.
+- When the current photo contains review flags or unreviewed detection checks, show its flagged-marker count and Mark this photo reviewed beside the photo workflow. The action clears all review flags and replacement eligibility and reviews all checks in that photo, including hidden and other types, with one Undo/Redo transaction and autosave. Counts, geometry, other photos and completion remain unchanged. No-op actions preserve history/redo; inference blocks review edits.
 - Pin/unpin immediately synchronizes the main-screen reference count, action availability and history controls. New local examples must be pinned to reuse them outside the dialog.
 
 ### Editing pinned examples (1.1.0-dev.7)
@@ -320,3 +320,13 @@ Compatibility exception: the former native resize handler could create an exact 
 - A second pointer abandons any pending add/move/resize while retaining the selected example, then starts the view gesture. Extra pointers, cancellation and surviving/late pointer events cannot commit an abandoned edit.
 - Zoom/pan are temporary and are not saved in drafts or exports. Reset the view on dialog open/close, source changes, entering/saving/discarding pinned-reference editing, pin/unpin and next-photo transitions. Switching between Add and Select / edit keeps the current view.
 - Acceptance checks include magnified small-box edits, anchored pinch/two-finger pan, limits/Fit, pointer cancellation, source-boundary resets and unchanged saved data. Record physical Android touch tests separately from desktop pointer simulation and narrow-width layout checks.
+
+### Photo status, review completion and safe reruns (1.1.0-dev.10)
+
+- Derive status in this order: any flagged marker or unreviewed detection check → **要確認 / Needs review**; completed → **完了 / Complete**; any marker or reviewed detection check → **作業中 / In progress**; otherwise → **未検出 / Undetected**. A legacy empty photo has no inferred detection history. Show status and flagged-marker count in thumbnails and the current-photo bar, with per-status photo totals in the summary. Use text and accessible labels, not color alone.
+- **確認完了して次へ / Review complete & next** clears all marker review flags and `autoPending` fields, marks every photo check reviewed and sets completion in one history transaction. Navigate to the next incomplete photo in list order, wrapping once and skipping the current photo. If none remains, stay on the photo and announce completion. Undo/Redo restores the photo data; review-only remains a separate action that does not complete a photo.
+- The main-screen `quickMode` control defaults to **Append**. **Replace unreviewed auto results** removes only markers in the captured selected category where `autoPending === true && needsReview === true`. Preserve manual markers, other types, reviewed/edited automatic markers and older-version detections without this explicit field. Explain this legacy protection beside the mode control and in Help.
+- Only new main-screen quick-detection markers receive `autoPending:true`. Committed moves, resizes, category changes and individual review toggles remove eligibility; reflagging never recreates it. Photo-level review also removes it. Cancelled edits leave it unchanged. Undo can restore the prior field with the prior geometry/review state.
+- Complete inference and validate its full result before a per-photo atomic replacement/addition. Filter duplicates against the retained markers and accepted new candidates. A valid zero-result replacement may remove eligible old results. Cancellation, failure or malformed output preserves that photo; reject truncated results in replacement mode so partial output cannot erase old results.
+- Keep schema version 4 and the existing storage identity. Optional `image.detectionChecks` contains at most one `{categoryId, detectedAt, reviewed}` record per category. Each successful quick detection updates that category's timestamp and sets `reviewed:false`, even if no markers were added. Validate referenced categories, timestamps and boolean fields on import; preserve checks and eligible marker fields in history, drafts and viewer round trips. Removing a category removes its checks and protects reassigned markers.
+- Acceptance checks cover all four statuses, zero/duplicate-only review, wrap/last-photo behavior, hidden/other types, both rerun modes, protected old/manual/edited results, cancelled edits, truncated/malformed/error/cancelled inference, one-step run Undo/Redo, draft/viewer round trips and Japanese/English keyboard/mobile controls. Dependencies, model assets, offline behavior and one-file distribution are unchanged.
