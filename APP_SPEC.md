@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.12
+- **Version:** 1.1.0-dev.13
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -95,13 +95,24 @@
 
 - Show image thumbnails with per-image count, review-marker count and derived photo status: Undetected, In progress, Needs review or Complete.
 - Preserve capture-time metadata: prefer JPEG EXIF DateTimeOriginal/DateTimeDigitized, fall back to the source file timestamp, and use the actual capture time for in-app camera photos.
-- Allow Left/Right arrow keys to move to the previous/next image when focus is not in an editable field or modal dialog.
-- Navigate previous/next and jump directly to any image.
+- Allow Left/Right arrow keys to move to the previous/next matching image when focus is outside form controls, editable fields and modal dialogs. Preserve native keyboard behavior in the photo filter select.
+- Navigate previous/next through the filtered image list and jump directly to a visible thumbnail.
 - Mark an image complete from the upper-right area of the canvas.
 - Provide **Next incomplete** navigation.
 - Editing a completed image makes it in-progress again when count data or image correction changes.
 - Show project-wide total marker count, completed image count, needs-review marker count, per-type totals and the number of photos in each status.
 - An image with needs-review markers or an unreviewed detection check cannot be marked complete through the ordinary Complete button. Keep the review-marker count distinct from a pending zero-result detection check.
+
+### Photo-status filter
+
+- Place a native select labelled **写真一覧 / Photo list** immediately above the thumbnail strip with **All**, **Undetected**, **In progress**, **Needs review** and **Complete** choices. Each option shows its photo count from the full project using the existing `photoStatus(image)` rules, including hidden/other-type review markers and pending zero-result detection checks.
+- Show the matching-photo count against the total and **すべて表示 / Show all** to reset to All. When no photos match, show **条件に合う写真がありません / No photos match** while keeping the filter and reset reachable.
+- Filtering changes the thumbnail list only; keep the current photo on the canvas even when it no longer matches, with an explicit notice. Filter changes, review/completion changes, edits and Undo/Redo must not automatically navigate away from that photo.
+- Previous/Next and Left/Right move only through matching photos in project order without wrapping. If the current photo is excluded, use the nearest matching photo before/after its project position. Disable a direction when no match exists there; both directions are unavailable for an empty result.
+- Keep the selected filter as temporary UI state for the live project. Preserve it across same-project edits, status changes, photo additions/removals, Undo/Redo and language changes. Reset to All when a new project, opened work or restored draft is accepted, and after page reload. Failed or cancelled replacement leaves the active filter intact.
+- Changing or resetting the filter must not edit project data, counts, completion, history, redo, timestamps or autosave. Do not serialize it in schema 4, drafts, saved work/viewer HTML or CSV.
+- Project summaries, all exports, **Detect all photos**, **Next incomplete**, **Review complete & next** and the detection dialog's next-photo actions retain their full-project scope. These actions may explicitly select a photo outside the filter; keep that photo visible with the same notice.
+- Guard pending filtered navigation against filter changes, project replacement and stale image decoding. Only a still-current request may commit the photo and its data; a failed decode keeps the previously displayed photo and allows retry.
 
 ### Undo / Redo
 
@@ -183,6 +194,7 @@ result.zip
 - Smartphone usage is a first-class workflow, not a reduced desktop layout.
 - Mobile must avoid horizontal page scrolling at 390 px and remain usable from 320 px upward. Type names, including unbroken names up to 40 characters, must wrap within summary rows instead of widening the page.
 - Mobile top controls clearly show **Review / Point / Rectangle / Move**. Keep Review submodes, selection count, Clear selection and Delete selected near the canvas and reachable at 320 px and 390 px in Japanese and English.
+- Keep the photo filter, matching/total count, reset, empty state and excluded-current notice beside the thumbnail strip. Their controls and adjacent navigation must fit Japanese at 390 px and English at 320 px without page-level horizontal overflow, with visible focus and an accessible select label.
 - The canvas includes a low-profile translucent type-switching dock along its lower edge, showing type color/name/count and allowing one-tap switching without leaving the image. The dock can be minimized to a small corner control when it covers something that must be counted.
 - On smartphone widths, the old duplicate type-switching area below the canvas is hidden; type management remains available from the canvas `+` button and the fixed bottom bar.
 - Type switching is one tap.
@@ -241,6 +253,9 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 - Successful quick detection, including zero results and a stopped run with earlier successful photos, and dialog application enter Review. Selection UI is temporary and absent from draft/viewer/CSV data.
 - Per-type numbering and category switching work.
 - Multi-image totals, needs-review totals, and completion state work.
+- Photo filtering uses the shared status precedence and full-project option counts, including flagged completed photos and zero-result pending checks. Empty results and a current photo outside the filter are clearly explained without an automatic photo switch.
+- Filtered Previous/Next and Left/Right skip nonmatching photos in project order, choose the nearest match from an excluded current photo, stop at each end and preserve native select keyboard behavior. Filter/project changes and decode failures cannot commit stale navigation.
+- Same-project edits and Undo/Redo update filter counts while preserving the filter; accepted new/open/restored work and reload reset it to All. Filtering alone changes no saved data, history, redo or autosave; summaries, exports and full-project detection/completion navigation remain complete.
 - Needs-review can be toggled on both point and rectangle markers; ordinary completion is blocked until current-image review flags and detection checks are reviewed.
 - Camera capture presents a review before image acceptance.
 - Draft size/compression controls work when IndexedDB storage is available.

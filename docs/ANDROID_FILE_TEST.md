@@ -1,10 +1,10 @@
 # Android / direct-file acceptance check
 
-Target requested by the user: Android with Chrome. The user reported good Android Chrome behavior on the Pages 1.1.0-dev.3 build. Physical-device checks for the newer detection, example-editing, Review and bulk-delete workflows through dev.12 are pending; desktop viewport checks must not be recorded as an Android pass.
+Target requested by the user: Android with Chrome. The user reported good Android Chrome behavior on the Pages 1.1.0-dev.3 build. Physical-device checks for the newer detection, example-editing, Review, bulk-delete and photo-filtering workflows through dev.13 are pending; desktop viewport checks must not be recorded as an Android pass.
 
 ## Files
 
-Version 1.1.0-dev.12 embeds the 6.44 MiB compact YOLOE-26n model in both `index.html` and `index.self-extract.html`. Each file works independently; no separate model file is needed. Download the HTML itself before local-file testing; do not open it inside a ZIP preview.
+Version 1.1.0-dev.13 embeds the 6.44 MiB compact YOLOE-26n model in both `index.html` and `index.self-extract.html`. Each file works independently; no separate model file is needed. Download the HTML itself before local-file testing; do not open it inside a ZIP preview.
 
 ## Direct-file check on the computer
 
@@ -16,7 +16,7 @@ Version 1.1.0-dev.12 embeds the 6.44 MiB compact YOLOE-26n model in both `index.
 
 ## Android Chrome check
 
-For the HTTPS test, open [Image Counter EX on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/) in Chrome. Verify version **1.1.0-dev.12**, choose a photo or sample, open Auto detect and outline examples. The built-in model is already selected with CPU / FP32; advanced settings can stay closed. Continue with steps 2–8 below, recording HTTPS as the context. The [self-extract variant](https://ttomohisa.github.io/htmlapps-image-counter-ex/index.self-extract.html) is available separately. The initial HTML includes runtime and model; detection makes no additional network requests. HTTPS results do not replace the local-document test in step 1.
+For the HTTPS test, open [Image Counter EX on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/) in Chrome. Verify version **1.1.0-dev.13**, choose a photo or sample, open Auto detect and outline examples. The built-in model is already selected with CPU / FP32; advanced settings can stay closed. Continue with steps 2–8 below, recording HTTPS as the context. The [self-extract variant](https://ttomohisa.github.io/htmlapps-image-counter-ex/index.self-extract.html) is available separately. The initial HTML includes runtime and model; detection makes no additional network requests. HTTPS results do not replace the local-document test in step 1.
 
 1. Copy the extracted trial files to the Android device. Open the HTML using Chrome if the system's file opener offers it. If it opens only a document preview, cannot select Chrome, or Chrome refuses the local document, record that outcome; do not count a preview or HTTP page as a direct-file pass.
 2. Record phone model, Android version, Chrome version, HTML variant, and whether the address is local (`file:` / `content:`) or HTTP(S). These contexts are distinct.
@@ -90,3 +90,17 @@ Use at least two photos with point and rectangle markers in multiple types, incl
 8. In Japanese and English, reach the four main modes, three Review submodes, selected count, Clear selection, Edit and Delete selected at 320 px and 390 px without horizontal page scrolling. Check visible keyboard focus and activation on desktop separately. Verify that photo navigation, Undo/Redo, completion and Save remain reachable.
 
 These are pending acceptance procedures, not evidence of a physical-device or direct-file pass. Review selection adds no saved schema fields or model changes.
+
+## Photo-status filtering (dev.13; device check pending)
+
+Prepare photos in all four statuses, including a photo with a pending zero-result detection check and a completed photo with a review flag. Record the device/browser, HTML variant, language and local-document/HTTPS context. Repeat the core path with both HTML variants; record desktop keyboard and viewport checks separately from physical Android touch tests.
+
+1. Open the labelled select immediately above the thumbnails and choose All, Undetected, In progress, Needs review and Complete. Check each option's count against the full project and the matching/total display against the visible thumbnails. Review flags and pending detection checks must take priority over completion, including when the relevant marker type is hidden.
+2. Select a filter that excludes the current photo. Confirm the canvas keeps that photo with an explicit notice. Previous/Next must select the nearest matching photo before/after it in project order, skip nonmatches and stop at either end. Repeat with a single match and no matches. The empty list must explain the result, disable both directions and keep reset-to-All reachable.
+3. Change a matching photo's review/completion state so it no longer matches. Confirm the current photo stays visible and counts update. Repeat with marker edits, review actions and Undo/Redo. The filter must remain selected; changing/resetting it alone must not change counts, completion, Undo/Redo availability or the saved work.
+4. While filtered, confirm project summaries and exports still include every photo. Run Detect all photos and use Next incomplete and Review complete & next; each must retain its full-project scope. An explicitly selected photo outside the filter must stay visible with the notice.
+5. Switch languages and add/remove photos within the same work; keep the filter and refresh its counts. Save/reopen work, restore a draft after reload and start new work; each accepted project must start at All. Cancel or fail an Open work attempt and confirm the original filter and photo remain.
+6. Navigate rapidly while changing filters or opening another work. No delayed photo decode or error may overwrite the latest state. Where a failed decode can be exercised, verify that the displayed photo remains and another selection/retry is possible; otherwise record this check as untested.
+7. In Japanese at 390 px and English at 320 px, check the filter, counts, reset, empty state, excluded-current notice and adjacent navigation without horizontal page scrolling. Check touch selection in portrait/landscape. On a desktop keyboard separately, verify visible focus, native select arrow-key behavior and matching-photo Left/Right navigation when the canvas has focus.
+
+These are pending acceptance procedures. They do not establish an Android, direct-file, keyboard or viewport pass.

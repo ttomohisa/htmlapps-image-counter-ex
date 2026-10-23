@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0-dev.13 — 2026-10-24
+
+- Add a labelled photo-status filter above the thumbnails with full-project option counts, matching/total count, reset-to-All and an empty state.
+- Keep the current photo visible when excluded, with an explicit notice. Previous/Next and Left/Right move only between matching photos in project order without wrapping; native select keyboard behavior is preserved.
+- Preserve the temporary filter across same-project edits, status changes, Undo/Redo and language changes; start new/opened/restored work at All. Reject stale filtered navigation after filter/project changes and retain the displayed photo on decode failure.
+- Keep summaries, exports, Detect all photos, Next incomplete and Review complete & next scoped to the whole project. Filtering changes no saved data, history, autosave, schema or model assets. Physical Android filtering checks remain pending.
+
 ## 1.1.0-dev.12 — 2026-10-24
 
 - Add Review mode for selecting existing markers without adding counts or changing geometry. Single and Multiple support drag-to-pan; explicit Edit keeps the chosen marker selected in its Point/Rectangle editing mode.

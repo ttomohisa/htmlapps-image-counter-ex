@@ -161,3 +161,27 @@ Actual localhost Chromium, using three steel-pipe photos with marker counts `[29
 ### Limits
 
 Physical Android touch and direct `file://` execution were not tested in this change. Local-file navigation was previously rejected by the verification browser; localhost checks do not establish file-origin behavior. Pointer interruption/pinch claims above refer to controlled production-handler tests, not physical gestures. Embedded assets, model, inference settings, schema and CSP are unchanged; no new browser network trace or performance benchmark was collected.
+
+## Photo list filters — 1.1.0-dev.13
+
+Date: 2026-10-24. Required `scripts/check-repository.ps1` exited 0: **3,858 tests passed, zero failures**, across source, readable HTML, root alias and unpacked self-extract HTML, plus build/asset/help checks. Logs: `.cache/dev13-build.log` and `.cache/dev13-check.log`. Final readable/self-extract sizes are 21,203,222 / 21,145,528 bytes. Independent review has no unresolved findings.
+
+### Automated coverage
+
+16 new production-bound tests cover all five filters and their counts, zero-result pending checks, empty/excluded-current states, ordered filtered navigation without wrapping, delayed navigation invalidation, project ownership, reset focus, form keyboard handling, busy/modal/inert guards, unfinished geometry cancellation, committed selection preservation, status updates and Undo/Redo. Full-project detection, export, totals and review navigation retain their prior scope. Filter choice is transient, has no history/autosave mutation and resets when the project is replaced.
+
+### Browser observations
+
+Actual localhost Chromium, using three steel-pipe photos with marker counts `[29, 0, 29]` and four pinned examples:
+
+- Readable HTML: clearing the first photo's review flags changed Needs review from 3 to 2 while retaining the current photo and total 58. Completing it moved it into Complete; Undo removed it from that filtered list and Redo restored it without changing the selected filter.
+- An empty filter displayed both the empty-list explanation and the excluded-current notice, kept the current canvas usable, and disabled previous/next. Show all restored the full strip and returned focus to the native dropdown.
+- Previous/next buttons and editor Left/Right visited only matching photos, in project order, without wrapping. The zero-result pending photo remained in Needs review. Next incomplete still traversed the full project even when Complete was selected. Dropdown arrow keys changed the filter without navigating the current photo.
+- Exported `dev13_photo_filter_roundtrip.html` while Complete matched only one photo. Parsed export retained all three photos, counts `[29, 0, 29]`, completion `[true, false, false]` and review flags `[0, 0, 29]`; no filter choice entered the project/settings. A browser reload and draft restore retained all 58 markers and started with All selected. No re-import of this export was performed in this change.
+- Final self-extract HTML started on a fresh local origin and loaded the built-in two-photo sample. Adding a marker moved the current photo from Undetected to In progress; Undo moved it back, with filtered counts and empty/excluded-current messages updating correctly.
+- Japanese at 390 px and English at 320 px: the dropdown, matched count and Show all remained reachable, with no horizontal document overflow (client/scroll widths 375/375 and 305/305 with scrollbars). Language switching retained the selected filter. Screenshots: `.cache/dev13-photo-filter-mobile.png`, `.cache/dev13-photo-filter-mobile-en.png` and `.cache/dev13-photo-filter-desktop.png`.
+- No warning/error entries were captured in the inspected readable and self-extract browser consoles. Final rebuilt variants display the hint explicitly identifying Detect all photos, exports and totals as full-project actions.
+
+### Limits
+
+Physical Android touch and direct `file://` execution were not tested in this change. Localhost viewport checks do not establish device or file-origin behavior. Model, inference settings, embedded assets, schema and CSP are unchanged; no new inference accuracy run, network trace or performance benchmark was collected.

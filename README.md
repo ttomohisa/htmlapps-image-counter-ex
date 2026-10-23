@@ -7,7 +7,7 @@ Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer 
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.12.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection, review, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.13.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -34,7 +34,7 @@ Undo / Redo results also auto-save. Resetting image corrections returns the imag
 - **Review and remove unwanted results** — Review mode selects existing markers without adding or moving them. Select one, tap several, or drag a range, then delete the selection with one Undo for the whole deletion.
 - **Switch counting types directly on the image** — Use the translucent type dock on the canvas, or number keys `1`–`9` on desktop. The dock can be minimized when it covers an object.
 - **Flag uncertain items for later review** — Add an independent **Needs review** flag without changing the marker type or count. Images with unresolved review markers cannot be marked complete.
-- **Work through multiple photos** — See Not detected / In progress / Needs review / Complete states and status totals. **Review complete & next** reviews and completes a photo, then moves to the next incomplete one.
+- **Work through multiple photos** — Filter the thumbnail list by photo status and move between matching photos. Counts show progress across the whole project. **Review complete & next** reviews and completes a photo, then moves to the next incomplete one.
 - **Adjust hard-to-see photos without changing the original** — Brightness, contrast, grayscale, and 90° rotation are non-destructive and are preserved in exports.
 - **Capture photos from the camera** — Review a capture before adding it, retake it, or accept it and continue shooting.
 - **Resume or carry your work** — Autosave in this browser, or use **Save / export → Save work as HTML** to keep photos, pinned examples, markers and review progress in a file. Choose **Open work** to resume editing.
@@ -100,7 +100,7 @@ Cancel or close the dialog to stop inference. The model is retained only for the
 5. In Review, select existing markers to inspect or delete them. Choose **Single**, select a marker and choose **Edit** to move it or resize a rectangle from its four corner handles.
 6. In Review's Single selection, use the flag button to set or clear **Needs review** while staying in Review. Review automatic results even when no new markers were found.
 7. Use the memo button beside **Complete** to add an image note. On desktop the memo panel can be dragged within the canvas; on mobile it opens below the canvas.
-8. Check the photo, then choose **Review complete & next**, or switch photos with thumbnails / arrow keys.
+8. Check the photo, then choose **Review complete & next**, or use the status filter above the thumbnails to work through matching photos with Previous / Next or arrow keys.
 9. Open **Save / export** (**Save** on mobile), enter a filename, and choose **Save work as HTML** or save a results ZIP. Clear **Include annotated JPEGs** to export only the two CSV files.
 
 The top-right EN / JA and Help controls remain available on narrow screens. **How to use & notes** keeps its heading visible while the contents scroll to the end. On mobile, the start screen has full-width photo/camera buttons; Build info and the page footer are hidden. Build info remains available on desktop. Language switching and all Help close controls are unchanged.
@@ -110,7 +110,7 @@ The top-right EN / JA and Help controls remain available on narrow screens. **Ho
 | Shortcut | Action |
 | --- | --- |
 | `1`–`9` | Switch to the corresponding counting type |
-| `←` / `→` | Move to the previous / next image |
+| `←` / `→` | Move to the previous / next photo matching the filter |
 | `Ctrl` / `⌘` + `Z` | Undo |
 | `Ctrl` / `⌘` + `Shift` + `Z` | Redo |
 | `Esc` in Review | Clear selection |
@@ -142,7 +142,15 @@ Hidden markers cannot be selected. Selection is temporary and is cleared or prun
 
 The photo status also tracks a pending detection check. A zero-result or duplicate-only detection therefore shows **Needs review** with zero flagged markers until you review the photo. The ordinary **Complete** button waits for both marker flags and detection checks to be reviewed.
 
-Thumbnails and the current-photo bar show **Not detected**, **In progress**, **Needs review** or **Complete**; the summary counts photos in each state. Needs review takes priority over completion. A manually counted photo is In progress, and an untouched old project is not treated as previously detected. Review state is retained in drafts and viewer HTML imports.
+Thumbnails and the current-photo bar show **Undetected**, **In progress**, **Needs review** or **Complete**; the summary counts photos in each state. Needs review takes priority over completion. A manually counted photo is In progress, and an untouched old project is not treated as previously detected. Review state is retained in drafts and viewer HTML imports.
+
+### Filter photos by status
+
+Use **Photo list** immediately above the thumbnails to choose **All**, **Undetected**, **In progress**, **Needs review** or **Complete**. Its option counts always cover the whole project; the matching/total count shows how many thumbnails are included. Choose **Show all** to reset to All. A photo with a pending detection check belongs to Needs review even when it has no flagged markers.
+
+The current photo stays on the canvas if it falls outside the filter, with **Current photo is outside this filter** explaining why its thumbnail is absent. Previous / Next and `←` / `→` visit only matching photos in project order and stop at either end. From an excluded photo, they choose the nearest match before or after it. If there are no matches, the list shows **No photos match** and both directions are unavailable.
+
+The filter stays selected as you edit, review, use Undo/Redo or change language in the same project. New work, Open work, draft restoration and page reload start at All. Filtering does not change counts or saved data. Summaries, exports, **Detect all photos**, **Next incomplete**, **Review complete & next** and the detection dialog's next-photo actions still cover the entire project, so those navigation actions can open a photo outside the filter.
 
 ### Image display correction
 
