@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0-dev.5 — 2026-10-23
+
+- Add main-screen Detect this photo and Detect all photos using the selected type’s pinned examples.
+- Automatically add duplicate-filtered results as Needs review markers, with one Undo for the whole run.
+- Process photos sequentially with progress, per-photo results and Stop; retain completed additions after cancellation.
+- Prevent editing and pending-import races during runs; release inference resources and ignore late results.
+
 ## 1.1.0-dev.4 — 2026-10-23
 
 - Pin visual examples per counting type and reuse them across photos, with thumbnails and target/source filenames.

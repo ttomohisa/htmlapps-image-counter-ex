@@ -7,7 +7,7 @@ Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer 
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.4.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the new pinned-example workflow still needs physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.5.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the new main-screen batch workflow still needs physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -62,11 +62,13 @@ The first build downloads pinned ONNX Runtime JS/WASM packages. Generated HTML e
 
 ## Local auto detection
 
+Pin examples for the selected type in **Examples / detection settings**. Then use **Detect this photo** or **Detect all photos** directly beside the canvas. Results are added automatically as **Needs review** markers; existing overlaps are skipped. **Stop** keeps completed results, and one **Undo** reverts the entire run. Review the flagged markers before marking a photo complete. All-photo detection includes completed photos.
+
 ![Reviewing local detection candidates](assets/auto-detection.jpg)
 
 Navigating away cancels running detection and leaves controls usable when a cached page returns. Android Chrome hardware and direct-file operation remain pending; see the [device check procedure](docs/ANDROID_FILE_TEST.md).
 
-1. Select the target marker type and open **Auto detect** beside the canvas.
+1. Select the target marker type and open **Examples / detection settings** beside the canvas.
 2. Use the built-in model with the default CPU / FP32 settings. **Advanced settings / model** optionally accepts a compatible custom model; **Use built-in model** restores the default.
 3. Outline one or more examples. Keyboard users can enter the left/top/right/bottom percentages under **Enter example bounds**.
 4. Select **Detect**. Click boxes or uncheck candidates you do not want. Counts stay unchanged during preview.
@@ -238,7 +240,7 @@ The GitHub Pages version still requires the initial HTML request. For use with t
 
 ## Limitations
 
-- Local detection is experimental: false positives and missed objects require human review. Only the current image is processed; tiles are not included. Pinned examples can be reused across photos.
+- Local detection is experimental: false positives and missed objects require human review. Process one photo or all photos sequentially using pinned examples; tiles are not included.
 - One project supports up to 30 images in the current UI.
 - Individual images over 35 MB are rejected, and the project has a 220 MB source-data guard.
 - Large or high-resolution multi-image projects can consume substantial device memory and browser storage.

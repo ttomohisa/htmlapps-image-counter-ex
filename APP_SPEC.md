@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.4
+- **Version:** 1.1.0-dev.5
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -11,7 +11,7 @@
 
 ## 2. Product principles
 
-1. **Manual counting first.** AI produces temporary candidates only. A count is created only by explicit placement or candidate application.
+1. **Manual counting first.** Dialog detection produces temporary candidates. Explicit quick-detection actions may append unreviewed markers; these are flagged for human review and prevent photo completion until reviewed.
 2. **Local-first.** Images, markers, notes, drafts, and exports stay in the browser. Runtime network access is blocked with `connect-src 'none'`.
 3. **Fast repetitive work.** Undo/Redo, category switching, current-category emphasis, and mobile controls must remain reachable while counting.
 4. **Editable source data, read-only sharing.** The main app edits projects. Exported viewer HTML is read-only, but can be imported back into the main app to resume editing.
@@ -277,3 +277,12 @@ Compatibility exception: the former native resize handler could create an exact 
 - After reviewing a result, Add and detect next applies accepted candidates as one undoable batch to the current image, then detects the next image in list order. Zero accepted candidates allow proceeding without history changes. Each new result requires review; images are not marked complete automatically.
 - Image loading, inference, cancellation and late callbacks are guarded by project, image, category, generation, model and reference identity. Cancel/close during transition must not start a later detection.
 - Imports validate snapshot PNG magic/header dimensions, version, payload limit (2 MiB), one to twenty finite in-bounds regions and aggregate project budget. Previous schema-4 projects without references remain supported.
+
+### Main-screen detection (1.1.0-dev.5)
+
+- Detect this photo / Detect all photos use the selected type’s pinned reference and current detection settings without opening the dialog. No reference or pending photo import disables both actions.
+- All photos means the complete image list, including completed photos, processed sequentially in list order. Existing overlaps of any type are excluded. New rectangles are automatically flagged `needsReview`; affected photos become incomplete.
+- One Undo reverses all additions from a run, including a stopped run. Zero additions leave history/redo and completion unchanged.
+- Show progress, filename, added counts, per-photo results and a Stop action. Stop retains completed photos’ additions; the active photo cannot commit late results. Bad images are reported and skipped; inference/runtime errors stop the run.
+- Lock editing, navigation, imports and hidden toast actions during processing. Reject stale project/image/model/reference ownership before committing. Release worker/bitmaps/Blob URLs on finish, cancellation and page navigation.
+- Pinned examples and resulting markers persist through existing draft/viewer flows. Transient progress reports do not persist.
