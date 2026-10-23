@@ -1,10 +1,10 @@
 # Android / direct-file acceptance check
 
-Target requested by the user: Android with Chrome. Physical device results are pending; desktop viewport checks must not be recorded as an Android pass.
+Target requested by the user: Android with Chrome. The user reported good Android Chrome behavior on the Pages 1.1.0-dev.3 build. Physical-device checks for pinned references in dev.4 are pending; desktop viewport checks must not be recorded as an Android pass.
 
 ## Files
 
-Version 1.1.0-dev.3 embeds the 6.44 MiB compact YOLOE-26n model in both `index.html` and `index.self-extract.html`. Each file works independently; no separate model file is needed. Download the HTML itself before local-file testing; do not open it inside a ZIP preview.
+Version 1.1.0-dev.4 embeds the 6.44 MiB compact YOLOE-26n model in both `index.html` and `index.self-extract.html`. Each file works independently; no separate model file is needed. Download the HTML itself before local-file testing; do not open it inside a ZIP preview.
 
 ## Direct-file check on the computer
 
@@ -16,7 +16,7 @@ Version 1.1.0-dev.3 embeds the 6.44 MiB compact YOLOE-26n model in both `index.h
 
 ## Android Chrome check
 
-For the HTTPS test, open [Image Counter EX on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/) in Chrome. Verify version **1.1.0-dev.3**, choose a photo or sample, open Auto detect and outline examples. The built-in model is already selected with CPU / FP32; advanced settings can stay closed. Continue with steps 2–8 below, recording HTTPS as the context. The [self-extract variant](https://ttomohisa.github.io/htmlapps-image-counter-ex/index.self-extract.html) is available separately. The initial HTML is about 20.13 MiB including runtime and model; detection makes no additional network requests. HTTPS results do not replace the local-document test in step 1.
+For the HTTPS test, open [Image Counter EX on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/) in Chrome. Verify version **1.1.0-dev.4**, choose a photo or sample, open Auto detect and outline examples. The built-in model is already selected with CPU / FP32; advanced settings can stay closed. Continue with steps 2–8 below, recording HTTPS as the context. The [self-extract variant](https://ttomohisa.github.io/htmlapps-image-counter-ex/index.self-extract.html) is available separately. The initial HTML is about 20.14 MiB including runtime and model; detection makes no additional network requests. HTTPS results do not replace the local-document test in step 1.
 
 1. Copy the extracted trial files to the Android device. Open the HTML using Chrome if the system's file opener offers it. If it opens only a document preview, cannot select Chrome, or Chrome refuses the local document, record that outcome; do not count a preview or HTTP page as a direct-file pass.
 2. Record phone model, Android version, Chrome version, HTML variant, and whether the address is local (`file:` / `content:`) or HTTP(S). These contexts are distinct.
@@ -37,3 +37,7 @@ CPU/FP32 is the acceptance baseline. WebGPU/FP16 is an additional device-specifi
 | Android Chrome actual local document | Pending | Pending | Pending | Pending | Pending |
 
 The automation environment provides only an in-app HTTP(S) browser and no attached Android device. Its earlier `file://` rejection was not bypassed. See `YOLOE_VALIDATION.md` for tests that were actually run.
+
+## Reusable-example check (dev.4)
+
+Load at least two photos of similar objects at comparable apparent size. Outline one to three examples and pin them. Run detection, review candidates, then Add and detect next. Confirm the target filename changes while the pinned source/thumbnails remain. Close and reload, restore the draft, and check that detection works without redrawing. Unpin and use Undo to restore the reference. Each counting type has its own reference. A wide scene with much smaller objects may need fresh examples or a closer photo; pinning does not guarantee equal accuracy across shooting conditions.

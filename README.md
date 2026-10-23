@@ -7,10 +7,12 @@ Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer 
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.3.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. Physical Android Chrome validation is pending.
+> **Embedded-model build — 1.1.0-dev.4.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the new pinned-example workflow still needs physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
+
+Pin examples for repeated inspections: after outlining, choose **Pin these examples**. Each counting type keeps its own reference. Other photos can use **Detect** immediately; after review, **Add and detect next** advances through the image list. Pinned references survive draft restoration and viewer HTML import, even if the original photo is removed. Use **Unpin examples** to replace them. Results still need checking on every photo.
 
 ## 🚀 Live demo
 
@@ -236,7 +238,7 @@ The GitHub Pages version still requires the initial HTML request. For use with t
 
 ## Limitations
 
-- Local detection is experimental: false positives and missed objects require human review. Only the current image is processed; tiles and cross-image prompt reuse are not included.
+- Local detection is experimental: false positives and missed objects require human review. Only the current image is processed; tiles are not included. Pinned examples can be reused across photos.
 - One project supports up to 30 images in the current UI.
 - Individual images over 35 MB are rejected, and the project has a 220 MB source-data guard.
 - Large or high-resolution multi-image projects can consume substantial device memory and browser storage.

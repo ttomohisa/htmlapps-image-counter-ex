@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0-dev.4 — 2026-10-23
+
+- Pin visual examples per counting type and reuse them across photos, with thumbnails and target/source filenames.
+- Save independent reference snapshots in drafts and viewer HTML; retain them after source-photo removal. Pin/unpin support Undo.
+- Add reviewed candidates and detect the next photo in one action, with cancellation and stale-result guards.
+- Validate imported reference dimensions, size, version and regions. Embedded model and offline single-HTML packaging are unchanged.
+
 ## 1.1.0-dev.3 — 2026-10-23
 
 - Embed the validated 6.44 MiB compact YOLOE-26n in both single-HTML variants; detection defaults to CPU / FP32 without a model-file picker.

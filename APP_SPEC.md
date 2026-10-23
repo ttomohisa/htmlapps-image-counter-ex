@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.3
+- **Version:** 1.1.0-dev.4
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -266,6 +266,14 @@ Compatibility exception: the former native resize handler could create an exact 
 - Confidence presets: 0.01 / 0.05 default / 0.1 / 0.25 / 0.5. The development default favors recall for visual prompting; scores are not calibrated accuracy percentages. Explain the false-positive tradeoff next to the control. NMS IoU > 0.5 suppresses lower-score boxes. Preview is capped at 1000 with the omitted count shown.
 - Click a candidate or uncheck its list item to exclude it. Existing rectangles match by IoU >= 0.5 or intersection/smaller-area >= 0.8; an existing point inside a candidate also excludes it. This includes hidden and other-category markers. Recheck duplicates against current markers and accepted batch on Apply.
 - Apply creates ordinary schema-4 rectangle markers in the active category with needsReview:false. One history entry, one autosave request, completed image becomes incomplete. Zero accepted candidates change nothing. Undo/Redo restores markers and completion together.
-- Candidates, examples, prompts, model files and runtime state never enter project/draft/viewer/CSV. Existing native app identifier and storage slug image-counter remain unchanged for compatibility; product/repository labels use EX.
+- Candidates, temporary examples, computed prompts, model files and runtime state never enter project/draft/viewer/CSV. Explicitly pinned examples are stored per category as an independent 640 × 640 PNG snapshot plus normalized example boxes (one to twenty). They survive source-photo removal and draft/viewer round trips; CSV contains counts and markers only. Existing native app identifier and storage slug image-counter remain unchanged for compatibility; product/repository labels use EX.
 - The compact 6.44 MiB YOLOE-26n model is embedded and selected by default (CPU / FP32). No model picker is required. Advanced settings can load a custom model or restore the built-in model. Model weights inflate lazily on Detect; each Worker receives a fresh transferable copy. The integrated release is AGPL v3 with offline license text and public corresponding source. Cross-image prompt reuse and tiles remain deferred.
 - See docs/YOLOE_VALIDATION.md for measured results and explicitly untested environments; direct file-origin detection is not considered verified solely by a successful build or HTTP test.
+
+### Reusable examples (1.1.0-dev.4)
+
+- Pin examples for the active counting type; show cropped thumbnails, source filename and current target filename. Unpin is undoable. Snapshots are immutable and shared by lightweight history.
+- Run the prompt-extraction pass on the saved reference snapshot and the detection pass on the current target photo. Target coordinates and duplicate suppression always use the target photo. Rotation and display corrections do not change saved source pixels.
+- After reviewing a result, Add and detect next applies accepted candidates as one undoable batch to the current image, then detects the next image in list order. Zero accepted candidates allow proceeding without history changes. Each new result requires review; images are not marked complete automatically.
+- Image loading, inference, cancellation and late callbacks are guarded by project, image, category, generation, model and reference identity. Cancel/close during transition must not start a later detection.
+- Imports validate snapshot PNG magic/header dimensions, version, payload limit (2 MiB), one to twenty finite in-bounds regions and aggregate project budget. Previous schema-4 projects without references remain supported.

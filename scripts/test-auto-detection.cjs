@@ -118,6 +118,18 @@ test('incompatible model outputs stop before the second run and still dispose te
   await assert.rejects(c.autoRunModel(f.ort,f.session,new Float32Array(3*640*640),mask),/autoInvalidOutput/);
   assert.equal(f.calls(),1);assert.ok(f.tensors.every(t=>t.disposed));
 });
+test('fixed examples extract their prompt from the reference photo and detect on the target photo',async()=>{
+  const c=engine(),tensors=[],images=[],masks=[];
+  class Tensor{constructor(type,data,dims){Object.assign(this,{type,data,dims});tensors.push(this)}dispose(){this.disposed=true}}
+  const session={inputNames:['image','vp_mask','prompt'],outputNames:['vpe','boxes','scores'],async run(feeds){
+    images.push(feeds.image.data[0]);masks.push(feeds.vp_mask.data[0]);
+    return{vpe:new Tensor('float32',new Float32Array(512).fill(.5),[1,1,512]),boxes:new Tensor('float32',new Float32Array(33600),[1,8400,4]),scores:new Tensor('float32',new Float32Array(8400),[1,8400])};
+  }};
+  const target=new Float32Array(3*640*640).fill(.2),reference=new Float32Array(target.length).fill(.8),mask=new Float32Array(6400);mask[0]=1;
+  await c.autoRunModel({Tensor},session,target,mask,reference);
+  assert.ok(Math.abs(images[0]-.8)<1e-6);assert.ok(Math.abs(images[1]-.2)<1e-6);
+  assert.deepEqual(masks,[1,0]);assert.ok(tensors.every(t=>t.disposed));
+});
 test('cancellation terminates Worker, revokes Blob URLs and invalidates late messages',()=>{
   const c=engine();let stopped=0;const revoked=[];
   Object.assign(c,{URL:{revokeObjectURL:url=>revoked.push(url)},autoState:{generation:4,job:{terminate:()=>stopped++},urls:['blob:a','blob:b'],busy:true}});
@@ -179,6 +191,64 @@ test('restoring the embedded model clears stale custom-model results and restore
   assert.equal(vm.runInContext('autoState.candidates.length',c),0);
   assert.equal(element('#autoBackend').value,'wasm');assert.equal(element('#autoPrecision').value,'fp32');
   assert.equal(element('#autoRun').disabled,false);assert.equal(element('#autoModel').value,'');
+});
+test('saved fixed examples enable detection on another photo without drawing local boxes',()=>{
+  const {c,element}=detectionUI(true);c.renderAutoReference=()=>{};
+  const ref={sourceName:'source.jpg',dataUrl:'saved pixels',examples:[box(.1,.2,.2,.2)]};c.P.categories[0].detectionReference=ref;
+  vm.runInContext('autoState.examples=[]',c);c.renderAutoControls();
+  assert.equal(element('#autoRun').disabled,false);assert.equal(element('#autoAddBounds').disabled,true);
+  const token=vm.runInContext('autoState.generation',c),model=vm.runInContext('autoState.model',c);
+  assert.equal(c.autoJobCurrent(token,model,ref),true);
+  c.P.categories[0].detectionReference={...ref};assert.equal(c.autoJobCurrent(token,model,ref),false);
+});
+test('next-image detection uses the pinned source without transferring old candidates to the next photo',async()=>{
+  const {c,element}=detectionUI(true);c.renderAutoReference=()=>{};
+  const ref={sourceName:'source.jpg',dataUrl:'saved pixels',examples:[box(.1,.2,.2,.2)]};c.P.categories[0].detectionReference=ref;
+  const next={...c.P.images[0],id:'two',dataUrl:'target pixels',markers:[]};c.P.images.push(next);
+  const calls=[];c.currentIndex=()=>c.P.images.indexOf(c.activeImage());c.switchImage=async()=>{c.activeImage=()=>next};
+  c.applyAutoCandidates=(owner,items)=>{calls.push(['apply',owner.imageId,items.length]);return items.length};
+  c.startAutoDetection=async()=>calls.push(['detect',c.activeImage().id,c.autoCurrentReference()===ref]);
+  c.Toast={show(){}};c.undo=()=>{};
+  vm.runInContext("autoState.candidates=[{x:.1,y:.1,w:.2,h:.2,score:.8}];autoState.phase='result'",c);
+  await c.autoApplyAndNext();
+  assert.deepEqual(calls,[['apply','one',1],['detect','two',true]]);
+  assert.equal(vm.runInContext('autoState.candidates.length',c),0);assert.equal(next.markers.length,0);
+});
+for(const change of ['close','reference','model'])test(`next-image load cannot start stale detection after ${change}`,async()=>{
+  const {c,element}=detectionUI(true);c.renderAutoReference=()=>{};
+  c.P.categories[0].detectionReference={sourceName:'source',examples:[box(.1,.1,.2,.2)]};
+  const next={...c.P.images[0],id:'two',dataUrl:'next',markers:[]};c.P.images.push(next);
+  let finish,started=0;c.switchImage=()=>{c.activeImage=()=>next;return new Promise(resolve=>finish=resolve)};
+  c.applyAutoCandidates=()=>0;c.startAutoDetection=async()=>started++;
+  vm.runInContext("autoState.phase='result'",c);const pending=c.autoApplyAndNext();
+  if(change==='close'){element('#autoDlg').open=false;element('#autoDlg').listeners.get('close')()}
+  if(change==='reference')c.P.categories[0].detectionReference={examples:[]};
+  if(change==='model')vm.runInContext('autoState.model={}',c);
+  finish();await pending;assert.equal(started,0);
+});
+test('fixed examples ignore drawing but still allow excluding candidates',()=>{
+  const {c,pointer}=detectionUI(true);c.renderAutoReference=()=>{};
+  c.P.categories[0].detectionReference={examples:[box(.1,.1,.2,.2)]};
+  vm.runInContext('autoState.examples=[];autoState.candidates=[{x:.1,y:.2,w:.2,h:.2,score:.9}]',c);
+  pointer('pointerdown');pointer('pointermove',{x:174,y:122});pointer('pointerup',{x:174,y:122});
+  assert.equal(vm.runInContext('autoState.examples.length',c),0);
+  pointer('pointerdown',{x:198,y:86});pointer('pointerup',{x:199,y:87});
+  assert.equal(vm.runInContext('autoState.excluded.has(0)',c),true);
+});
+test('pinning stores an independent letterboxed source without changing counts, and unpin is undoable',()=>{
+  const {c,im,element}=detectionUI(true);c.renderAutoReference=()=>{};c.renderAutoPreview=()=>{};im.name='reference.jpg';
+  c.imageCache.set(im.id,{naturalWidth:1200,naturalHeight:600});const draws=[],snapshots=[];
+  c.document={createElement:()=>({getContext:()=>({fillRect(){},drawImage:(...a)=>draws.push(a.slice(1))}),toDataURL:()=>'snapshot'})};
+  c.validateDetectionReference=()=>{};c.validateProject=()=>{};c.pushHistory=()=>snapshots.push({...c.P.categories[0]});c.touch=()=>{};c.Toast={show(){}};c.undo=()=>{};
+  const original=plain(vm.runInContext('autoState.examples',c)),before=JSON.stringify(im);
+  c.pinAutoExamples();const ref=c.autoCurrentReference();
+  assert.equal(ref.dataUrl,'snapshot');assert.equal(ref.sourceName,'reference.jpg');
+  assert.deepEqual(draws,[[0,160,640,320]]);
+  assert.deepEqual([...c.autoPromptMask(ref.examples,c.autoLetterbox(640,640))],[...c.autoPromptMask(original,c.autoLetterbox(1200,600))]);
+  assert.equal(JSON.stringify(im),before);assert.equal(ref.examples.length,1);
+  assert.equal(vm.runInContext('autoState.examples.length',c),0);
+  element('#autoUnpin').onclick();assert.equal(c.autoCurrentReference(),null);
+  c.P.categories[0]=snapshots.pop();assert.equal(c.autoCurrentReference(),ref);
 });
 test('returning from page cache after interrupted detection restores usable controls',()=>{
   for(const phase of ['loading-runtime','processing']){
