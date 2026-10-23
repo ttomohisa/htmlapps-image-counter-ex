@@ -7,7 +7,7 @@ Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer 
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.11.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection, review, example-editing and pinch workflows still need physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.12.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection, review, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -31,6 +31,7 @@ Undo / Redo results also auto-save. Resetting image corrections returns the imag
 
 - **Count manually, without losing your place** — Tap to place point markers or drag rectangles around objects. Each marker is one count.
 - **Correct mistakes after counting** — Move point markers, move or resize rectangles, change the marker type, delete a marker, and use Undo / Redo. Interrupted pointer actions discard pending counts and restore moved/resized geometry without clearing redo. Starting a pinch also discards an unfinished marker edit.
+- **Review and remove unwanted results** — Review mode selects existing markers without adding or moving them. Select one, tap several, or drag a range, then delete the selection with one Undo for the whole deletion.
 - **Switch counting types directly on the image** — Use the translucent type dock on the canvas, or number keys `1`–`9` on desktop. The dock can be minimized when it covers an object.
 - **Flag uncertain items for later review** — Add an independent **Needs review** flag without changing the marker type or count. Images with unresolved review markers cannot be marked complete.
 - **Work through multiple photos** — See Not detected / In progress / Needs review / Complete states and status totals. **Review complete & next** reviews and completes a photo, then moves to the next incomplete one.
@@ -76,7 +77,7 @@ Replacement protects manual, reviewed, edited and other-type markers. It also pr
 
 A main-screen detection run prepares the model and pinned examples once, then reuses them across its photos. This avoids repeating preparation for every photo. The result shows total elapsed time, including preparation. Finish, Stop or a runtime error releases the run’s resources; the next run starts fresh. The model and detection settings are unchanged.
 
-Every successfully detected photo needs review, even when the result is zero or all candidates overlap existing markers. After checking it, **Review complete & next** clears review state, marks it complete and advances to the next incomplete photo, wrapping to the start when needed. It stays on the final photo when all are complete. **Clear review flags** clears review state without completing it. Both review actions support Undo.
+Every successfully detected photo needs review, even when the result is zero or all candidates overlap existing markers. After a run with successful photos, the canvas enters **Review**, including when you stop after partial success. Applying candidates from the detection dialog also enters Review. After checking the photo, **Review complete & next** clears review state, marks it complete and advances to the next incomplete photo, wrapping to the start when needed. It stays on the final photo when all are complete. **Clear review flags** clears review state without completing it. Both review actions support Undo.
 
 ![Reviewing local detection candidates](assets/auto-detection.jpg)
 
@@ -93,11 +94,11 @@ Cancel or close the dialog to stop inference. The model is retained only for the
 ## Usage
 
 1. Add one or more JPG / JPEG / PNG / WebP images, or use the camera.
-2. Choose **Point**, **Rectangle**, or **Move**.
+2. Choose **Point** or **Rectangle** to add counts, **Review** to inspect them, or **Move** to pan.
 3. Select the active counting type from the translucent dock along the bottom of the canvas. On desktop, keys `1`–`9` also switch types.
 4. In Point mode, tap/click an object once. In Rectangle mode, drag around one object.
-5. Select an existing marker only when it needs correction. Point markers can be moved; rectangles can be moved and resized from four corner handles.
-6. Use the flag button to mark an uncertain marker as **Needs review**. Review automatic results even when no new markers were found.
+5. In Review, select existing markers to inspect or delete them. Choose **Single**, select a marker and choose **Edit** to move it or resize a rectangle from its four corner handles.
+6. In Review's Single selection, use the flag button to set or clear **Needs review** while staying in Review. Review automatic results even when no new markers were found.
 7. Use the memo button beside **Complete** to add an image note. On desktop the memo panel can be dragged within the canvas; on mobile it opens below the canvas.
 8. Check the photo, then choose **Review complete & next**, or switch photos with thumbnails / arrow keys.
 9. Open **Save / export** (**Save** on mobile), enter a filename, and choose **Save work as HTML** or save a results ZIP. Clear **Include annotated JPEGs** to export only the two CSV files.
@@ -112,14 +113,28 @@ The top-right EN / JA and Help controls remain available on narrow screens. **Ho
 | `←` / `→` | Move to the previous / next image |
 | `Ctrl` / `⌘` + `Z` | Undo |
 | `Ctrl` / `⌘` + `Shift` + `Z` | Redo |
+| `Esc` in Review | Clear selection |
+| `Delete` / `Backspace` in Review | Delete selected markers |
 
-Arrow-key image navigation is disabled while typing in an input field or while a modal dialog is open.
+Use these shortcuts while the canvas has focus. They are inactive while a form control, button or editable field has focus, or while a dialog is open.
 
 ## Counting and review workflow
 
 ### Point and rectangle markers
 
 Point markers are fast for ordinary counting. Rectangle markers are useful when the target is dense, small, or easier to identify by outlining it. Marker numbers restart from `1` for each counting type, while image and project totals are tracked separately.
+
+### Review and delete a selection
+
+Choose **Review** to check existing markers; it opens in **Single**. Tapping blank space never adds a count, and dragging in Single or **Multiple** pans the photo without moving a marker. In Single, the selected marker offers a review-flag toggle and **Edit**. Toggle the flag while staying in Review, or choose Edit to keep the marker selected and switch to Point or Rectangle for position/size changes. Multiple and **Range** hide this popover, even with one marker selected.
+
+- **Single** selects one visible marker.
+- **Multiple** adds or removes each tapped visible marker from the selection.
+- **Range** adds visible markers whose centers fall inside the dragged rectangle. Use two fingers to pan or zoom in this submode.
+
+Check the selected count, use **Clear selection** to start again, or choose **Delete selected**. Deletion affects only those markers in the current photo, returns it to incomplete and supports one Undo for the entire deletion. Other photos and detection-review checks stay intact, so deleting all unwanted boxes does not by itself complete the review.
+
+Hidden markers cannot be selected. Selection is temporary and is cleared or pruned when you change photos or modes, hide markers, use Undo/Redo or start detection. An interrupted range drag or pinch discards only the unfinished selection. Selection is not included in saved work; deletion and its Undo/Redo are autosaved.
 
 ### Needs review
 

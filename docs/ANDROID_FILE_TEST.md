@@ -1,10 +1,10 @@
 # Android / direct-file acceptance check
 
-Target requested by the user: Android with Chrome. The user reported good Android Chrome behavior on the Pages 1.1.0-dev.3 build. Physical-device checks for the newer detection and example-editing workflows through dev.8 are pending; desktop viewport checks must not be recorded as an Android pass.
+Target requested by the user: Android with Chrome. The user reported good Android Chrome behavior on the Pages 1.1.0-dev.3 build. Physical-device checks for the newer detection, example-editing, Review and bulk-delete workflows through dev.12 are pending; desktop viewport checks must not be recorded as an Android pass.
 
 ## Files
 
-Version 1.1.0-dev.8 embeds the 6.44 MiB compact YOLOE-26n model in both `index.html` and `index.self-extract.html`. Each file works independently; no separate model file is needed. Download the HTML itself before local-file testing; do not open it inside a ZIP preview.
+Version 1.1.0-dev.12 embeds the 6.44 MiB compact YOLOE-26n model in both `index.html` and `index.self-extract.html`. Each file works independently; no separate model file is needed. Download the HTML itself before local-file testing; do not open it inside a ZIP preview.
 
 ## Direct-file check on the computer
 
@@ -16,7 +16,7 @@ Version 1.1.0-dev.8 embeds the 6.44 MiB compact YOLOE-26n model in both `index.h
 
 ## Android Chrome check
 
-For the HTTPS test, open [Image Counter EX on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/) in Chrome. Verify version **1.1.0-dev.8**, choose a photo or sample, open Auto detect and outline examples. The built-in model is already selected with CPU / FP32; advanced settings can stay closed. Continue with steps 2–8 below, recording HTTPS as the context. The [self-extract variant](https://ttomohisa.github.io/htmlapps-image-counter-ex/index.self-extract.html) is available separately. The initial HTML includes runtime and model; detection makes no additional network requests. HTTPS results do not replace the local-document test in step 1.
+For the HTTPS test, open [Image Counter EX on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/) in Chrome. Verify version **1.1.0-dev.12**, choose a photo or sample, open Auto detect and outline examples. The built-in model is already selected with CPU / FP32; advanced settings can stay closed. Continue with steps 2–8 below, recording HTTPS as the context. The [self-extract variant](https://ttomohisa.github.io/htmlapps-image-counter-ex/index.self-extract.html) is available separately. The initial HTML includes runtime and model; detection makes no additional network requests. HTTPS results do not replace the local-document test in step 1.
 
 1. Copy the extracted trial files to the Android device. Open the HTML using Chrome if the system's file opener offers it. If it opens only a document preview, cannot select Chrome, or Chrome refuses the local document, record that outcome; do not count a preview or HTTP page as a direct-file pass.
 2. Record phone model, Android version, Chrome version, HTML variant, and whether the address is local (`file:` / `content:`) or HTTP(S). These contexts are distinct.
@@ -75,3 +75,18 @@ These are acceptance procedures, not completed test results. Model assets, runti
 3. From an active work, choose Save → Open work. Cancel replacement once and check the original work remains; then accept a valid saved file. Browser autosave now belongs to the newly opened work. Check controls in portrait/landscape, including scrolling the save dialog.
 
 These are device acceptance steps; desktop localhost checks are recorded separately in QUICK_DETECTION_VALIDATION.md.
+
+## Review mode and bulk deletion (dev.12; device check pending)
+
+Use at least two photos with point and rectangle markers in multiple types, including hidden markers, Needs review flags and a pending detection check. Record device/browser, HTML variant, language, portrait/landscape orientation and local-document/HTTPS context. Repeat the core path in both generated variants. Check 320 px and 390 px layouts separately from physical touch behavior.
+
+1. Choose **確認 / Review** and confirm it starts in **単一 / Single**. Tap an existing point and rectangle, then blank space. Counts and geometry must stay unchanged. Drag from both a marker and blank space to pan without moving a marker. No rectangle resize handles should appear. Toggle a selected marker's review flag and confirm Review stays active with unchanged geometry. Choose **編集 / Edit**; confirm the marker stays selected in its matching Point/Rectangle mode and can then be moved or resized.
+2. Choose **複数 / Multiple**. Tap markers to add/remove them from the selection. Confirm the visible count and emphasis agree, blank taps add no counts, and **選択を解除 / Clear selection** changes no marker data. Multiple and Range must hide the selected-marker popover even when exactly one marker is selected. Hide a selected type or all markers and confirm those hidden IDs cannot remain deletable.
+3. Choose **範囲 / Range** and drag around visible marker centers. Confirm selection is additive, point and rectangle centers determine inclusion, and a box that only overlaps the range is excluded when its center is outside. Repeat at 0°, 90°, 180° and 270° with zoom and pan; hidden types must remain excluded.
+4. Begin a range drag, then add a second finger and pan/pinch. Release fingers in both orders. The unfinished range must be discarded, earlier selection preserved and late events unable to commit it. Repeat interruption/cancellation where the device permits it; record unavailable pointer-cancel/lost-capture checks as untested.
+5. Select several visible markers and choose **選択を削除 / Delete selected**. Confirm only that selection in the current photo is removed and completion becomes false. Other markers, photos and detection checks must stay intact. One Undo restores the whole deletion and prior completion; Redo removes the same markers. Reload and restore the draft, then save/reopen work HTML to verify the resulting data. Temporary selection must not be restored.
+6. Select markers, then change photos/modes, use Undo/Redo, remove or hide a type, start detection, or replace the work. Confirm no old selection or unfinished range can delete markers in the new state. Delete with no eligible selection must be unavailable and must not change history.
+7. Run successful main-screen detection, including zero results, then stop an all-photo run after at least one successful photo. Each case should enter Review. Apply candidates from the detection dialog and confirm the same transition. Failed/cancelled work with no successful photo must not change a newer project's mode. Deleting unwanted results must not clear a pending detection-review check.
+8. In Japanese and English, reach the four main modes, three Review submodes, selected count, Clear selection, Edit and Delete selected at 320 px and 390 px without horizontal page scrolling. Check visible keyboard focus and activation on desktop separately. Verify that photo navigation, Undo/Redo, completion and Save remain reachable.
+
+These are pending acceptance procedures, not evidence of a physical-device or direct-file pass. Review selection adds no saved schema fields or model changes.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0-dev.12 — 2026-10-24
+
+- Add Review mode for selecting existing markers without adding counts or changing geometry. Single and Multiple support drag-to-pan; explicit Edit keeps the chosen marker selected in its Point/Rectangle editing mode.
+- Add multiple-tap and additive range selection by visible marker center, with selected count, Clear selection and Delete selected controls in Japanese and English.
+- Delete selected markers from the current photo as one undoable, autosaved change. Preserve other markers, photos and detection checks, and return the edited photo to incomplete.
+- Discard interrupted range selections and clear or prune temporary selection at photo, mode, visibility, history and detection transitions. Selection is not saved in drafts or exports.
+- Enter Review after successful quick detection, including zero results and stopped runs with earlier successes, and after dialog candidate application. Keep schema, model and inference behavior unchanged; physical Android checks remain pending.
+
 ## 1.1.0-dev.11 — 2026-10-24
 
 - Reuse a worker, model session and visual reference embedding within each main-screen detection run. Release them on completion, cancellation or failure; retain one-step Undo and atomic replacement.

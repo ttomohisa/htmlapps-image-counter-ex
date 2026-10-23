@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.11
+- **Version:** 1.1.0-dev.12
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -20,11 +20,11 @@
 ## 3. Core workflow
 
 1. Add one or more images, or open the camera.
-2. Choose **Point**, **Rectangle**, or **Move** mode.
+2. Choose **Point** or **Rectangle** to add counts, **Review** to inspect them, or **Move** to pan.
 3. Choose the marker type currently being counted.
 4. Place point markers by tapping/clicking, or rectangle markers by dragging around an object.
-5. Select an existing marker only when it needs editing.
-6. Move markers; resize selected rectangles from their corner handles; change type or delete from the contextual marker controls.
+5. In **Review**, tap existing markers without adding counts. Use single, multiple or range selection to inspect or remove unwanted markers.
+6. In Review's **Single** selection, toggle a marker's review flag or choose **Edit** to enter its Point/Rectangle editing mode. Move markers, resize rectangles from their corner handles, or use the contextual type and delete controls.
 7. Correct image visibility if needed with brightness, contrast, grayscale, and 90° rotation. The original image data remains unchanged.
 8. Check each image, then use **Review complete & next** to clear its review state, complete it and continue to the next unfinished image.
 9. Review project-wide totals and per-type totals.
@@ -47,16 +47,28 @@
 
 - **Point:** one tap/click creates one count.
 - **Rectangle:** one drag creates one count and stores normalized `x`, `y`, `w`, and `h`.
+- **Review:** selects existing visible markers without adding counts or changing their geometry. In single/multiple selection, dragging pans the image; range selection uses a drag to select markers.
 - **Move:** pans the image without adding counts.
 - New markers must not immediately open editing controls.
-- Selecting an existing marker shows type-change, needs-review, and delete controls.
+- Selecting one existing marker in a Point/Rectangle editing mode shows type-change, needs-review, and delete controls. Review's **Single** selection shows **Edit** and the needs-review toggle; type-change and single-marker delete controls stay hidden. **Multiple** and **Range** hide the whole popover, even with one selected marker.
 - Needs-review is an independent boolean flag on a marker; it must not alter marker type, numbering, or count.
 - Flagged point and rectangle markers show a small amber `!` badge and can be unflagged from the same contextual control.
-- Existing point and rectangle markers can be moved.
-- Selected rectangles show four resize handles and can be resized after creation.
+- Existing point and rectangle markers can be moved in Point/Rectangle editing modes. Review requires the explicit **Edit** action, which keeps the selected marker and chooses Point or Rectangle to match its shape.
+- Selected rectangles show four resize handles in an editing mode; Review does not expose geometry handles.
 - A cancelled pointer action discards a pending point/rectangle or restores the moved/resized marker geometry and prior completion state. It must not add history, clear redo, update the project timestamp, or schedule an autosave. Starting a two-pointer pinch abandons an in-progress marker edit in the same way; extra pointers and late cancelled-pointer events cannot commit it.
 - The most recently added marker is visually emphasized briefly.
 - Marker numbering is **per marker type**, while project/image totals remain independent.
+
+### Review selection and bulk deletion
+
+- Review offers **Single**, **Multiple** and **Range** selection and enters in Single when chosen directly or after detection. Single selects one existing marker. Multiple toggles each tapped visible marker in the selection. Tapping blank space never adds a marker.
+- Range selection adds visible markers whose displayed center lies within the dragged rectangle, including point markers and rectangle centers. Reuse the canvas view transform so selection follows rotation, zoom and pan. Hidden markers and hidden types cannot enter the selection.
+- Show selected markers distinctly, the selected count, **Clear selection** and **Delete selected** beside the canvas. Bulk delete is disabled when no eligible marker is selected. **Edit** and the per-marker review toggle are available for the selected marker in **Single**; toggling its flag keeps Review active and does not change geometry.
+- Range selection is pending until release. Pointer cancellation, lost capture or a second pointer abandons the unfinished selection without changing the prior selection, marker data, completion, history, redo or autosave. Pinch/two-finger pan remains available; surviving and late events cannot commit an abandoned selection.
+- Selection is temporary UI state, scoped to the current project and photo. Clear or prune it on project/photo replacement, mode changes, marker/type hiding or removal, history restoration and detection transitions. Never let a selected ID from another photo, a hidden marker or a stale gesture be deleted.
+- Delete only the selected eligible markers in the current photo, in one history transaction and one autosave request. Set that photo's completion to false; preserve every other marker, photo and detection check. Provide immediate Undo without a confirmation dialog. Undo/Redo restores the entire deletion and completion change together. An empty or stale selection does not add history or discard redo.
+- Enter Review after a main-screen run with at least one successfully processed photo, including successful zero-result photos and a run stopped after partial success. Applying dialog candidates also enters Review. Failed or cancelled work with no successful photo must not cause a stale transition in another project.
+- Review mode, submode, selected IDs and range geometry are not stored in projects, drafts, viewer HTML or CSV. Schema, model assets, thresholds and detection algorithms remain unchanged.
 
 ### Types and visibility
 
@@ -93,7 +105,7 @@
 
 ### Undo / Redo
 
-Undo and redo must cover marker creation, deletion, movement, rectangle resize, type changes, visibility/display changes where appropriate, image completion, and supported image correction changes.
+Undo and redo must cover marker creation, single/bulk deletion, movement, rectangle resize, type changes, visibility/display changes where appropriate, image completion, and supported image correction changes. Review selection alone does not create history.
 
 Undo/Redo must schedule autosave of the restored state, just like direct edits. Empty history stacks do not schedule a save.
 
@@ -170,7 +182,7 @@ result.zip
 
 - Smartphone usage is a first-class workflow, not a reduced desktop layout.
 - Mobile must avoid horizontal page scrolling at 390 px and remain usable from 320 px upward. Type names, including unbroken names up to 40 characters, must wrap within summary rows instead of widening the page.
-- Mobile top controls clearly show **Point / Rectangle / Move**.
+- Mobile top controls clearly show **Review / Point / Rectangle / Move**. Keep Review submodes, selection count, Clear selection and Delete selected near the canvas and reachable at 320 px and 390 px in Japanese and English.
 - The canvas includes a low-profile translucent type-switching dock along its lower edge, showing type color/name/count and allowing one-tap switching without leaving the image. The dock can be minimized to a small corner control when it covers something that must be counted.
 - On smartphone widths, the old duplicate type-switching area below the canvas is hidden; type management remains available from the canvas `+` button and the fixed bottom bar.
 - Type switching is one tap.
@@ -179,7 +191,7 @@ result.zip
 - The complete-image control sits around the upper-right of the canvas.
 - Needs-review state must be visible in the marker, image list/current-image status, and project summary without turning it into a separate marker type.
 - Advanced display settings remain discoverable but do not dominate the counting workflow.
-- Destructive actions use confirmation where data loss is meaningful; single-marker deletion is immediately undoable.
+- Destructive actions use confirmation where data loss is meaningful; single-marker and selected-marker deletion are immediately undoable.
 - Keyboard focus is visible and motion respects `prefers-reduced-motion`.
 - Header language and Help controls remain visible and reachable from 320 px upward; the title can truncate while the version and action controls retain space.
 - Help is titled **使い方と注意事項 / How to use & notes**. A non-shrinking header and flexible, scrollable body share the dialog height, keeping the final paragraph reachable on short screens. Native Escape, Close button, backdrop dismissal, and the modal background-scroll lock remain available. The redundant language-switch/close-instructions paragraph is not displayed.
@@ -223,6 +235,10 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 - Point marker add/select/move/delete works.
 - Rectangle add/select/move/resize/delete works.
 - A new marker does not show editing controls until selected later.
+- Review taps and single/multiple-mode drags leave counts and geometry unchanged; Edit preserves the selected marker and opens the matching Point/Rectangle mode.
+- Multiple toggles and additive range selection use only visible markers in the current photo at 0/90/180/270 degrees, including zoomed/panned views. Cancelled or interrupted range gestures leave prior selection and project/history state intact.
+- Bulk deletion removes only the visible selected markers in the current photo, preserves detection checks and other photos, clears completion and supports one-step Undo/Redo and autosave. Empty/stale selections are no-ops; hidden markers, mode/photo changes and restored history cannot leave actionable stale selection.
+- Successful quick detection, including zero results and a stopped run with earlier successful photos, and dialog application enter Review. Selection UI is temporary and absent from draft/viewer/CSV data.
 - Per-type numbering and category switching work.
 - Multi-image totals, needs-review totals, and completion state work.
 - Needs-review can be toggled on both point and rectangle markers; ordinary completion is blocked until current-image review flags and detection checks are reviewed.
@@ -234,7 +250,7 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 - Repository checks run camera, pointer/cancellation, ZIP, language, restore-ownership, Help/header, type-dialog focus, and paired-dialog return regressions against source, readable, root-alias, and self-extract payload variants.
 - Viewer can download current JPEG and ZIP.
 - Viewer HTML can be imported back into the main app with images and marker data intact.
-- At 390 px viewport width, the application has no page-level horizontal overflow; the canvas type dock and mobile bottom bar remain usable.
+- At 320 px and 390 px viewport widths, the application has no page-level horizontal overflow; Review controls, the canvas type dock and mobile bottom bar remain usable in Japanese and English. Physical touch results are recorded separately from viewport checks.
 - Both release variants retain their startup notice until ready; the self-extract stages describe the work actually in progress. Verify stage visibility under throttled loading separately from Node decoding measurements.
 
 

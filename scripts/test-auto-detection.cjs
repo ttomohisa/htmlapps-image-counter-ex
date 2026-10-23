@@ -17,7 +17,7 @@ test('every enclosing document policy permits local WASM while retaining network
 });
 function section(start,end){const a=source.indexOf(start),b=source.indexOf(end,a+start.length);assert.ok(a>=0&&b>a,`Production section missing: ${start}`);return source.slice(a,b);}
 function core(){
-  const c={Float32Array,Number,Math,Date,structuredClone,Set,Map,Array,Error};vm.createContext(c);
+  const c={setMode(){},resetReviewSelection(){},cancelMarkerInteraction(){},pointers:new Map(),gesture:null,Float32Array,Number,Math,Date,structuredClone,Set,Map,Array,Error};vm.createContext(c);
   vm.runInContext(section('// AUTO:CORE:BEGIN','// AUTO:CORE:END'),c);return c;
 }
 const plain = value => JSON.parse(JSON.stringify(value));

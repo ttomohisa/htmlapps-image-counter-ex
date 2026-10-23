@@ -137,3 +137,27 @@ Early elapsed observations varied substantially: baseline 43.0, 35.0 and 9.4 sec
 ### Limits
 
 Physical Android touch/performance and direct `file://` execution were not tested in this change. The browser previously rejected local-file navigation; localhost tests do not establish file-origin behavior. Embedded assets and CSP remain unchanged; no new network trace was collected. Work HTML is a portable read-only viewer that can reopen in the app, not a second copy of the model/application.
+
+
+## Review mode and bulk deletion — 1.1.0-dev.12
+
+Date: 2026-10-24. Required `scripts/check-repository.ps1` exited 0: **3,794 tests passed, zero failures**, across source, readable HTML, root alias and unpacked self-extract HTML, plus asset/build/help checks. Logs: `.cache/dev12-build.log` and `.cache/dev12-check.log`. Final readable/self-extract sizes are 21,196,151 / 21,142,800 bytes. Independent review has no unresolved findings.
+
+### Automated coverage
+
+35 new production-bound review tests cover Single/Multiple/Range selection, all rotations with zoom/pan, visible-center eligibility, source ownership, hidden markers, range and tap cancellation, pinch/extra/late pointers, no accidental geometry edits, exact one-step deletion Undo/Redo, autosave and completion, stale toast Undo, explicit Edit, modal/busy/inert/focus guards, keyboard actions, and quick/dialog detection transitions. Existing extraction fixtures were extended for the new transient UI dependencies; prior assertions remain.
+
+### Browser observations
+
+Actual localhost Chromium, using three steel-pipe photos with marker counts `[29, 0, 29]` and four pinned examples:
+
+- Readable HTML loaded from an empty local origin and imported the test work. In Review, blank taps did not add markers; tapping an existing marker selected it; dragging from the marker moved the photo. The Single popover cleared one review flag while keeping the count at 29 and staying in Review. Edit switched to Rectangle with that marker selected; Undo restored the flag.
+- Multiple selected two markers without opening the marker popover. Delete changed the current/total counts from 29/58 to 27/56. One Undo restored 29/58; Redo and another Undo worked. Range selected exactly the three visible centers inside the drawn area. Its deletion changed 29 to 26; mobile Undo restored 29.
+- Saved the user-edited filename `dev12_review_roundtrip.html` with photo compression off while three markers were selected. Parsed export marker records, photo records and categories match the imported fixture exactly after Undo, including geometry, review/automatic flags, reference data and detection checks. No transient selection fields entered the exported project.
+- Japanese at 390 px and English at 320 px: review controls remained immediately above the canvas, selected counts and Delete selected remained usable, and document client/scroll widths matched (375/375 and 305/305 with scrollbars). The English 320 px layout was used for range deletion and mobile Undo. Screenshots: `.cache/dev12-review-mobile-en.png` and `.cache/dev12-review-desktop.png`.
+- Self-extract HTML started and restored the same three-photo, 58-marker browser draft. A real embedded-model current-photo run completed with zero additions/errors and automatically entered Review Single. Range selection, Escape clearing, Delete (29 to 26) and Ctrl+Z (back to 29) worked on the actual canvas.
+- Both inspected browser consoles contained no warning/error entries. Opening and closing the save dialog retained an enabled Delete selected action for the selection.
+
+### Limits
+
+Physical Android touch and direct `file://` execution were not tested in this change. Local-file navigation was previously rejected by the verification browser; localhost checks do not establish file-origin behavior. Pointer interruption/pinch claims above refer to controlled production-handler tests, not physical gestures. Embedded assets, model, inference settings, schema and CSP are unchanged; no new browser network trace or performance benchmark was collected.

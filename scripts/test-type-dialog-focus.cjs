@@ -56,7 +56,7 @@ function setup(language = 'en') {
   const help = element('dialog', 'helpDlg'), helpClose = element('button', 'helpClose');
   dialog.append(close, list, newCat); help.append(helpClose); document.body.append(opener, outside, dialog, help);
   const $ = selector => nodes.get(selector.slice(1));
-  const c = vm.createContext({document, $, $$: () => [], navigator: {language}, localStorage: {getItem: () => language},
+  const c = vm.createContext({resetReviewSelection(){},cancelMarkerInteraction(){},pointers:new Map(),gesture:null,document, $, $$: () => [], navigator: {language}, localStorage: {getItem: () => language},
     APP_CONFIG: {slug: 'image-counter'}, Date, Math, structuredClone,
     P: {title: 'Synthetic focus regression', updatedAt: 123, settings: {markersVisible: true},
       categories: [{id: 'first', name: 'Type 1', color: '#d15c52', visible: true}, {id: 'second', name: 'Type 2', color: '#16624f', visible: true}],

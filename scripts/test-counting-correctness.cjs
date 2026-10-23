@@ -8,9 +8,9 @@ if (source.includes('id="self-extract-payload"')) source = require('node:zlib').
 function section(start,end,text=source){const a=text.indexOf(start),b=text.indexOf(end,a+start.length);assert.ok(a>=0&&b>a);return text.slice(a,b);}
 function editor(){
   const saved=[];
-  const c={structuredClone,Date,P:{title:'Test',categories:[{id:'a'}],settings:{},images:[{id:'one',name:'one',note:'',completed:true,adjustments:{brightness:120,contrast:130,grayscale:20,rotation:90},markers:[]}]},activeImageId:'one',activeCategoryId:'a',selectedMarkerId:null,history:[],future:[],view:{zoom:2},$:()=>({}),renderAll(){},renderStorageSoon(){},defaultAdjust:()=>({brightness:100,contrast:100,grayscale:0,rotation:0})};
+  const c={resetReviewSelection(){this.selectedMarkerId=null},cancelMarkerInteraction(){},pointers:new Map(),gesture:null,structuredClone,Date,P:{title:'Test',categories:[{id:'a'}],settings:{},images:[{id:'one',name:'one',note:'',completed:true,adjustments:{brightness:120,contrast:130,grayscale:20,rotation:90},markers:[]}]},activeImageId:'one',activeCategoryId:'a',selectedMarkerId:null,history:[],future:[],view:{zoom:2},$:()=>({}),renderAll(){},renderStorageSoon(){},defaultAdjust:()=>({brightness:100,contrast:100,grayscale:0,rotation:0})};
   c.activeImage=()=>c.P.images[0];c.scheduleSave=()=>saved.push(structuredClone(c.P));
-  vm.createContext(c);vm.runInContext(section('function cloneLight()','function dataUrlBytes(')+section('function resetCorrection()','function safeName()'),c);
+  vm.createContext(c);vm.runInContext(section('// REVIEW:BEGIN','// REVIEW:END')+section('function cloneLight()','function dataUrlBytes(')+section('function resetCorrection()','function safeName()'),c);
   return {c,saved};
 }
 test('Undo and Redo schedule the restored project for autosave, empty stacks do not',()=>{
@@ -27,10 +27,10 @@ test('reset correction clears completion and Undo/Redo restore both correction a
 });
 function editorNavigation(){
   const pending=[],renders=[],messages=[];
-  const c={P:{images:['A','B','C'].map(id=>({id,dataUrl:id,markers:[{id:`marker-${id}`}]}))},activeImageId:'A',selectedMarkerId:'marker-A',interaction:{kind:'move'},draftRect:{x:1},view:{zoom:2,panX:4,panY:5},imageCache:new Map([['A',{src:'A'}]]),loadImage:src=>new Promise((resolve,reject)=>pending.push({src,resolve,reject})),resizeCanvas(){},fitView(){},Toast:{show:key=>messages.push(key)},t:key=>key};
+  const c={resetReviewSelection(){this.selectedMarkerId=null},P:{images:['A','B','C'].map(id=>({id,dataUrl:id,markers:[{id:`marker-${id}`}]}))},activeImageId:'A',selectedMarkerId:'marker-A',interaction:{kind:'move'},draftRect:{x:1},view:{zoom:2,panX:4,panY:5},imageCache:new Map([['A',{src:'A'}]]),loadImage:src=>new Promise((resolve,reject)=>pending.push({src,resolve,reject})),resizeCanvas(){},fitView(){},Toast:{show:key=>messages.push(key)},t:key=>key};
   c.pointers=new Map();c.gesture=null;c.wrap={classList:{remove(){}}};
   c.activeImage=()=>c.P?.images.find(im=>im.id===c.activeImageId);c.renderAll=()=>renders.push([c.activeImageId,c.imageCache.get(c.activeImageId)?.src]);
-  vm.createContext(c);vm.runInContext(section('async function switchImage(', 'function displayDims(')+section('function cancelMarkerInteraction()', 'function pointerCancel('),c);
+  vm.createContext(c);vm.runInContext(section('// REVIEW:BEGIN','// REVIEW:END')+section('async function switchImage(', 'function displayDims(')+section('function cancelMarkerInteraction()', 'function pointerCancel('),c);
   const state=()=>JSON.parse(JSON.stringify({activeImageId:c.activeImageId,selectedMarkerId:c.selectedMarkerId,interaction:c.interaction,draftRect:c.draftRect,view:c.view}));
   return{c,pending,renders,messages,state};
 }

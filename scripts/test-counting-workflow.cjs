@@ -7,6 +7,7 @@ let source = fs.readFileSync(process.env.IMAGE_COUNTER_HTML || path.join(__dirna
 if (source.includes('id="self-extract-payload"')) source = require('node:zlib').gunzipSync(Buffer.from(source.match(/<script id="self-extract-payload" type="application\/octet-stream">([A-Za-z0-9+/=\r\n]+)<\/script>/)[1], 'base64')).toString('utf8');
 function section(start, end) { assert.ok(source.includes(start) && source.includes(end)); return source.slice(source.indexOf(start), source.indexOf(end)); }
 const runtime = [
+  section('// REVIEW:BEGIN', '// REVIEW:END'),
   section('function activeImage()', 'function normalizeProject('),
   section('function cloneLight()', 'function dataUrlBytes('),
   section('function displayDims(', 'function drawBaseImage('),
@@ -22,7 +23,7 @@ function fixture(rotation=0, mode='point', markers=[], dimensions={width:1200,he
   const node=()=>({classList:{add:x=>classes.add(x),remove:x=>classes.delete(x)},style:{},dataset:{},hidden:false,getBoundingClientRect:()=>({left:12,top:20,width:1000,height:700})});
   const wrap={...node(),setPointerCapture:id=>captures.add(id),hasPointerCapture:id=>captures.has(id),releasePointerCapture:id=>captures.delete(id),addEventListener:(name,fn)=>handlers[name]=fn};
   let ids=0,saves=0;
-  const c={structuredClone,console,Date,Math,Map,P:{title:'Synthetic',updatedAt:123,categories:[{id:'count',name:'Count',visible:true}],settings:{markersVisible:true,markerSize:28},images:[{id:'image-1',name:'synthetic.png',...dimensions,completed:true,note:'keep',adjustments:{brightness:100,contrast:100,grayscale:0,rotation},markers:structuredClone(markers)}]},activeImageId:'image-1',activeCategoryId:'count',selectedMarkerId:null,mode,view:{zoom:1,panX:0,panY:0},pointers:new Map(),gesture:null,interaction:null,draftRect:null,lastMarkerId:null,lastMarkerAt:0,history:[],future:[{redo:'keep'}],wrap,canvas:node(),$:s=>{if(!nodes.has(s))nodes.set(s,node());return nodes.get(s)},id:()=>`new-${++ids}`,scheduleSave:()=>saves++,renderStorageSoon(){},renderAll(){},renderCanvas(){}};
+  const c={quickDetectionBusy:()=>false,document:{querySelector:()=>null},structuredClone,console,Date,Math,Map,P:{title:'Synthetic',updatedAt:123,categories:[{id:'count',name:'Count',visible:true}],settings:{markersVisible:true,markerSize:28},images:[{id:'image-1',name:'synthetic.png',...dimensions,completed:true,note:'keep',adjustments:{brightness:100,contrast:100,grayscale:0,rotation},markers:structuredClone(markers)}]},activeImageId:'image-1',activeCategoryId:'count',selectedMarkerId:null,mode,view:{zoom:1,panX:0,panY:0},pointers:new Map(),gesture:null,interaction:null,draftRect:null,lastMarkerId:null,lastMarkerAt:0,history:[],future:[{redo:'keep'}],wrap,canvas:node(),$:s=>{if(!nodes.has(s))nodes.set(s,node());return nodes.get(s)},id:()=>`new-${++ids}`,scheduleSave:()=>saves++,renderStorageSoon(){},renderAll(){},renderCanvas(){}};
   vm.createContext(c);vm.runInContext(runtime,c);
   const event=(x,y,pointerId=1)=>{const p=c.originalToScreen(x,y);return{pointerId,clientX:p.x+12,clientY:p.y+20}};
   const send=(type,x,y,pointerId=1)=>handlers[type]({...event(x,y,pointerId),type});
