@@ -1,10 +1,10 @@
 # Android / direct-file acceptance check
 
-Target requested by the user: Android with Chrome. The user reported good Android Chrome behavior on the Pages 1.1.0-dev.3 build. Physical-device checks for the newer detection, example-editing, Review, bulk-delete and photo-filtering workflows through dev.13 are pending; desktop viewport checks must not be recorded as an Android pass.
+Target requested by the user: Android with Chrome. The user reported good Android Chrome behavior on the Pages 1.1.0-dev.3 build. Physical-device checks for the newer detection, example-editing, Review, bulk-delete and photo-filtering workflows through dev.14 are pending; desktop viewport checks must not be recorded as an Android pass.
 
 ## Files
 
-Version 1.1.0-dev.13 embeds the 6.44 MiB compact YOLOE-26n model in both `index.html` and `index.self-extract.html`. Each file works independently; no separate model file is needed. Download the HTML itself before local-file testing; do not open it inside a ZIP preview.
+Version 1.1.0-dev.14 embeds the 6.44 MiB compact YOLOE-26n model in both `index.html` and `index.self-extract.html`. Each file works independently; no separate model file is needed. Download the HTML itself before local-file testing; do not open it inside a ZIP preview.
 
 ## Direct-file check on the computer
 
@@ -16,7 +16,7 @@ Version 1.1.0-dev.13 embeds the 6.44 MiB compact YOLOE-26n model in both `index.
 
 ## Android Chrome check
 
-For the HTTPS test, open [Image Counter EX on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/) in Chrome. Verify version **1.1.0-dev.13**, choose a photo or sample, open Auto detect and outline examples. The built-in model is already selected with CPU / FP32; advanced settings can stay closed. Continue with steps 2–8 below, recording HTTPS as the context. The [self-extract variant](https://ttomohisa.github.io/htmlapps-image-counter-ex/index.self-extract.html) is available separately. The initial HTML includes runtime and model; detection makes no additional network requests. HTTPS results do not replace the local-document test in step 1.
+For the HTTPS test, open [Image Counter EX on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/) in Chrome. Verify version **1.1.0-dev.14**, choose a photo or sample, open Auto detect and outline examples. The built-in model is already selected with CPU / FP32; advanced settings can stay closed. Continue with steps 2–8 below, recording HTTPS as the context. The [self-extract variant](https://ttomohisa.github.io/htmlapps-image-counter-ex/index.self-extract.html) is available separately. The initial HTML includes runtime and model; detection makes no additional network requests. HTTPS results do not replace the local-document test in step 1.
 
 1. Copy the extracted trial files to the Android device. Open the HTML using Chrome if the system's file opener offers it. If it opens only a document preview, cannot select Chrome, or Chrome refuses the local document, record that outcome; do not count a preview or HTTP page as a direct-file pass.
 2. Record phone model, Android version, Chrome version, HTML variant, and whether the address is local (`file:` / `content:`) or HTTP(S). These contexts are distinct.
@@ -104,3 +104,14 @@ Prepare photos in all four statuses, including a photo with a pending zero-resul
 7. In Japanese at 390 px and English at 320 px, check the filter, counts, reset, empty state, excluded-current notice and adjacent navigation without horizontal page scrolling. Check touch selection in portrait/landscape. On a desktop keyboard separately, verify visible focus, native select arrow-key behavior and matching-photo Left/Right navigation when the canvas has focus.
 
 These are pending acceptance procedures. They do not establish an Android, direct-file, keyboard or viewport pass.
+
+## Compact Review and scoped detection (dev.14; device check pending)
+
+These are pending procedures, not completed device, viewport or direct-file results. Record Android/Chrome version, device, language, portrait/landscape orientation, HTML variant and local-document/HTTPS context separately. Repeat the core path with both HTML variants.
+
+1. Enter Review on a narrow screen. Check filename, status/count, selection, canvas and completion remain accessible. Use Show settings / photos to restore settings and the photo list, then fold them again. Check Undo, filtered Previous/Next, Review complete & next and Save in the compact bottom bar. Expand settings/photos and confirm the normal Undo/Redo/Add/Types/Save bar returns, including working Redo; Return to photo review folds the panels again. Confirm the mode selector remains accessible throughout. Switch to Point/Rectangle/Move, rotate the screen and return to Review; no controls may become permanently unreachable. Check keyboard focus and 390 px Japanese / 320 px English separately from physical touch.
+2. Pin examples, filter to Undetected or Needs review, and start Detect list (N). Record the initial ordered list and confirm every initial member is processed exactly once even as statuses change. Stop during a later photo; completed changes remain and one Undo/Redo reverses/restores that run. Try an empty list, no reference and a pending import. Detect list must be unavailable when inappropriate. Detect all, totals, CSV/JPEG exports and completion navigation still cover the whole project.
+3. On a target photo, draw a detection rectangle and adjust numeric bounds. Test Save and Cancel; to clear the saved region, choose Full image and then Save region. Check each saved change reopens completion with one Undo/Redo, preserving all markers; Cancel and interrupted drawing leave data unchanged. Try second-touch interruption and pointer cancellation where possible, recording unavailable cases as untested.
+4. Repeat region geometry at 0°, 90°, 180° and 270° with zoom/pan. Confirm candidate centers on the boundary are accepted and centers outside are excluded, even when boxes overlap the region. Examples must keep their separate source coordinates. Inference still uses the full image; do not infer accuracy or performance improvements from limiting accepted results.
+5. Prepare eligible unreviewed automatic markers inside and outside the region and protected manual/reviewed/edited/other-type markers. Run Replace; only eligible inside markers may be replaced, outside markers remain and all counts include them. Check zero results, Stop/failure and one-step Undo. Do not treat an unexercised failure path as passed.
+6. Reload/restore a draft and save/open work HTML, with compression on and off; confirm region geometry, markers and completion. Open older work without a region and confirm full-image behavior. Where a malformed region import can be tested, verify rejection preserves the active work. Change photos/work during pending edits or detection and confirm stale work cannot alter the new state.

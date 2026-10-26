@@ -7,7 +7,7 @@ Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer 
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.13.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.14.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -90,6 +90,16 @@ Navigating away cancels running detection and leaves controls usable when a cach
 5. Select **Add candidates as markers**. Existing overlaps are excluded, including other/hidden types. One Undo reverses the entire batch.
 
 Cancel or close the dialog to stop inference. The model is retained only for the current page session; it is not included in drafts or exports. The preview uses original pixels without display brightness/contrast corrections.
+
+## Detection area and filtered runs
+
+Use **Detect list (N)** beside the photo filter to process only the matching photos. The list is captured when you start: photos remain in that run even if detection changes their status. **Detect all photos** still processes the whole project. Stop and one Undo work across the processed part of either run.
+
+Set an optional detection rectangle for each target photo by drawing or entering numeric bounds, then save it. Cancel discards pending changes. To restore full-image detection, choose Full image and then Save region. A saved change reopens photo completion, preserves all existing markers and supports Undo. Regions survive draft restoration and saved-work reopening, including compressed photos; older work uses the full image.
+
+Detection still analyzes the full image and accepts boxes only when their centers are inside the rectangle, including its boundary. It does not crop inference or promise better small-object accuracy or speed. **Replace unreviewed auto results** preserves eligible automatic markers outside the region, as well as its existing protected markers. Counts and CSV/JPEG exports include all markers.
+
+On smartphones, Review uses a compact layout. Use **Show settings / photos** to restore settings and the photo list. Review selection and the photo remain nearby, with Undo, filtered previous/next, Review complete & next and Save in the compact bottom bar. Expanding settings/photos restores Undo, Redo, Add, Types and Save. Choose **Return to photo review** to fold the panels again. The mode selector stays accessible, and editing modes use their normal controls. This layout preference is temporary. Physical Android checks for these new controls remain pending.
 
 ## Usage
 

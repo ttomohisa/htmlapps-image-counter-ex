@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0-dev.14 — 2026-10-26
+
+- Add compact smartphone Review with an explicit settings/photos toggle and nearby review/navigation/save actions.
+- Add Detect list (N), capturing the current filtered photo list when a run starts; Detect all, totals and exports retain full-project scope.
+- Add optional per-photo detection regions with drawing/numeric bounds, Save/Cancel, Undo and draft/work persistence. Older work defaults to full image; malformed imported regions are rejected.
+- Accept only detection centers inside the region after full-image inference and complete raw-output validation. Replace preserves eligible markers outside the region. This does not claim cropped-inference speed or accuracy improvements.
+- Keep schema, model and runtime dependencies unchanged. Physical Android and actual local-document checks remain pending.
+
 ## 1.1.0-dev.13 — 2026-10-24
 
 - Add a labelled photo-status filter above the thumbnails with full-project option counts, matching/total count, reset-to-All and an empty state.

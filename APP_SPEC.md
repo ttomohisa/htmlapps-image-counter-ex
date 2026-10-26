@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.13
+- **Version:** 1.1.0-dev.14
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -114,9 +114,19 @@
 - Project summaries, all exports, **Detect all photos**, **Next incomplete**, **Review complete & next** and the detection dialog's next-photo actions retain their full-project scope. These actions may explicitly select a photo outside the filter; keep that photo visible with the same notice.
 - Guard pending filtered navigation against filter changes, project replacement and stale image decoding. Only a still-current request may commit the photo and its data; a failed decode keeps the previously displayed photo and allows retry.
 
+### Scoped detection and mobile Review (1.1.0-dev.14)
+
+- At widths up to 760 px, Review uses a compact presentation with an explicit **Show settings / photos** toggle to restore setup, photo browsing and secondary tools. Keep filename/status/count, Review selection, canvas and completion reachable. While compact, the Review bottom bar provides Undo, previous/next filtered photo, Review complete & next and Save. Expanding settings/photos restores Undo, Redo, Add, Types and Save; **Return to photo review** folds the panels again. Editing modes retain their normal controls, and the mode selector always remains accessible. This presentation state is temporary and never stored in work data.
+- **Detect list (N)** beside the photo filter captures the ordered `matchingPhotos()` snapshot at start. Status changes during detection must not shrink or extend that run. Disable it without matching photos or a pinned reference, and during processing/import. **Detect all photos** still covers every project photo. Both retain the same Worker, Stop, review semantics and single run-level Undo transaction as Detect this photo.
+- Each photo optionally stores one normalized `detectionRegion:{x,y,w,h}` rectangle in original-image coordinates; absence means full image. A target-photo editor supports drawing and numeric bounds, clearing to full image, Save and Cancel, with rotated display coordinates mapped through the existing view transform. Outside-region dimming must not change image pixels. Keyboard and touch cancellation must leave unfinished geometry uncommitted.
+- Save or clear a changed region in one undoable, autosaved transaction and reopen completion without changing existing markers. Cancel, abandoned gestures and unchanged saves must not add history or discard redo. Guard editor ownership across photo/project replacement.
+- All detection paths run inference on the full image, validate the entire raw result, then accept only candidates whose centers lie inside the region, including its boundary. This is a result-acceptance region: it does not improve crop resolution, guarantee better small-object accuracy or promise faster inference. Pinned examples keep their separate saved-source coordinates.
+- Replace unreviewed automatic results removes only otherwise eligible markers whose centers are inside the region. Preserve eligible markers outside it and all existing protections for manual, reviewed, edited, other-type and legacy markers. Invalid, cancelled or incomplete results must not remove markers.
+- Persist and strictly validate optional finite, positive-size, in-bounds regions in drafts and saved work HTML, including compressed image round trips. Reject malformed regions before replacing work. Older projects default to full-image detection. Keep schema 4, model and runtime dependencies unchanged. Project totals and CSV/JPEG exports include every marker, irrespective of filter or region.
+
 ### Undo / Redo
 
-Undo and redo must cover marker creation, single/bulk deletion, movement, rectangle resize, type changes, visibility/display changes where appropriate, image completion, and supported image correction changes. Review selection alone does not create history.
+Undo and redo must cover detection-region changes, marker creation, single/bulk deletion, movement, rectangle resize, type changes, visibility/display changes where appropriate, image completion, and supported image correction changes. Review selection alone does not create history.
 
 Undo/Redo must schedule autosave of the restored state, just like direct edits. Empty history stacks do not schedule a save.
 
@@ -237,6 +247,10 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 
 ## 10. Acceptance criteria
 
+- Verify compact mobile Review and its explicit settings/photos toggle at Japanese 390 px and English 320 px, including focus, resize and return to editing modes; record actual touch checks separately.
+- Detect list processes exactly the matching-photo snapshot captured at start, including status changes, empty lists, Stop and one-step Undo; Detect all, totals and exports remain project-wide.
+- Check region drawing/numeric bounds and center inclusion at 0°, 90°, 180° and 270°, outside-marker preservation in Replace, Save/Cancel, interrupted gestures, exact Undo/Redo, stale ownership, strict import validation and compressed draft/work round trips. Old projects use the full image.
+
 - `src/index.template.html` contains each build placeholder exactly once.
 - `build-standalone.bat` / `build-standalone.ps1` can generate the normal and self-extracting builds on the template's supported Windows environment.
 - `dist/index.html` contains no unresolved build placeholders or external runtime URLs.
@@ -316,7 +330,7 @@ Compatibility exception: the former native resize handler could create an exact 
 
 ### Main-screen detection (introduced in 1.1.0-dev.5; updated in dev.11)
 
-- Detect this photo / Detect all photos use the selected type’s pinned reference and current detection settings without opening the dialog. No reference or pending photo import disables both actions.
+- Detect this photo / Detect list (N) / Detect all photos use the selected type’s pinned reference and current detection settings without opening the dialog. No reference or pending photo import disables these actions; Detect list also requires a nonempty matching list.
 - All photos means the complete image list, including completed photos, processed sequentially in list order. Existing overlaps of any type are excluded after applying the chosen replacement rule. New rectangles carry `needsReview:true` and `autoPending:true`; successfully checked photos become incomplete.
 - One Undo reverses the whole run, including additions, replacements, detection checks and completion changes. A successful zero-result or duplicate-only photo still records an unreviewed check and participates in that transaction.
 - Show progress, filename, added/removed counts, per-photo results and a Stop action. On completion or interruption, show total elapsed duration including preparation. Stop retains processed photos’ changes; the active photo cannot commit late results. Bad target images are reported and skipped; inference/runtime errors stop the run.

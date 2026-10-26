@@ -185,3 +185,30 @@ Actual localhost Chromium, using three steel-pipe photos with marker counts `[29
 ### Limits
 
 Physical Android touch and direct `file://` execution were not tested in this change. Localhost viewport checks do not establish device or file-origin behavior. Model, inference settings, embedded assets, schema and CSP are unchanged; no new inference accuracy run, network trace or performance benchmark was collected.
+
+## Compact mobile review and scoped detection — 1.1.0-dev.14
+
+Date: 2026-10-26. Source, UI and validation cover compact mobile Review, detection of the current filtered list, and optional per-photo detection regions. The model, dependencies, schema version and CSP are unchanged. Full-image inference is retained; candidate centers determine region membership, including the boundary.
+
+Final `scripts/check-repository.ps1` exited 0: **3,986 tests passed, zero failures**, plus build/asset/help checks. Log: `.cache/dev14-check-repository-final.log`. Final readable/self-extract sizes are 21,225,253 / 21,151,640 bytes. An intermediate check correctly rejected a stale root alias after the last source fix; rebuilding synchronized it before the successful final matrix.
+
+### Automated coverage
+
+18 region tests and 14 scoped-review tests exercise strict bounds/import validation, all quarter-turn transforms, shared result filtering, protected replacement, pointer interruption/multitouch, async ownership, Save/Cancel/Undo/Redo, immutable filtered target snapshots, zero-result pending checks, cancellation, real filtered navigation, mobile disclosure state and focus restoration. The artifact matrix selects source, readable HTML, root alias and unpacked self-extract HTML.
+
+Independent review identified mobile navigation passing objects instead of IDs, hidden-opener focus on report dismissal, and region tests ignoring the matrix artifact. All were fixed and re-reviewed. Actual browser invalid-input testing then found a local coordinate variable shadowing the translation function; its failing regression now passes, and the fix was independently reviewed and checked in both built variants.
+
+### Browser observations
+
+Actual localhost Chromium using three steel-pipe photos, four pinned examples, marker counts `[29, 0, 29]`, completion `[true, false, false]`, and pending counts `[0, 0, 29]`:
+
+- Readable HTML started on an empty origin and imported the existing work file. Set the third photo's region to its left half with numeric controls. Save retained all 58 markers; region Undo returned to full image and Redo restored the rectangle. Invalid zero-width input showed a localized error and disabled Save; correcting it enabled Save again. Cancel preserved the saved rectangle.
+- Needs review matched only photos 2 and 3. Detect list in Replace mode processed exactly those two photos with zero errors, replacing 12 in-region markers. Export parsing proves the excluded first photo is exactly unchanged and all 17 outside-region marker records retain their IDs, coordinates and flags. Counts remain `[29, 0, 29]`.
+- Saved the user-edited filename `dev14_scoped_detection_roundtrip.html`, compression off. Its project contains all three photos and the exact normalized region `{x:0,y:0,w:0.5,h:1}`; all 12 new markers have centers within it. Reload and browser-draft restoration retained 58 markers and the region; photo filter and compact presentation reset as intended. The exported file was parsed, not re-imported in this change.
+- Japanese 390 px Review folds setup/list/sidebar and exposes Undo, Previous, Next, Review & next and Save. Previous/Next traverse only the filtered photos and disable at boundaries. Review & next completed the zero-result photo and advanced to the remaining pending photo; Undo restored it. Expanding settings restores the original bottom bar including Redo. Dismissing a completed detection report focuses the visible settings disclosure. Save opens from compact Review.
+- English 320 px and Japanese 390 px had no horizontal document overflow (client/scroll widths 305/305 and 375/375 respectively). Screenshots: `.cache/dev14-mobile-review.png`, `.cache/dev14-detection-region.png`, and the updated `assets/screenshot.png`.
+- Self-extract HTML loaded and restored the same draft. Its region editor showed the saved left half. A mouse drag changed the draft bounds; Cancel and reopen restored `[0,0,50,100]`. Invalid input showed the corrected error. Keyboard Enter started Detect list for two photos; embedded-model inference completed with zero additions/errors because accepted detections were duplicates. The final self-extract tab logged no warnings/errors. The earlier readable-tab error was diagnosed, fixed and no longer reproduced after reload.
+
+### Limits
+
+Physical Android touch/performance and direct `file://` execution remain untested in this change; the verification browser previously rejected file navigation. Localhost viewport tests do not establish device behavior. No new accuracy benchmark or browser network trace was collected. Build checks verify embedded assets and the restrictive CSP. Region selection filters results; it does not crop inference or promise faster/more accurate detection.
