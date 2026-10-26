@@ -35,7 +35,7 @@ A default build copies the readable output byte-for-byte to the tracked root ali
 The repository check uses `-CheckReleaseAlias` to compare the existing root alias with a fresh build before any alias write. It ignores the generated manifest timestamp and equivalent gzip encodings, which differ between Windows PowerShell 5.1 and modern PowerShell/.NET. Before comparing decoded assets, it verifies compressed lengths, decoded lengths, and SHA-256 against the embedded manifest; source, configuration, and other metadata must still match. A stale alias makes CI fail instead of silently repairing the working tree. The same check verifies exact self-extract payload parity and runs camera lifecycle, counting/cancellation, ZIP export, language/restore-ownership, Help/header, type-dialog focus, and paired-dialog return tests against source, readable output, root alias, and unpacked self-extract output. Node.js 24 is installed by each CI build workflow.
 
 
-## Scoped detection and mobile Review (dev.14)
+## Scoped detection (introduced in dev.14)
 
 `Detect list (N)` captures `matchingPhotos()` in project order before asynchronous preparation; later status changes do not change the run's target set. It uses the existing batch Worker, ownership guards, cancellation and one-history transaction. Detect all still takes the complete project list, and totals/exports keep full-project scope.
 
@@ -43,7 +43,13 @@ Each photo may carry `detectionRegion:{x,y,w,h}` in normalized original-image co
 
 Inference inputs remain full images. Validate the complete raw output before applying inclusive center-inside acceptance to every detection path. For Replace, scope removal of otherwise eligible automatic markers by the same region; outside markers remain for duplicate filtering and counts. No cropped-inference performance or accuracy benefit is implied, and model assets/dependencies/schema version remain unchanged.
 
-Compact Review at up to 760 px is transient UI presentation. Its explicit Show settings / photos toggle restores hidden panels, while review controls and canvas remain accessible. The compact Review bottom bar provides Undo, filtered Previous/Next, Review & next and Save; completion still follows its project-wide workflow. Expanded settings/photos restores the normal Undo/Redo/Add/Types/Save bar, including access to Redo. Return to photo review folds the panels again; the mode selector remains accessible. Neither this presentation state nor the photo filter belongs in saved project data.
+## Photo workspace (dev.15)
+
+All counting modes share a bounded photo workspace and one nonmodal inspector. Its Photos / Detection / Project panels switch rather than stack. Above 900 px, the 300 px inspector sits to the right and owns its scroll area. At 900 px and below, Photos & tools opens the inspector in place of the canvas working area; Return to photo restores the canvas. Keep the existing canvas/stage nodes and their cached references intact.
+
+Photos owns status filtering, the captured-list detection action, thumbnails and photo management. Detection owns reference setup, detection regions, rerun behavior and current/all-photo actions. Project owns title, totals, types and display/storage settings. The photo toolbar retains direct current-photo detection and discoverable setup, mode controls and filtered navigation; Save remains outside the inspector. Show the excluded-current notice in photo view. Review selection and Review complete & next share a compact context row; ordinary Complete retains its separate semantics. The phone Review bar provides Undo, Redo, Previous/Next and Save; other modes provide Undo, Redo, Add, Types and Save.
+
+Inspector open/selected-panel state belongs to the active project but is not serialized or added to history. Accepted project replacement resets it; same-project edits and language changes retain it. Cancel pending canvas gestures before panel visibility or responsive changes can alter coordinate transforms. Keep progress and Stop outside inert editing roots, and apply the existing processing/import/modal guards to new actions. Focus repair applies only when its owner is hidden and must respect newer native-dialog/control ownership. Escape closes the inspector only when a dialog, editor or input does not own the key. These presentation changes do not change detection scope, schema 4, model assets, inference or export behavior.
 
 ## Reusable component layer
 
@@ -136,6 +142,8 @@ The startup draft offer stores only summary metadata. `showWorkspace()` retires 
 `test-language-restore.cjs` covers validation-before-confirmation, accepted/cancelled replacement, newer-work ownership and out-of-order import requests. `test-export-zip.cjs` covers captured save content/filename, duplicate requests, failure recovery and isolated compression.
 
 ## Help and header interaction
+
+Help starts with three quick-start steps and four short cautions: review AI results including zero detections, save important work as HTML because browser autosave can be lost, keep processing local/offline, and expect initial HTML loading/detection preparation to take time. A native details section holds optional practical controls and saving tips, closed initially. Keep license/source markup, translation labels, `appLicenseDetails`/`appLicenseText` loading behavior and the following build block byte-for-byte unchanged. The three-step/four-note content contract is separate from the unchanged dialog shell and responsive build behavior.
 
 The header reserves non-shrinking space for language/Help actions and the version badge, while the app title can truncate at narrow widths. Only modal Help locks document scrolling through `html:has(#helpDlg:modal)` and `body:has(#helpDlg:modal)`; closing it releases the lock without saved scroll state. The Help shell alone uses a flex-column layout when open: its header does not shrink and its body has min-height: 0 and owns the remaining scroll area. This avoids separate viewport-height calculations clipping the body. Native focus/Escape behavior is unchanged. At 760 px and below, Help Build info and the page footer are hidden; their desktop behavior remains available. Shared backdrop handlers ignore descendant targets before checking the dialog rectangle, including zero-coordinate keyboard clicks from the Build info summary.
 

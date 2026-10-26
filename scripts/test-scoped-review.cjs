@@ -54,8 +54,8 @@ test('stopping a filtered run preserves earlier commits and one Undo restores th
 test('mobile Review disclosure is transient, project-owned and preserved across ordinary renders',()=>{
   const{c,$}=fixture();assert.equal(typeof c.renderMobileReview,'function','mobile review presentation exists');const before=plain(c.P);c.mode='review';c.renderMobileReview();assert.equal($('#mobileReviewToggle').getAttribute('aria-expanded'),'false');
   $('#mobileReviewToggle').onclick();assert.equal($('#mobileReviewToggle').getAttribute('aria-expanded'),'true');c.renderMobileReview();c.lang='ja';c.renderMobileReview();assert.equal($('#mobileReviewToggle').getAttribute('aria-expanded'),'true');
-  c.mode='rect';c.renderMobileReview();c.mode='review';c.renderMobileReview();assert.equal($('#mobileReviewToggle').getAttribute('aria-expanded'),'false');
-  $('#mobileReviewToggle').onclick();c.P=structuredClone(c.P);c.renderMobileReview();assert.equal($('#mobileReviewToggle').getAttribute('aria-expanded'),'false');assert.deepEqual(plain(c.P),before);assert.equal(c.history.length,0);
+  c.mode='rect';c.renderMobileReview();c.mode='review';c.renderMobileReview();assert.equal($('#mobileReviewToggle').getAttribute('aria-expanded'),'true');
+  c.P=structuredClone(c.P);c.renderMobileReview();assert.equal($('#mobileReviewToggle').getAttribute('aria-expanded'),'false');assert.deepEqual(plain(c.P),before);assert.equal(c.history.length,0);
 });
 
 test('compact mobile previous/next uses filtered navigation and review completion delegates existing action',async()=>{
@@ -74,7 +74,7 @@ test('mobile disclosure never accepts actions during a modal or running detectio
 
 test('resize repairs a newly hidden settings focus but preserves visible controls and modal ownership',()=>{
   for(const boundary of ['hidden','visible','modal']){const{c,$,events}=fixture();c.mode='review';c.renderMobileReview();const opener=$('#autoOpen');opener.hidden=boundary!=='visible';c.document.activeElement=opener;if(boundary==='modal')c.document.querySelector=()=>({});events.resize();assert.equal(c.document.activeElement,boundary==='hidden'?$('#mobileReviewToggle'):opener)}
-  const{c,$,events}=fixture();c.mode='review';c.renderMobileReview();c.document.activeElement=$('#mobileReviewToggle');c.matchMedia=()=>({matches:false});events.resize();assert.equal(c.document.activeElement,$('#reviewMode'));
+  const{c,$,events}=fixture();c.mode='review';c.renderMobileReview();c.document.activeElement=$('#mobileReviewToggle');c.matchMedia=()=>({matches:false});events.resize();assert.equal(c.document.activeElement,$('#mobileReviewToggle'));
 });
 
 test('finishing detection focuses a visible mobile action instead of a collapsed opener, without stealing newer focus',async()=>{

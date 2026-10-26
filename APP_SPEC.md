@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.14
+- **Version:** 1.1.0-dev.15
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -27,7 +27,7 @@
 6. In Review's **Single** selection, toggle a marker's review flag or choose **Edit** to enter its Point/Rectangle editing mode. Move markers, resize rectangles from their corner handles, or use the contextual type and delete controls.
 7. Correct image visibility if needed with brightness, contrast, grayscale, and 90° rotation. The original image data remains unchanged.
 8. Check each image, then use **Review complete & next** to clear its review state, complete it and continue to the next unfinished image.
-9. Review project-wide totals and per-type totals.
+9. Review project-wide totals and per-type totals in **Project**.
 10. Use **Save / export** (**Save** on mobile) to save work as HTML or export a ZIP containing CSV files with optional annotated JPEG images. Resume from **Open work** on the start screen or save dialog.
 
 ## 4. Functional requirements
@@ -105,7 +105,7 @@
 
 ### Photo-status filter
 
-- Place a native select labelled **写真一覧 / Photo list** immediately above the thumbnail strip with **All**, **Undetected**, **In progress**, **Needs review** and **Complete** choices. Each option shows its photo count from the full project using the existing `photoStatus(image)` rules, including hidden/other-type review markers and pending zero-result detection checks.
+- Place a native select labelled **写真一覧 / Photo list** immediately above the thumbnail strip in the **Photos** inspector, with **All**, **Undetected**, **In progress**, **Needs review** and **Complete** choices. Each option shows its photo count from the full project using the existing `photoStatus(image)` rules, including hidden/other-type review markers and pending zero-result detection checks.
 - Show the matching-photo count against the total and **すべて表示 / Show all** to reset to All. When no photos match, show **条件に合う写真がありません / No photos match** while keeping the filter and reset reachable.
 - Filtering changes the thumbnail list only; keep the current photo on the canvas even when it no longer matches, with an explicit notice. Filter changes, review/completion changes, edits and Undo/Redo must not automatically navigate away from that photo.
 - Previous/Next and Left/Right move only through matching photos in project order without wrapping. If the current photo is excluded, use the nearest matching photo before/after its project position. Disable a direction when no match exists there; both directions are unavailable for an empty result.
@@ -114,9 +114,8 @@
 - Project summaries, all exports, **Detect all photos**, **Next incomplete**, **Review complete & next** and the detection dialog's next-photo actions retain their full-project scope. These actions may explicitly select a photo outside the filter; keep that photo visible with the same notice.
 - Guard pending filtered navigation against filter changes, project replacement and stale image decoding. Only a still-current request may commit the photo and its data; a failed decode keeps the previously displayed photo and allows retry.
 
-### Scoped detection and mobile Review (1.1.0-dev.14)
+### Scoped detection (introduced in 1.1.0-dev.14)
 
-- At widths up to 760 px, Review uses a compact presentation with an explicit **Show settings / photos** toggle to restore setup, photo browsing and secondary tools. Keep filename/status/count, Review selection, canvas and completion reachable. While compact, the Review bottom bar provides Undo, previous/next filtered photo, Review complete & next and Save. Expanding settings/photos restores Undo, Redo, Add, Types and Save; **Return to photo review** folds the panels again. Editing modes retain their normal controls, and the mode selector always remains accessible. This presentation state is temporary and never stored in work data.
 - **Detect list (N)** beside the photo filter captures the ordered `matchingPhotos()` snapshot at start. Status changes during detection must not shrink or extend that run. Disable it without matching photos or a pinned reference, and during processing/import. **Detect all photos** still covers every project photo. Both retain the same Worker, Stop, review semantics and single run-level Undo transaction as Detect this photo.
 - Each photo optionally stores one normalized `detectionRegion:{x,y,w,h}` rectangle in original-image coordinates; absence means full image. A target-photo editor supports drawing and numeric bounds, clearing to full image, Save and Cancel, with rotated display coordinates mapped through the existing view transform. Outside-region dimming must not change image pixels. Keyboard and touch cancellation must leave unfinished geometry uncommitted.
 - Save or clear a changed region in one undoable, autosaved transaction and reopen completion without changing existing markers. Cancel, abandoned gestures and unchanged saves must not add history or discard redo. Guard editor ownership across photo/project replacement.
@@ -201,14 +200,19 @@ result.zip
 
 ## 6. UI / UX requirements
 
+- In every mode, use a photo-first workspace with one nonmodal inspector whose panels are **写真 / Photos**, **検出 / Detection** and **作業 / Project**. Above 900 px, the inspector occupies a 300 px right column and scrolls independently; it can close and reopen. At 900 px and below, **写真・設定 / Photos & tools** opens it in place of the canvas working area, with **写真に戻る / Return to photo** restoring the photo. Panels switch rather than adding a settings stack above the canvas.
+- Photos owns filtering, matching counts, list-only detection, thumbnails and photo management. Detection owns pinned-example setup, detection regions, rerun behavior and current/all-photo detection. Project owns the title, totals, type management and display/storage settings. Current-photo detection is also a direct canvas-toolbar action, visibly unavailable without a reference. Keep setup discoverable from that area and Save reachable outside the inspector.
+- Keep filename/status/count, mode controls and Previous/Next beside the photo. Show the excluded-current filter notice in canvas view too. Keep the category dock, memo, marker popovers, Review selection and ordinary Complete distinct from **Review complete & next**. Review uses a compact context row with selection actions when meaningful.
+- Inspector open/selected-panel state is temporary and scoped to the active project. Reset it on accepted project replacement, preserve it across same-project edits and language changes, and omit it from drafts, saved work and exports. Cancel unfinished marker gestures before layout/panel transitions or responsive changes; never recreate the cached canvas/stage or duplicate IDs.
+- Keep quick-detection progress and Stop outside inert workspace roots. New controls obey existing processing/import/modal guards. Repair focus only if its previous owner becomes hidden, without taking it from another modal or control; dialog launchers remain reachable after resize. Escape may close the inspector only when a native dialog, editor or input does not own it. Support normal keyboard navigation and panel-selector keys.
 - Smartphone usage is a first-class workflow, not a reduced desktop layout.
 - Mobile must avoid horizontal page scrolling at 390 px and remain usable from 320 px upward. Type names, including unbroken names up to 40 characters, must wrap within summary rows instead of widening the page.
 - Mobile top controls clearly show **Review / Point / Rectangle / Move**. Keep Review submodes, selection count, Clear selection and Delete selected near the canvas and reachable at 320 px and 390 px in Japanese and English.
-- Keep the photo filter, matching/total count, reset, empty state and excluded-current notice beside the thumbnail strip. Their controls and adjacent navigation must fit Japanese at 390 px and English at 320 px without page-level horizontal overflow, with visible focus and an accessible select label.
+- Keep the photo filter, matching/total count, reset and empty state beside the thumbnail strip in Photos. Keep the excluded-current notice visible in the photo workspace too. Controls and navigation must fit Japanese at 390 px and English at 320 px without page-level horizontal overflow, with visible focus and an accessible select label.
 - The canvas includes a low-profile translucent type-switching dock along its lower edge, showing type color/name/count and allowing one-tap switching without leaving the image. The dock can be minimized to a small corner control when it covers something that must be counted.
-- On smartphone widths, the old duplicate type-switching area below the canvas is hidden; type management remains available from the canvas `+` button and the fixed bottom bar.
+- On smartphone widths, the old duplicate type-switching area below the canvas is hidden; type management remains available from the canvas `+` button and Project, with a bottom-bar shortcut outside Review.
 - Type switching is one tap.
-- Mobile fixed bottom controls prioritize **Undo / Redo / Add image / Add or manage type / Save**. Desktop uses **Save / export** for the same dialog.
+- Mobile fixed bottom controls provide **Undo / Redo / Previous photo / Next photo / Save** in Review, and **Undo / Redo / Add image / Add or manage type / Save** in Point, Rectangle and Move. **Review complete & next** remains in the context row beside the canvas. Desktop uses **Save / export** for the same save dialog.
 - Undo/Redo must be easy to reach on both desktop and mobile.
 - The complete-image control sits around the upper-right of the canvas.
 - Needs-review state must be visible in the marker, image list/current-image status, and project summary without turning it into a separate marker type.
@@ -216,7 +220,7 @@ result.zip
 - Destructive actions use confirmation where data loss is meaningful; single-marker and selected-marker deletion are immediately undoable.
 - Keyboard focus is visible and motion respects `prefers-reduced-motion`.
 - Header language and Help controls remain visible and reachable from 320 px upward; the title can truncate while the version and action controls retain space.
-- Help is titled **使い方と注意事項 / How to use & notes**. A non-shrinking header and flexible, scrollable body share the dialog height, keeping the final paragraph reachable on short screens. Native Escape, Close button, backdrop dismissal, and the modal background-scroll lock remain available. The redundant language-switch/close-instructions paragraph is not displayed.
+- Help is titled **使い方と注意事項 / How to use & notes**. Initially show three quick-start steps and four short notes covering AI errors/misses and manual review, browser-autosave loss risk and HTML saving, local/offline privacy, and initial loading/preparation time. Practical controls and saving tips stay in a default-collapsed details section. Preserve license/source markup and translations, dynamic license loading, and build markup/IDs/content exactly. A non-shrinking header and flexible, scrollable body share the dialog height. Native Escape, Close button, backdrop dismissal, and the modal background-scroll lock remain available. Do not restore redundant navigation or implementation-audit prose.
 - At widths up to 760 px, hide the Help Build info section and page footer; retain both on wider screens. An expanded desktop Build info section must not clip Help after resizing. Keyboard activation of desktop Build info must not dismiss Help.
 - At widths up to 760 px, the start card uses a compact, left-aligned introduction, full-width stacked photo/camera actions and a separate two-column row for import/sample (stacked up to 380 px). Hide desktop-only drop/paste instructions on mobile. Keep the start screen free of bottom-bar space when no workspace is open.
 - After Types or Export closes across a desktop/mobile layout change, a hidden or wholly offscreen paired opener can yield focus to its visible desktop/mobile counterpart. This applies only while focus remains on the recorded opener, BODY, or inside that now-closed dialog; a reopened dialog, another modal, or unrelated focused control keeps ownership. Other launchers and ordinary native Tab/BODY stops remain unchanged.
@@ -247,7 +251,10 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 
 ## 10. Acceptance criteria
 
-- Verify compact mobile Review and its explicit settings/photos toggle at Japanese 390 px and English 320 px, including focus, resize and return to editing modes; record actual touch checks separately.
+- At 1360 × 900, verify the ordinary photo workspace starts its canvas within approximately the top 220 CSS px, gives it at least 55% of viewport height, and requires no document-level vertical scroll for normal counting; the inspector may scroll.
+- At Japanese 390 × 844 and English 320 × 740, verify the canvas starts within approximately the top 260 CSS px and remains usefully tall without document-level horizontal overflow. The inspector temporarily replaces the canvas rather than stacking above it. Keep bounded inspector/memo scrolling; short or landscape screens may scroll when needed to preserve usable controls.
+- Verify all four modes, inspector panels, close/return controls, keyboard focus and panel keys, native dialogs across resize, gestures interrupted by layout changes, language changes, project replacement and same-project edits around the 900 px breakpoint. Record physical touch checks separately from viewport checks.
+- Verify Help's three steps, four notes and default-collapsed practical tips in both languages, with license/source/build contents and dynamic nodes unchanged. Check opening/closing details, Help scrolling and existing 760 px build visibility separately from the workspace breakpoint.
 - Detect list processes exactly the matching-photo snapshot captured at start, including status changes, empty lists, Stop and one-step Undo; Detect all, totals and exports remain project-wide.
 - Check region drawing/numeric bounds and center inclusion at 0°, 90°, 180° and 270°, outside-marker preservation in Replace, Save/Cancel, interrupted gestures, exact Undo/Redo, stale ownership, strict import validation and compressed draft/work round trips. Old projects use the full image.
 
@@ -285,10 +292,10 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 
 ## UI / UX layout notes
 
-- PC side panel order: Project → combined current image/project summary → Marker display → collapsed Work data.
-- Redundant progress and persistent display-correction cards are not shown in the side panel; completion is visible on the canvas and thumbnails, and correction is opened from the canvas toolbar.
+- The single inspector switches Photos / Detection / Project; its panels do not stack above the photo. Project groups the title, combined current image/project summary, marker display and collapsed work-data controls. Reduce repeated status and nested cards while retaining readable text and usable touch targets.
+- Completion remains visible on the canvas and thumbnails, and correction opens from the canvas toolbar. Detection progress and Stop remain outside the inert editing surface.
 - Image notes open without shifting the page layout and auto-save while typing. The memo icon sits beside Complete at the upper-right of the canvas. On desktop the memo floats at the lower-right of the canvas and its header can be dragged to reposition it within the canvas area; on mobile it opens directly below the canvas. A note indicator remains visible when content exists.
-- Image deletion is a direct current-image header action, is disabled for the last remaining image, and always uses the existing confirmation dialog.
+- Image deletion is available with photo management in Photos, is disabled for the last remaining image, and always uses the existing confirmation dialog.
 
 - Persistent canvas instruction bubbles are not shown during normal counting.
 

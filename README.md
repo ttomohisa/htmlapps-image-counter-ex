@@ -7,7 +7,7 @@ Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer 
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.14.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.15.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -71,7 +71,7 @@ For small boxes, pinch the preview or use **− / +** to zoom from 1× to 8×. M
 
 Pinned changes stay pending until **Save example changes**; one **Undo** restores the previous reference. **Discard changes** or closing the dialog keeps the saved reference. Interrupted pointer actions or a second touch discard the unfinished add, move or resize; a pinch keeps the selected example, and lifting the remaining finger cannot commit the abandoned edit. Example edits do not change counts. **Unpin examples** starts over on the current photo. Dashed boxes are existing count markers and are hidden by default; overlapping results cannot be counted again.
 
-Pin examples for the selected type in **Examples / detection settings**. Then use **Detect this photo** or **Detect all photos** directly beside the canvas. All-photo detection includes completed photos. Choose **Add detections** (default) to keep existing markers, or **Replace unreviewed auto results** to refresh only unreviewed, untouched automatic markers of the selected type. New results are marked **Needs review**, and overlaps with retained markers are skipped.
+Pin examples for the selected type in **Examples / detection settings**, available from **Detection**. **Detect this photo** is also available beside the canvas; **Detect all photos** is in Detection. All-photo detection includes completed photos. Choose **Add detections** (default) to keep existing markers, or **Replace unreviewed auto results** to refresh only unreviewed, untouched automatic markers of the selected type. New results are marked **Needs review**, and overlaps with retained markers are skipped.
 
 Replacement protects manual, reviewed, edited and other-type markers. It also protects results made before dev.10, whose automatic origin cannot be reliably identified. Moving, resizing, changing type or toggling review protects a marker from later replacement; marking it Needs review again does not undo that protection. Each photo changes only after successful detection. A valid zero-result replacement can remove the eligible old results; failed, cancelled or incomplete replacement results keep them. **Stop** keeps processed photos, and one **Undo** restores the whole run.
 
@@ -83,7 +83,7 @@ Every successfully detected photo needs review, even when the result is zero or 
 
 Navigating away cancels running detection and leaves controls usable when a cached page returns. Android Chrome hardware and direct-file operation remain pending; see the [device check procedure](docs/ANDROID_FILE_TEST.md).
 
-1. Select the target marker type and open **Examples / detection settings** beside the canvas.
+1. Select the target marker type and open **Examples / detection settings** from **Detection**.
 2. Use the built-in model with the default CPU / FP32 settings. **Advanced settings / model** optionally accepts a compatible custom model; **Use built-in model** restores the default.
 3. In **Add** mode, outline one or more examples or enter left/top/right/bottom percentages under **Enter example bounds**. To adjust a box, choose **Select / edit**, select it on the canvas or by its list number, then move, resize, delete or update its numeric bounds. The numbered controls and numeric fields also support keyboard operation.
 4. Select **Detect**. Click boxes or uncheck candidates you do not want. Counts stay unchanged during preview.
@@ -93,13 +93,17 @@ Cancel or close the dialog to stop inference. The model is retained only for the
 
 ## Detection area and filtered runs
 
-Use **Detect list (N)** beside the photo filter to process only the matching photos. The list is captured when you start: photos remain in that run even if detection changes their status. **Detect all photos** still processes the whole project. Stop and one Undo work across the processed part of either run.
+Use **Detect list (N)** beside the filter in **Photos** to process only the matching photos. The list is captured when you start: photos remain in that run even if detection changes their status. **Detect all photos** still processes the whole project. Stop and one Undo work across the processed part of either run.
 
 Set an optional detection rectangle for each target photo by drawing or entering numeric bounds, then save it. Cancel discards pending changes. To restore full-image detection, choose Full image and then Save region. A saved change reopens photo completion, preserves all existing markers and supports Undo. Regions survive draft restoration and saved-work reopening, including compressed photos; older work uses the full image.
 
 Detection still analyzes the full image and accepts boxes only when their centers are inside the rectangle, including its boundary. It does not crop inference or promise better small-object accuracy or speed. **Replace unreviewed auto results** preserves eligible automatic markers outside the region, as well as its existing protected markers. Counts and CSV/JPEG exports include all markers.
 
-On smartphones, Review uses a compact layout. Use **Show settings / photos** to restore settings and the photo list. Review selection and the photo remain nearby, with Undo, filtered previous/next, Review complete & next and Save in the compact bottom bar. Expanding settings/photos restores Undo, Redo, Add, Types and Save. Choose **Return to photo review** to fold the panels again. The mode selector stays accessible, and editing modes use their normal controls. This layout preference is temporary. Physical Android checks for these new controls remain pending.
+## Photo-first workspace
+
+The photo remains the main working area in every mode. Switch between **Photos**, **Detection** and **Project** in one tools panel: Photos holds the list, filter and photo actions; Detection holds examples, regions and detection settings; Project holds totals, types, display and browser-storage settings. Current-photo detection, photo navigation, mode controls and Save stay directly reachable beside the photo.
+
+On desktop, the tools panel sits to the right and scrolls independently. On narrow screens, **Photos & tools** temporarily replaces the photo area with the panel; **Return to photo** brings it back. Review keeps selection and **Review complete & next** beside the canvas. Its phone bottom bar offers Undo, Redo, previous/next photo and Save; other modes offer Undo, Redo, Add, Types and Save. Panel choices are temporary and reset when you open different work. Physical Android checks for the new workspace remain pending.
 
 ## Usage
 
@@ -110,10 +114,10 @@ On smartphones, Review uses a compact layout. Use **Show settings / photos** to 
 5. In Review, select existing markers to inspect or delete them. Choose **Single**, select a marker and choose **Edit** to move it or resize a rectangle from its four corner handles.
 6. In Review's Single selection, use the flag button to set or clear **Needs review** while staying in Review. Review automatic results even when no new markers were found.
 7. Use the memo button beside **Complete** to add an image note. On desktop the memo panel can be dragged within the canvas; on mobile it opens below the canvas.
-8. Check the photo, then choose **Review complete & next**, or use the status filter above the thumbnails to work through matching photos with Previous / Next or arrow keys.
+8. Check the photo, then choose **Review complete & next**, or use the status filter in **Photos** to work through matching photos with Previous / Next or arrow keys.
 9. Open **Save / export** (**Save** on mobile), enter a filename, and choose **Save work as HTML** or save a results ZIP. Clear **Include annotated JPEGs** to export only the two CSV files.
 
-The top-right EN / JA and Help controls remain available on narrow screens. **How to use & notes** keeps its heading visible while the contents scroll to the end. On mobile, the start screen has full-width photo/camera buttons; Build info and the page footer are hidden. Build info remains available on desktop. Language switching and all Help close controls are unchanged.
+The top-right EN / JA and Help controls remain available on narrow screens. **How to use & notes** starts with three steps and four short notes about AI review, saving, privacy and loading time. Optional control and saving tips are collapsed. License, source-code and build information are preserved. Help keeps its heading visible while the contents scroll. At phone widths, the start screen has full-width photo/camera buttons; Build info and the page footer are hidden as before. Build info remains available on wider screens.
 
 ### Keyboard shortcuts
 

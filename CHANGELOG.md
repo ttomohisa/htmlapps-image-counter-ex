@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0-dev.15 — 2026-10-26
+
+- Make the photo the main working surface in every mode, with one Photos / Detection / Project inspector instead of stacked settings. Above 900 px it is a 300 px side panel; at narrower widths it temporarily replaces the photo area with a Return to photo action.
+- Keep current-photo detection, photo navigation, mode controls and Save directly reachable. Keep Review selection and Review complete & next beside the canvas; the Review phone bar includes Undo, Redo, previous/next photo and Save.
+- Keep inspector state temporary and scoped to the current work. Guard layout changes against unfinished gestures and preserve native-dialog focus ownership.
+- Shorten Help to three steps and four essential notes with optional tips collapsed. Preserve license/source content, dynamic build information and their existing responsive behavior.
+- Preserve detection scope, regions, review and replacement safeguards, model/runtime assets, schema 4, offline operation and single-HTML distribution. Physical Android verification of the new workspace remains pending.
+
 ## 1.1.0-dev.14 — 2026-10-26
 
 - Add compact smartphone Review with an explicit settings/photos toggle and nearby review/navigation/save actions.

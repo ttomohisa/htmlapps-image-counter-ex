@@ -1,10 +1,10 @@
 # Android / direct-file acceptance check
 
-Target requested by the user: Android with Chrome. The user reported good Android Chrome behavior on the Pages 1.1.0-dev.3 build. Physical-device checks for the newer detection, example-editing, Review, bulk-delete and photo-filtering workflows through dev.14 are pending; desktop viewport checks must not be recorded as an Android pass.
+Target requested by the user: Android with Chrome. The user reported good Android Chrome behavior on the Pages 1.1.0-dev.3 build. Physical-device checks for the newer detection, example-editing, Review, bulk-delete, photo-filtering and compact-workspace workflows through dev.15 are pending; desktop viewport checks must not be recorded as an Android pass.
 
 ## Files
 
-Version 1.1.0-dev.14 embeds the 6.44 MiB compact YOLOE-26n model in both `index.html` and `index.self-extract.html`. Each file works independently; no separate model file is needed. Download the HTML itself before local-file testing; do not open it inside a ZIP preview.
+Version 1.1.0-dev.15 embeds the 6.44 MiB compact YOLOE-26n model in both `index.html` and `index.self-extract.html`. Each file works independently; no separate model file is needed. Download the HTML itself before local-file testing; do not open it inside a ZIP preview.
 
 ## Direct-file check on the computer
 
@@ -16,7 +16,11 @@ Version 1.1.0-dev.14 embeds the 6.44 MiB compact YOLOE-26n model in both `index.
 
 ## Android Chrome check
 
-For the HTTPS test, open [Image Counter EX on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/) in Chrome. Verify version **1.1.0-dev.14**, choose a photo or sample, open Auto detect and outline examples. The built-in model is already selected with CPU / FP32; advanced settings can stay closed. Continue with steps 2–8 below, recording HTTPS as the context. The [self-extract variant](https://ttomohisa.github.io/htmlapps-image-counter-ex/index.self-extract.html) is available separately. The initial HTML includes runtime and model; detection makes no additional network requests. HTTPS results do not replace the local-document test in step 1.
+For the HTTPS test, open [Image Counter EX on GitHub Pages](https://ttomohisa.github.io/htmlapps-image-counter-ex/) in Chrome. Verify version **1.1.0-dev.15**, choose a photo or sample, then use **Photos & tools → Detection → Examples & detection** to outline examples. The built-in model is already selected with CPU / FP32; advanced settings can stay closed. Continue with steps 2–8 below, recording HTTPS as the context. The [self-extract variant](https://ttomohisa.github.io/htmlapps-image-counter-ex/index.self-extract.html) is available separately. The initial HTML includes runtime and model; detection makes no additional network requests. HTTPS results do not replace the local-document test in step 1.
+
+## Compact workspace (dev.15; physical device pending)
+
+Check Photos & tools in all counting modes, each Photos / Detection / Project panel, and Return to photo in portrait and landscape. The inspector replaces the photo area on phones rather than expanding a stack above it. Confirm that the photo, mode buttons, direct detection, review actions and bottom Save stay usable. Switch photos and filters, open correction and verify its live preview, rotate the device during a pending edit, and close dialogs after rotation. Check that interrupted gestures do not add or move markers. Review the three-step Help, expand optional tips, and reach the license section by scrolling. Record actual touch and virtual-keyboard behavior separately from desktop viewport checks.
 
 1. Copy the extracted trial files to the Android device. Open the HTML using Chrome if the system's file opener offers it. If it opens only a document preview, cannot select Chrome, or Chrome refuses the local document, record that outcome; do not count a preview or HTTP page as a direct-file pass.
 2. Record phone model, Android version, Chrome version, HTML variant, and whether the address is local (`file:` / `content:`) or HTTP(S). These contexts are distinct.
