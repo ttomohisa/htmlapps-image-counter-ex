@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0-dev.16 — 2026-10-27
+
+- Align the workspace header with the full-width photo layout and right-align photo-toolbar actions inside the frame. Keep example setup reachable at narrow phone widths.
+- Show the selected type’s missing-reference instruction beside detection and above inspector actions; name the exact Pin these examples step. Explain loading, running and empty-list states.
+- Fix toolbar detection remaining disabled after photo import by synchronizing it on every quick-state refresh. Preserve per-type pinning and actual disabled semantics.
+- Rename the model disclosure to Advanced settings and clarify that only compatible custom YOLOE exports can replace the built-in model. Model/runtime assets, inference, schema 4 and license/source/build contents remain unchanged.
+
 ## 1.1.0-dev.15 — 2026-10-26
 
 - Make the photo the main working surface in every mode, with one Photos / Detection / Project inspector instead of stacked settings. Above 900 px it is a 300 px side panel; at narrower widths it temporarily replaces the photo area with a Return to photo action.

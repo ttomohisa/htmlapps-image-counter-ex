@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.15
+- **Version:** 1.1.0-dev.16
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -250,6 +250,10 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 - Merging existing markers automatically. Quick replacement is limited to explicitly eligible, unreviewed automatic results; dialog candidate import only filters duplicates.
 
 ## 10. Acceptance criteria
+
+- In the photo workspace, the header spans the same full viewport width as the workspace, with consistent outside gutters; right-align toolbar actions to the photo frame edge on wide desktops. Keep setup reachable at 320 px.
+- Quick-detection controls and their toolbar replica refresh together at photo-import start and completion (including errors), selected-type changes, pin/unpin and history restoration. Show selected-type missing-reference guidance in the photo view and above inspector actions, including the exact Pin these examples step. Explain loading/running/no-photo/empty-filter restrictions; an empty filter does not disable current/all-photo detection. Keep real disabled controls and descriptive accessible text.
+- Advanced model loading remains developer-only compatible runtime-prompt YOLOE ONNX; ordinary model files are not interchangeable. Keep the built-in model unchanged.
 
 - At 1360 × 900, verify the ordinary photo workspace starts its canvas within approximately the top 220 CSS px, gives it at least 55% of viewport height, and requires no document-level vertical scroll for normal counting; the inspector may scroll.
 - At Japanese 390 × 844 and English 320 × 740, verify the canvas starts within approximately the top 260 CSS px and remains usefully tall without document-level horizontal overflow. The inspector temporarily replaces the canvas rather than stacking above it. Keep bounded inspector/memo scrolling; short or landscape screens may scroll when needed to preserve usable controls.

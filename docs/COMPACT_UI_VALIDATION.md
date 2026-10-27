@@ -36,3 +36,14 @@ The initial aspirational canvas-top targets were about 220 px desktop and 260 px
 ## Limits
 
 No attached physical Android device was available. Virtual keyboard, native touch/pinch and Android download behavior remain device checks. The environment's earlier direct-file browser restriction was not bypassed; HTTP success does not establish `file:`/`content:` behavior. No alternative model was downloaded, converted or benchmarked in this UI release.
+# Follow-up: dev.16 — 2026-10-27
+
+- Fixed workspace header and toolbar edge alignment. At 1920 × 960, the header changed from x=320 / width=1280 to x=0 / width=1920. The photo frame ends at x=1590; Save ends at x=1581, retaining the intended 9 px inner inset.
+- Verified Japanese 390 × 844 and English 320 × 740 with an unset type reference: setup remains visible, the nearby instruction names the selected type and Pin step, and document width equals viewport width. At 320 px English, the setup action wraps to preserve readable text. Japanese photo canvas height was 480.5 px; English 312 px with the extra setup instruction visible.
+- Confirmed drawing an example alone leaves main-screen detection disabled; Pin enables it and hides the photo-view warning. Undo disables it and restores the instruction; Redo enables it again. Type switching updates both main and inspector buttons.
+- Ran actual CPU inference on the existing three-photo steel fixture: current photo completed in 2.7 s, all three in 4.0 s; both reported 0 added / 0 errors because these tests reused existing markers. These are functional checks, not new accuracy measurements. Undo returned each run's project changes.
+- A Complete filter with no matching photos disabled only list detection; current/all remained enabled and list title explained the restriction.
+- Readable and self-extract HTTP variants started successfully. On the self-extract variant, imported the prior test work HTML, added a fourth photo and verified the settled toolbar and inspector detection controls were both enabled without another full render. Saved with edited name `dev16-readiness-check.html`; parsed output retained schema 4, four photos, 58 markers and the pinned reference.
+- Required `scripts/check-repository.ps1`: exit 0, **4,074 tests passed**, including seven new readiness regressions across all four artifacts. Protected license/source/build markup and bilingual strings match the original baseline. No model/runtime dependency changes. Both checked browser tabs had no console warnings/errors.
+- Updated `assets/screenshot.png` from the actual 1360 × 900 rendered workspace. Independent source review and its 103 source tests passed after correcting the DOM test fixture and mobile setup ordering.
+- Limits: physical Android/touch checks were not performed. The browser tool rejected `file://` navigation by URL policy; no workaround was attempted. HTTP success does not establish direct-file-origin behavior.

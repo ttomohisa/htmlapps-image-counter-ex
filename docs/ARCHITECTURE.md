@@ -51,6 +51,12 @@ Photos owns status filtering, the captured-list detection action, thumbnails and
 
 Inspector open/selected-panel state belongs to the active project but is not serialized or added to history. Accepted project replacement resets it; same-project edits and language changes retain it. Cancel pending canvas gestures before panel visibility or responsive changes can alter coordinate transforms. Keep progress and Stop outside inert editing roots, and apply the existing processing/import/modal guards to new actions. Focus repair applies only when its owner is hidden and must respect newer native-dialog/control ownership. Escape closes the inspector only when a dialog, editor or input does not own the key. These presentation changes do not change detection scope, schema 4, model assets, inference or export behavior.
 
+### Detection readiness (dev.16)
+
+`renderQuickDetection()` updates both inspector controls and `workspaceDetect` directly. Import start/finally calls `quickSync()` without a full shell render, so copying availability only in `renderWorkspaceShell()` can leave the toolbar stale. The same refresh provides titles and a visible, category-specific setup instruction; photo-view guidance disappears when ready. Inspector guidance remains available above the actions. Empty filtered lists block only list detection. Missing examples are never auto-pinned.
+
+The active workspace header uses full width with matching outer gutters; the toolbar action group consumes its intrinsic width and aligns to the photo frame’s right edge. Mobile retains wrapping and a reachable setup button.
+
 ## Reusable component layer
 
 `components/` contains dependency-free source snippets for common UI patterns. These files are not loaded at runtime and are not a separate bundle layer. An app copies or adapts the needed CSS, HTML, and JavaScript into `src/index.template.html`, preserving the one-file runtime model.
