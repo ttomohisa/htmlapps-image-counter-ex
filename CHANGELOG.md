@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0-dev.21 — 2026-10-27
+
+- Fix overlapping Project display controls caused by legacy 32 px icon-button sizing. Use explicit text-button sizing, wrapping labels and larger touch targets.
+- Give the phone inspector full-width segmented tabs and a contextual Return to photo / Undo / Redo / Save bar. Hide photo navigation while the canvas is hidden; preserve processing/import/modal guards and safe focus restoration.
+- Group current-photo review with its filename, totals and work name into separate cards. Collapse type breakdown, display/correction and storage, and remove the stray outer scrollbar at ordinary portrait sizes. Retain desktop panel closing and both languages.
+- Preserve model/runtime assets, schema 4, single-HTML packaging and license/source/build information.
+
 ## 1.1.0-dev.20 — 2026-10-27
 
 - Convert newly selected SVG and other browser-decodable formats outside the saved-project raster allowlist to PNG before adding them. This fixes images that displayed correctly but prevented example registration or editing, and could not be reopened from uncompressed saved work. Preserve supported raster originals and source metadata; retain strict rejection of raw SVG in imported work and legacy drafts.

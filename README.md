@@ -7,7 +7,7 @@ Detection starts at **Standard**. Try **Find more** for missed objects or **More
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.19.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.21.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -15,6 +15,8 @@ A privacy-focused, single-HTML app for **counting objects in photos manually or 
 If no examples are saved for the selected type, the main action opens example setup. Nearby text explains ongoing photo loading or processing. The built-in model is used automatically.
 
 For repeated inspections, draw examples once and choose **Save & detect**. The app saves them for the selected type, adds detection results as **Needs review**, and returns to the photo for checking. Other photos can use the same examples with **Detect this photo** or **Detect all photos**. Saved examples remain available in browser autosave and saved work HTML, even after removing their original photo.
+
+On phones, **Open panel** shows Photos, Detection and Project. **Return to photo** stays at the bottom alongside Undo, Redo and Save. Project groups photo review, totals and work name; expand **Display & correction** for marker visibility and image adjustments. [See the phone workspace](assets/mobile-workspace.jpg).
 
 ## 🚀 Live demo
 

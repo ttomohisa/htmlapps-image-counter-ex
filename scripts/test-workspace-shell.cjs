@@ -78,3 +78,47 @@ test('the panel opener remains a named native button in the photo header and the
   assert.match(head,/id="workspacePanelLabel"/);
   assert.doesNotMatch(source,/id="workspaceSetup"|\$\('#workspaceSetup'\)/);
 });
+
+test('mobile return action follows the visible tools across modes, breakpoints and accepted work',()=>{
+  const{c,$,events}=fixture();let mobile=false;c.matchMedia=()=>({matches:mobile});
+  c.activeImage=()=>c.P?.images[0]||null;c.P.images[0].name='First photo.jpg';
+  const original=JSON.stringify(c.P);c.renderWorkspaceShell();
+  const action=$('#mobReturnPhoto'),bar=$('#mobileBar');
+  assert.equal(action.hidden,true);assert.equal(bar.classList.contains('tools-open'),false);
+  mobile=true;events.resize();
+  assert.equal(action.hidden,false);assert.equal(bar.classList.contains('tools-open'),true);
+  c.setWorkspaceOpen(false);assert.equal(action.hidden,true);assert.equal(bar.classList.contains('tools-open'),false);
+  c.setWorkspacePanel('project');
+  for(const mode of ['point','review','rect','pan']){c.mode=mode;c.renderWorkspaceShell();assert.equal(action.hidden,false);assert.equal(bar.classList.contains('tools-open'),true)}
+  assert.equal(JSON.stringify(c.P),original);
+  c.lang='ja';c.renderWorkspaceShell();assert.equal($('#mobReturnPhotoLabel').textContent,c.t('workspaceReturnPhoto'));assert.equal(action.getAttribute('aria-label'),c.t('workspaceReturnPhoto'));
+  c.lang='en';c.renderWorkspaceShell();assert.equal($('#mobReturnPhotoLabel').textContent,c.t('workspaceReturnPhoto'));assert.equal(action.title,c.t('workspaceReturnPhoto'));
+  c.P={images:[{name:'Next work.png'}]};c.renderWorkspaceShell();assert.equal(action.hidden,true);assert.equal(bar.classList.contains('tools-open'),false);
+  c.setWorkspacePanel('photos');mobile=false;events.resize();assert.equal(action.hidden,true);assert.equal(bar.classList.contains('tools-open'),false);assert.equal($('#workspaceInspector').hidden,false);
+});
+
+test('project photo context tracks navigation and missing photos without touching work',()=>{
+  const{c,$}=fixture();let current=0;c.P.images=[{name:'<photo & one>.png'},{name:'Two.jpg'}];c.activeImage=()=>c.P?.images[current]||null;
+  const before=JSON.stringify(c.P);c.renderWorkspaceShell();c.setWorkspacePanel('project');
+  assert.equal($('#inspectorPhotoName').textContent,'<photo & one>.png');assert.equal($('#inspectorPhotoName').title,'<photo & one>.png');
+  current=1;c.renderWorkspaceShell();assert.equal($('#inspectorPhotoName').textContent,'Two.jpg');assert.equal($('#inspectorPhotoName').title,'Two.jpg');
+  current=2;c.renderWorkspaceShell();assert.equal($('#inspectorPhotoName').textContent,'');assert.equal($('#inspectorPhotoName').title,'');assert.equal(JSON.stringify(c.P),before);
+});
+
+for(const guard of ['import','busy','modal','inert'])test(`mobile return action respects ${guard} and safely restores photo focus when released`,()=>{
+  const{c,$,calls}=fixture();c.matchMedia=()=>({matches:true});c.renderWorkspaceShell();c.setWorkspacePanel('project');
+  const action=$('#mobReturnPhoto'),before=JSON.stringify(c.P);assert.equal(typeof action.onclick,'function');
+  function lock(on){if(guard==='import')c.quickImportsBusy=()=>on;if(guard==='busy')c.quickDetectionBusy=()=>on;if(guard==='modal')c.document.querySelector=()=>on?{}:null;if(guard==='inert')$('#workspace').inert=on}
+  c.document.activeElement=action;calls.length=0;lock(true);action.onclick();
+  assert.equal($('#workspaceInspector').hidden,false);assert.equal($('#inspectorProject').hidden,false);assert.equal(c.document.activeElement,action);assert.deepEqual(calls,[]);
+  lock(false);action.onclick();
+  assert.equal($('#workspaceInspector').hidden,true);assert.equal(action.hidden,true);assert.equal(c.document.activeElement,$('#mobileReviewToggle'));assert.equal(JSON.stringify(c.P),before);
+});
+
+test('mobile return ignores hidden desktop calls and does not steal newer focus in its queued frame',()=>{
+  const{c,$}=fixture();c.renderWorkspaceShell();assert.equal(typeof $('#mobReturnPhoto').onclick,'function');
+  $('#mobReturnPhoto').onclick();assert.equal($('#workspaceInspector').hidden,false);
+  c.matchMedia=()=>({matches:true});c.renderWorkspaceShell();c.setWorkspacePanel('project');
+  const frames=[];c.requestAnimationFrame=fn=>frames.push(fn);c.document.activeElement=$('#mobReturnPhoto');$('#mobReturnPhoto').onclick();
+  assert.equal($('#workspaceInspector').hidden,true);c.document.activeElement=$('#other');frames.forEach(fn=>fn());assert.equal(c.document.activeElement,$('#other'));
+});

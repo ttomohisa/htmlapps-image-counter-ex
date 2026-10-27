@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.20
+- **Version:** 1.1.0-dev.21
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -216,6 +216,8 @@ result.zip
 - On smartphone widths, the old duplicate type-switching area below the canvas is hidden; type management remains available from the canvas `+` button and Project, with a bottom-bar shortcut outside Review.
 - Type switching is one tap.
 - Mobile fixed bottom controls provide **Undo / Redo / Previous photo / Next photo / Save** in Review, and **Undo / Redo / Add image / Add or manage type / Save** in Point, Rectangle and Move. Detection and **Review complete & next** remain beside the photo; Save uses the bottom bar without a duplicate mobile toolbar button. Desktop **Save** opens the same save/export dialog.
+- When the phone inspector is open, its full-width Photos / Detection / Project tabs stay at the top and the bottom bar switches to **Return to photo / Undo / Redo / Save**. Hide photo-navigation and add/type actions until the photo is visible again. Return follows processing/import/modal guards and repairs focus without changing work data.
+- Project groups the current photo name and review actions, totals, work name, collapsed **Display & correction**, and storage. Type totals are expandable. Project text controls have explicit content-sized widths and at least 44 px touch height on phones; do not apply obsolete icon-only widths to them.
 - Undo/Redo must be easy to reach on both desktop and mobile.
 - The canvas has no competing completion button. Standalone completion and reopening remain in **Project → Photo review**, separate from the toolbar's review-and-advance action.
 - Needs-review state must be visible in the marker, image list/current-image status, and project summary without turning it into a separate marker type.
