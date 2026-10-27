@@ -32,7 +32,7 @@ function fixture({includeImages=true,stubJpeg=false,name='Synthetic export.zip'}
   const calls=[],saves=[],errors=[],messages=[],nodes=new Map();
   const $=key=>{if(!nodes.has(key))nodes.set(key,{value:'',checked:false});return nodes.get(key);};
   $('#exportName').value=name;$('#zipIncludeImages').checked=includeImages;
-  const c={P:project(),TextEncoder,Uint8Array,Uint32Array,Blob,Map,Date,Math,URL,setTimeout,console:{error:e=>errors.push(e)},Toast:{show:key=>messages.push(key)},t:x=>x,$,APP_CONFIG:{slug:'image-counter'},imageCache:new Map(),loadImage:()=>{calls.push('loadImage');throw Error('Image decoding must not run for CSV-only');},document:{createElement:()=>{calls.push('canvas');throw Error('Canvas must not run for CSV-only');}},compressProjectForViewer:()=>{calls.push('compress');throw Error('Compression must not run for ZIP');}};
+  const c={P:project(),structuredClone,TextEncoder,Uint8Array,Uint32Array,Blob,Map,Date,Math,URL,setTimeout,console:{error:e=>errors.push(e)},Toast:{show:key=>messages.push(key)},t:x=>x,$,APP_CONFIG:{slug:'image-counter'},imageCache:new Map(),loadImage:()=>{calls.push('loadImage');throw Error('Image decoding must not run for CSV-only');},document:{createElement:()=>{calls.push('canvas');throw Error('Canvas must not run for CSV-only');}},compressProjectForViewer:()=>{calls.push('compress');throw Error('Compression must not run for ZIP');}};
   vm.createContext(c);
   vm.runInContext(section('function imageReviewCount(', 'function drawReviewBadge(')+section('function safeName()', 'async function compressProjectForViewer('),c);
   if(stubJpeg)c.annotatedJpeg=async(im,p,visibility,quality)=>{calls.push({id:im.id,visibility,quality});return new Blob([Buffer.from([255,216,255,217])],{type:'image/jpeg'});};
@@ -111,4 +111,51 @@ test('work photo compression uses captured photo data and settings without pollu
   vm.runInContext(section('async function compressProjectForViewer(', 'function viewerHtml('),f.c);
   const pending=f.c.compressProjectForViewer(input);input.images[1].dataUrl='changed';input.settings.viewerCompression.quality=.45;f.c.P=project();
   wait.finish();const saved=await pending;assert.deepEqual(decoded,['first','second']);assert.deepEqual(qualities,[.82,.82]);assert.equal(saved.images.length,2);assert.equal(saved.images[0].width,1200);assert.equal(saved.images[0].markers.length,2);assert.equal(input.images[0].dataUrl,'first');assert.equal(f.c.imageCache.get('im1').source,'wrong-cache');
+});
+
+function delayedJpegFixture(){
+  const f=fixture(),decoded=[];let finish;
+  f.c.MAX_EXPORT_PX=20000000;f.c.P.settings.numbersVisible=true;f.c.P.settings.opacity=.82;
+  f.c.P.images[0].dataUrl='original-1';f.c.P.images[1].dataUrl='original-2';
+  vm.runInContext(section('function displayDims(', 'function fromDisplayNorm('),f.c);
+  // Only browser decoding/encoding are faked; execute the real CSV, JPEG drawing and ZIP functions.
+  f.c.loadImage=async data=>{decoded.push(data);if(data==='original-1')await new Promise(resolve=>finish=resolve);return{source:data}};
+  f.c.document.createElement=()=>{
+    const pixels={images:[],labels:[]},ctx={save(){},restore(){},translate(){},rotate(){},beginPath(){},arc(){},fill(){},stroke(){},fillRect(){},strokeRect(){},drawImage(image){pixels.images.push({source:image.source,filter:this.filter})},fillText(text){pixels.labels.push(text)}};
+    return{width:0,height:0,getContext:()=>ctx,toBlob(done){done(new Blob([JSON.stringify({...pixels,width:this.width,height:this.height})],{type:'image/jpeg'}))}};
+  };
+  return{...f,decoded,finish:()=>finish()};
+}
+
+test('ZIP keeps photos, annotations, settings and filename from the moment export starts',async()=>{
+  const f=delayedJpegFixture(),pending=f.click();
+  f.c.P.images[0].markers=[];f.c.P.images[0].adjustments.rotation=0;f.c.P.images[0].adjustments.contrast=40;
+  f.c.P.images[1].dataUrl='edited-2';f.c.P.images[1].name='renamed.png';
+  f.c.P.categories[0].visible=false;f.c.P.settings.markersVisible=false;f.c.P.settings.numbersVisible=false;
+  f.$('#exportName').value='Changed while exporting';f.finish();await pending;
+  assert.deepEqual(f.errors,[]);assert.equal(f.saves[0].name,'Synthetic export.zip');
+  const files=await readZip(f.saves[0].blob);
+  assert.deepEqual([...files.keys()],['markers.csv','summary.csv','images/01-counted-test-1.jpg','images/02-counted-empty.jpg']);
+  assert.equal(files.get('markers.csv').toString('utf8'),expectedMarkers);assert.equal(files.get('summary.csv').toString('utf8'),expectedSummary);
+  const jpeg=JSON.parse(files.get('images/01-counted-test-1.jpg').toString());
+  assert.deepEqual(jpeg,{images:[{source:'original-1',filter:'brightness(100%) contrast(120%) grayscale(0%)'}],labels:['1','!'],width:800,height:1200});
+  assert.deepEqual(f.decoded,['original-1','original-2']);
+});
+
+test('ZIP retains the supplied marker visibility while image decoding is pending',async()=>{
+  const f=delayedJpegFixture(),visibility=new Map([['a',true],['b',false]]),pending=f.c.exportZip(f.c.P,visibility);
+  visibility.set('a',false);visibility.set('b',true);f.finish();await pending;
+  assert.deepEqual(f.errors,[]);const files=await readZip(f.saves[0].blob),jpeg=JSON.parse(files.get('images/01-counted-test-1.jpg').toString());
+  assert.deepEqual(jpeg.labels,['1','!']);
+});
+
+test('pending ZIP cannot read or overwrite the image cache of reopened work with matching image IDs',async()=>{
+  const f=delayedJpegFixture();f.c.imageCache.set('im2',{source:'unrelated-before'});
+  const pending=f.click();f.c.P=project();f.c.imageCache.clear();
+  const first={source:'reopened-1'},second={source:'reopened-2'};f.c.imageCache.set('im1',first);f.c.imageCache.set('im2',second);
+  f.finish();await pending;
+  assert.deepEqual(f.errors,[]);assert.deepEqual(f.decoded,['original-1','original-2']);
+  assert.equal(f.c.imageCache.get('im1'),first);assert.equal(f.c.imageCache.get('im2'),second);
+  const files=await readZip(f.saves[0].blob),jpeg=JSON.parse(files.get('images/02-counted-empty.jpg').toString());
+  assert.equal(jpeg.images[0].source,'original-2');
 });

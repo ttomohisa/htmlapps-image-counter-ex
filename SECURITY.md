@@ -62,6 +62,8 @@ Camera lifecycle: closing the dialog, superseding a start, or leaving the page i
 
 ## Viewer import and CSV boundaries
 
+- Directly selected image files have a separate normalization step: recognized raster payloads retain their original bytes, while a browser-decodable unsupported format such as SVG is painted into a PNG before project insertion. Conversion is local and bounded to 20 megapixels and 16,384 pixels per axis; invalid dimensions, failed canvas encoding, oversized output or a failed project validation leave that image unadded. Filename/source-format/source-size metadata is preserved. This does not permit raw SVG in saved projects or migrate legacy SVG drafts/viewer files.
+
 - External viewer imports require `app: "image-counter"` and `schemaVersion: 4`. Repository history back to initial commit `3c33ad3` uses version 4. Local unversioned drafts retain optional field defaults, including point shape and review flags; explicit unknown app/schema identifiers are rejected.
 - Import checks file size before reading (661 MiB: three times the 220 MiB project budget, plus 1 MiB for the viewer shell). The multiplier allows worst-case JSON escaping without imposing a smaller effective image budget. HTML is not inserted into a DOM or executed: only the uniquely identified `application/json` project script is extracted.
 - Validation requires 1–30 images, typed records, nonempty unique IDs (marker IDs project-wide), existing category references, finite normalized coordinates, positive bounded rectangles, finite settings/timestamps, and positive safe-integer logical dimensions. Logical dimensions may differ from compressed image dimensions intentionally.

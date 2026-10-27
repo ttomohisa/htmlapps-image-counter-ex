@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0-dev.20 — 2026-10-27
+
+- Convert newly selected SVG and other browser-decodable formats outside the saved-project raster allowlist to PNG before adding them. This fixes images that displayed correctly but prevented example registration or editing, and could not be reopened from uncompressed saved work. Preserve supported raster originals and source metadata; retain strict rejection of raw SVG in imported work and legacy drafts.
+- Validate intrinsic dimensions, canvas output and the complete candidate project's image-plus-metadata budget before adding a photo, so a failed or oversized conversion cannot leave an invalid record in the work.
+- Capture ZIP content, visibility and filename at export start. Keep CSV and annotated JPEGs consistent across later edits and prevent an old export's decoded images from entering a replacement work's live cache.
+- Preserve the compact model, runtime assets, schema 4, single-HTML packaging and license/source/build information.
+
 ## 1.1.0-dev.19 — 2026-10-27
 
 - Fix valid small or image-edge examples disappearing during prompt-grid conversion, which could prevent Save & detect or silently omit an example when larger boxes were also present. Apply the same center-cell fallback during save validation and inference while preserving nonempty intervals and saved box geometry.

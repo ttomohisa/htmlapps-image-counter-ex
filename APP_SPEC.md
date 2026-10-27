@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.19
+- **Version:** 1.1.0-dev.20
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -34,9 +34,10 @@
 
 ### Images and camera
 
-- Accept one or multiple image files.
+- Accept one or multiple image files. Preserve recognized embedded raster formats unchanged. For a browser-decodable format such as SVG that is not permitted in saved projects, convert the selected image locally to PNG before adding it; preserve the original filename, format and byte-size metadata.
+- Validate positive safe intrinsic dimensions and the converted payload. New rasterization is limited to 20 megapixels and 16,384 pixels per axis; reject failed or oversized conversions without adding a partial image record. Validate the candidate project against the same image-plus-metadata budget used for saved work before inserting each photo.
 - Maximum 30 images per project.
-- Maximum 35 MB per input image and 220 MB per in-memory project.
+- Maximum 35 MiB per input/stored image and 220 MiB per in-memory project, including embedded images and metadata.
 - Support drag-and-drop and clipboard image paste on desktop.
 - Support live camera capture through `getUserMedia()` when available.
 - Closing the camera dialog or leaving the page invalidates pending camera starts and stops tracks; late results cannot restart capture. Playback errors also release the acquired stream.
@@ -168,6 +169,7 @@ Undo/Redo must schedule autosave of the restored state, just like direct edits. 
 - The editor export card has an accessible **Include annotated JPEGs** checkbox, checked on a fresh page load. Its choice stays only in the current page session, including export-dialog close/reopen and language changes; it is not saved in project settings, drafts, or viewer data.
 - Checked preserves the existing ZIP layout, JPEG names and rendering. Unchecked emits exactly `markers.csv` and `summary.csv`, without image decoding, canvas work, JPEG encoding, or viewer compression.
 - Both modes use the same CSV serializers, UTF-8 BOM, CRLF rows, escaping, column order, original-image coordinates, and counts, including hidden markers/types. The editable output filename and sanitization are shared.
+- Capture the project, display visibility and output filename when ZIP export starts. CSV and annotated JPEGs must use that same snapshot even if the user edits or opens another work while encoding. Export image decoding must not read or overwrite another project's live image cache.
 - Exported viewer HTML keeps its existing CSV + JPEG ZIP behavior.
 
 Default ZIP layout (omit the entire `images/` directory for CSV-only):
@@ -258,6 +260,7 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 - Detection controls and their toolbar replica refresh together at photo-import start and completion (including errors), selected-type/reference changes and history restoration. Without a saved reference, the current-photo action opens example setup with an explicit setup label. All/list detection still requires saved examples. Explain loading/running/no-photo/empty-filter restrictions; an empty filter does not disable current/all-photo detection. Keep real disabled controls for unavailable operations and descriptive accessible text.
 - No model upload, model restore, backend or precision controls are exposed. Use the unchanged built-in compact model with WASM / FP32. Keep user-meaningful sensitivity, per-photo region and rerun choices in the Detection inspector.
 - Save & detect validates and commits examples before closing the editor and invoking the shared current-photo detection path. Failed/empty/stale saves neither close nor start detection. A valid unchanged save can continue without a history entry. Cancel/close during saved-reference loading or replacement leaves the saved reference intact; a late load cannot reopen or overwrite a newer editor.
+- Add a mixed SVG/raster project, register and edit examples, detect all photos, review, save with and without photo compression, and reopen the saved work. Newly selected SVGs must enter the project as validated PNGs; raw SVG in legacy drafts/work files remains rejected. Verify unsupported dimensions, canvas failure and aggregate overflow leave the active project valid.
 
 - At 1360 × 900, verify the ordinary photo workspace starts its canvas within approximately the top 220 CSS px, gives it at least 55% of viewport height, and requires no document-level vertical scroll for normal counting; the inspector may scroll.
 - At Japanese 390 × 844 and English 320 × 740, verify the canvas starts within approximately the top 260 CSS px and remains usefully tall without document-level horizontal overflow. The inspector temporarily replaces the canvas rather than stacking above it. Keep bounded inspector/memo scrolling; short or landscape screens may scroll when needed to preserve usable controls.
@@ -290,6 +293,7 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 - Draft size/compression controls work when IndexedDB storage is available.
 - Image corrections persist into viewer/export data.
 - Default app ZIP and viewer ZIP contain CSV + JPEG images with needs-review flags preserved in CSV and annotated images; unchecking the editor image option produces a two-CSV ZIP with identical CSV bytes.
+- ZIP output retains its starting filename, markers, image data and visibility across edits or work replacement during asynchronous rendering. A late old-image decode cannot replace the active work's cache, including when image IDs are reused.
 - Cancelled point, rectangle, move, and corner-resize actions leave counts, geometry, completion, history, redo, and autosave unchanged at 0/90/180/270 degrees in portrait and landscape. Normal release remains undoable.
 - Repository checks run camera, pointer/cancellation, ZIP, language, restore-ownership, Help/header, type-dialog focus, and paired-dialog return regressions against source, readable, root-alias, and self-extract payload variants.
 - Viewer can download current JPEG and ZIP.

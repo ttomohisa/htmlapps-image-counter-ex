@@ -110,9 +110,10 @@ test('draft and viewer serialization retain every photo and omit the active view
 });
 
 test('same-project file addition and deletion preserve the filter while retaining their ordinary current-photo behavior',async()=>{
-  const f=fixture(),{c}=f;f.set('review');c.MAX_IMAGES=30;c.MAX_PROJECT_BYTES=1e9;c.projectBytes=()=>0;c.fileToRecord=async()=>photo('added');c.showWorkspace=()=>{};c.imageCache.set('added',{});
-  vm.runInContext(section('async function addFiles(','async function switchImage('),c);
-  const added=c.addFiles([{type:'image/png'}]);await new Promise(setImmediate);assert.equal(f.decodes[0].dataUrl,'added');f.decodes[0].resolve({});await added;
+  const f=fixture(),{c}=f,png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=';
+  f.set('review');c.MAX_IMAGES=30;c.MAX_PROJECT_BYTES=1e9;c.MAX_FILE_BYTES=35*1024*1024;c.atob=atob;c.P.images.forEach(im=>im.dataUrl=png);c.fileToRecord=async()=>photo('added',{dataUrl:png});c.showWorkspace=()=>{};c.imageCache.set('added',{});
+  vm.runInContext(section('function validateProject(','function cloneLight(')+section('async function addFiles(','async function switchImage('),c);
+  const added=c.addFiles([{type:'image/png'}]);await new Promise(setImmediate);assert.equal(f.decodes[0].dataUrl,png);f.decodes[0].resolve({});await added;
   assert.equal(c.activeImageId,'added');assert.equal(f.select.value,'review');assert.deepEqual(f.names(),['zero.png','flag.png']);assert.equal(c.$('#photoFilterCount').textContent,'2/6 photos');
   c.imageCache.set('flag',{});await c.removeActiveImage();assert.equal(c.activeImageId,'flag');assert.equal(f.select.value,'review');assert.equal(c.$('#photoFilterCount').textContent,'2/5 photos');
 });

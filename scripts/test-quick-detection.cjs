@@ -246,10 +246,12 @@ test('finished quick reports capture a fixed elapsed duration without serializin
   now=9000;c.renderQuickDetection();assert.equal(captured.elapsedMs,1750);assert.equal(JSON.stringify(c.P).includes('elapsedMs'),false);
 });
 test('quick detection waits for an already-pending photo import instead of losing its Undo',async()=>{
-  const {c}=ui();let release,starts=0;c.fileToRecord=()=>new Promise(resolve=>release=resolve);c.MAX_IMAGES=30;c.MAX_PROJECT_BYTES=10000;c.projectBytes=()=>0;c.showWorkspace=()=>{};c.switchImage=async()=>{};
-  vm.runInContext(section('async function addFiles(','async function switchImage('),c);c.quickProcessImages=async()=>{starts++};
+  const {c}=ui(),png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoAAAAKAAQAAAAAktvSOAAAASElEQVR4nO3BAQEAAACCIP+vbkhAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB8GcqAAAFcBkuRAAAAAElFTkSuQmCC';
+  let release,starts=0;c.fileToRecord=()=>new Promise(resolve=>release=resolve);c.MAX_IMAGES=30;c.MAX_PROJECT_BYTES=10000;c.MAX_FILE_BYTES=35*1024*1024;c.atob=atob;c.showWorkspace=()=>{};c.switchImage=async()=>{};
+  c.P.images.forEach(im=>Object.assign(im,{dataUrl:png,width:640,height:640}));Object.assign(c.P.categories[0].detectionReference,{version:1,sourceName:'reference.png',dataUrl:png});
+  vm.runInContext(section('function validateProject(','function cloneLight(')+section('async function addFiles(','async function switchImage('),c);c.quickProcessImages=async()=>{starts++};
   const importing=c.addFiles([{type:'image/jpeg'}]);await c.startQuickDetection();assert.equal(starts,0);assert.equal(vm.runInContext('quickState.run',c),null);
-  release({id:'four',dataUrl:'four',byteSize:1,markers:[],adjustments:{}});await importing;await c.startQuickDetection();assert.equal(starts,1);
+  release({id:'four',dataUrl:png,width:640,height:640,byteSize:129,markers:[],adjustments:{}});await importing;assert.equal(c.P.images.length,4);assert.equal(c.P.images[3].id,'four');await c.startQuickDetection();assert.equal(starts,1);
 });
 test('cancelling during reference bitmap creation closes both bitmaps and never starts a worker',async()=>{
   const {c,run,images,workers,bitmaps}=runner();let release;

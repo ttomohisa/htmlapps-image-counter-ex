@@ -109,7 +109,7 @@ The photo header's **Open panel** button restores the panel after you close it w
 
 ## Usage
 
-1. Add one or more JPG / JPEG / PNG / WebP images, or use the camera.
+1. Add one or more JPG / JPEG / PNG / WebP images, or use the camera. A readable SVG is converted locally to PNG when added, while keeping its original filename and format metadata.
 2. Choose **Point** or **Rectangle** to add counts, **Review** to inspect them, or **Move** to pan.
 3. Select the active counting type from the translucent dock along the bottom of the canvas. On desktop, keys `1`–`9` also switch types.
 4. In Point mode, tap/click an object once. In Rectangle mode, drag around one object.
@@ -203,7 +203,7 @@ To edit again, choose **Open work** on the app’s start screen or in **Save / e
 
 ### CSV + optional annotated image ZIP
 
-In the editor, **Include annotated JPEGs** is checked by default. Clear it to save only `markers.csv` and `summary.csv` without decoding or rendering images. The choice lasts until the page is reloaded; it is not part of your saved project. CSV contents and editable ZIP filenames stay the same in either mode. The exported viewer still includes JPEGs in its ZIP.
+In the editor, **Include annotated JPEGs** is checked by default. Clear it to save only `markers.csv` and `summary.csv` without decoding or rendering images. The choice lasts until the page is reloaded; it is not part of your saved project. CSV contents and editable ZIP filenames stay the same in either mode. The exported viewer still includes JPEGs in its ZIP. ZIP files use the content, display settings and filename present when export starts, so later edits or opening another work do not mix results into that export.
 
 Default contents:
 
@@ -297,7 +297,8 @@ The GitHub Pages version still requires the initial HTML request. For use with t
 
 - Local detection is experimental: false positives and missed objects require human review. Process one photo or all photos sequentially using saved examples; tiles are not included.
 - One project supports up to 30 images in the current UI.
-- Individual images over 35 MB are rejected, and the project has a 220 MB source-data guard.
+- Individual image inputs and stored image payloads are limited to 35 MiB; the project limit is 220 MiB including image payloads and metadata.
+- SVG and other formats the browser can decode outside the saved-work raster list are converted to PNG when added, limited to 20 megapixels and 16,384 pixels per axis. Conversion failure leaves the image unadded. Existing saved work containing raw SVG is still rejected; newly added SVGs save as raster images.
 - Large or high-resolution multi-image projects can consume substantial device memory and browser storage.
 - Live camera availability depends on browser permissions and secure-context behavior. Device camera / file-input fallback remains available.
 - Capture-time EXIF extraction is focused on JPEG metadata; other formats generally use the source file timestamp.

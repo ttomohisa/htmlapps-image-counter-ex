@@ -14,7 +14,7 @@ function project(title='Previous') {
   return {app:'image-counter',schemaVersion:4,title,updatedAt:Date.UTC(2026,9,6,4,59),categories:[{id:'one',name:'Keep my name',color:'#d15c52',visible:true}],images:[{id:'image',name:'synthetic.png',dataUrl:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=',width:800,height:600,markers:[{id:'marker',shape:'point',categoryId:'one',x:.2,y:.3,needsReview:true}],note:'Keep my note',completed:false}]};
 }
 function setup() {
-  const nodes=[], messages=[], writes=[];
+  const nodes=[], messages=[], writes=[];let nextId=0;
   function element(tag='div',attrs={}) {
     const el={tagName:tag.toUpperCase(),attrs:{...attrs},dataset:{},children:[],style:{},hidden:'hidden' in attrs,open:false,value:'',checked:false,
       setAttribute(k,v){this.attrs[k]=String(v);if(k.startsWith('data-'))this.dataset[k.slice(5).replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]=String(v)},
@@ -34,7 +34,7 @@ function setup() {
   const $=selector=>{const e=$$(selector)[0];assert.ok(e,selector);return e};
   let dbRead=async()=>structuredClone(project()),decode=async()=>({naturalWidth:800,naturalHeight:600}),confirm=async()=>false,record=async f=>({...project('New').images[0],name:f.name});
   const context={$, $$,console:{error(){}},document:{documentElement:{},createElement:element},navigator:{language:'ja'},localStorage:{getItem(){return 'ja'}},APP_CONFIG:{slug:'image-counter',version:'1.0.0'},BUILD_MANIFEST:{},COLORS:['#d15c52','#16624f'],MAX_IMAGES:30,MAX_FILE_BYTES:35*1024*1024,MAX_VIEWER_FILE_BYTES:661*1024*1024,atob,MAX_PROJECT_BYTES:220*1024*1024,Date,Intl,Blob,Map,Math,structuredClone,
-    id:()=>`id-${nodes.length}`,renderAll(){},renderStorage(){},resizeCanvas(){},fitView(){},updateHistoryButtons(){},requestAnimationFrame(){},setTimeout(){},touch(){writes.push('save')},projectBytes:()=>0,dataUrlBytes:()=>1,loadImage:(...args)=>decode(...args),fileToRecord:(...args)=>record(...args),dbGet:()=>dbRead(),dbDel:async()=>writes.push('delete'),Toast:{show:msg=>messages.push(msg)},Confirm:{ask:(...args)=>confirm(...args)},
+    id:()=>`id-${++nextId}`,renderAll(){},renderStorage(){},resizeCanvas(){},fitView(){},updateHistoryButtons(){},requestAnimationFrame(){},setTimeout(){},touch(){writes.push('save')},projectBytes:()=>0,dataUrlBytes:()=>1,loadImage:(...args)=>decode(...args),fileToRecord:(...args)=>record(...args),dbGet:()=>dbRead(),dbDel:async()=>writes.push('delete'),Toast:{show:msg=>messages.push(msg)},Confirm:{ask:(...args)=>confirm(...args)},
     DOMParser:class{parseFromString(text){return{querySelector(){const m=text.match(/<script id="imageCounterProject"[^>]*>([\s\S]*)<\/script>/);return m?{textContent:m[1]}:null}}}}};
   const c=vm.createContext(context);
   vm.runInContext([
@@ -133,7 +133,7 @@ test('cancelled discard leaves the restore offer and saved data available',async
 test('empty or rejected image selection retains restore, while accepted images retire it',async()=>{
   const f=setup();await f.c.init();await f.c.addFiles([],{newProjectIfEmpty:true});assert.equal(f.$('#restoreBanner').hidden,false);
   f.record(async()=>{throw new Error('decode')});await f.c.addFiles([{type:'image/png',name:'bad.png'}],{newProjectIfEmpty:true});assert.equal(f.$('#restoreBanner').hidden,false);
-  f.record(async()=>project('New').images[0]);await f.c.addFiles([{type:'image/png',name:'good.png'}],{newProjectIfEmpty:true});assert.equal(f.$('#restoreBanner').hidden,true);
+  f.record(async()=>({...project('New').images[0],markers:[]}));await f.c.addFiles([{type:'image/png',name:'good.png'}],{newProjectIfEmpty:true});assert.equal(f.$('#restoreBanner').hidden,true);
 });
 
 test('sample acceptance also retires the old restore offer',async()=>{
