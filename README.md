@@ -7,7 +7,7 @@ Detection starts at **Standard**. Try **Find more** for missed objects or **More
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.18.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.19.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -79,7 +79,7 @@ Open **Edit examples** in the **Detection** panel to adjust the saved source ima
 
 Pinch or use **− / +** to zoom from 1× to 8×. Two fingers pan; **Pan view** enables one-pointer panning. **Fit** restores the whole image. Zoom changes only the view, not saved coordinates or inference inputs.
 
-Choose **Use this photo for new examples** to draw a fresh set on the currently selected photo. Your previous saved examples remain unchanged until a valid save. Closing the editor discards unsaved edits; a changed save is reversible with one Undo. Interrupted gestures and a second finger discard unfinished box edits. At least one valid example is required to save. Editing examples alone never changes counts.
+Choose **Use this photo for new examples** to draw a fresh set on the currently selected photo. Your previous saved examples remain unchanged until a valid save. Closing the editor discards unsaved edits; a changed save is reversible with one Undo. Interrupted gestures and a second finger discard unfinished box edits. At least one valid example is required to save. Small valid boxes remain usable when saving and editing, including near image edges; their saved positions and sizes stay unchanged. Very small objects can still be difficult to detect, so check the results. Editing examples alone never changes counts.
 
 ### Run and review
 
@@ -244,7 +244,7 @@ Projects are autosaved to IndexedDB on supported browsers. This copy belongs to 
 - saved draft size
 - available browser storage when the browser exposes it
 
-Draft image copies can be converted to WebP to reduce local storage usage. This compression applies to the autosaved copy; logical image dimensions and marker coordinates are preserved.
+Draft image copies can be converted to WebP to reduce local storage usage. This compression applies to the autosaved copy; logical image dimensions and marker coordinates are preserved. If you switch work during compression, the previous save cannot mix photos into the new work or change its save status.
 
 ## Publish with GitHub Pages
 

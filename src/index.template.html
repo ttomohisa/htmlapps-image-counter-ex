@@ -213,7 +213,7 @@ body:has(#workspace:not([hidden])) .intro,body:has(#workspace:not([hidden]))>foo
 <section class="dlg-section">
 <h3 data-i18n="helpNotesTitle">大切な注意事項</h3>
 <ul class="help-list">
-<li data-i18n="helpAiNote">AIには誤検出・見落としがあります。0個でも必ず写真を確認し、手動で直してください。</li>
+<li data-i18n="helpAiNote">AIには誤検出・見落としがあります。小さい見本も保存できますが、細かい対象は検出しにくい場合があります。0個でも写真を確認し、手動で直してください。</li>
 <li data-i18n="helpStorageNote">自動保存は、このブラウザー・このページだけです。データ削除や端末変更に備え、大切な作業はHTMLに保存してください。</li>
 <li data-i18n="helpPrivacyNote">写真・作業データは端末内で処理し、送信しません。ダウンロード済みHTMLはオフラインで使えます。</li>
 <li data-i18n="helpLoadingNote">モデルなどを含むHTMLのため、初回の読み込みや検出の準備には時間がかかる場合があります。</li>
@@ -297,6 +297,10 @@ Object.assign(I18N.en,{"autoTitle":"Edit examples","autoPreview":"Edit example b
 Object.assign(I18N.ja,{"helpQuickFinish":"結果を確認・修正し、「確認完了して次へ」で進みます。「保存」で作業をHTMLに保存できます。","workspacePanelOpen":"パネルを開く","workspacePanelClose":"パネルを閉じる","photoReviewTools":"この写真の確認","reopenImage":"完了を取り消す","mobileReviewHelp":"写真名の横の「パネルを開く」で写真一覧・検出・作業を表示できます。×で閉じても同じボタンで再表示できます。見本の編集は「検出」、写真を移動せず完了・確認解除する操作は「作業」にあります。スマホは「写真に戻る」でカウント画面へ戻ります。"});
 Object.assign(I18N.en,{"helpQuickFinish":"Review and correct results, then use Review complete & next. Use Save to save your work as HTML.","workspacePanelOpen":"Open panel","workspacePanelClose":"Hide panel","photoReviewTools":"Photo review","reopenImage":"Reopen photo","mobileReviewHelp":"Open panel beside the photo name shows Photos, Detection and Project. The same button reopens it after you close it with ×. Edit examples in Detection; use Photo review in Project to complete or clear review without advancing. On phones, Return to photo returns to counting."});
 // WORKSPACE:ACTIONS:END
+// REFERENCE:SAVE:BEGIN
+Object.assign(I18N.ja,{autoReferenceError:'見本を保存できませんでした。枠を確認してもう一度お試しください。',autoReferenceProjectError:'作業データが保存条件を満たしていません。写真・マーカーや作業全体の容量を確認してください。',helpAiNote:'AIには誤検出・見落としがあります。小さい見本も保存できますが、細かい対象は検出しにくい場合があります。0個でも写真を確認し、手動で直してください。'});
+Object.assign(I18N.en,{autoReferenceError:'Could not save examples. Check the boxes and try again.',autoReferenceProjectError:'This work does not meet the save requirements. Check its photos, markers and total size.',helpAiNote:'AI can miss objects or detect the wrong ones. Small examples can be saved, but fine objects may remain hard to detect. Check every photo, even with zero results, and correct it manually.'});
+// REFERENCE:SAVE:END
 let lang=(()=>{try{return localStorage.getItem(APP_CONFIG.slug+':lang')||((navigator.language||'ja').toLowerCase().startsWith('ja')?'ja':'en')}catch{return (navigator.language||'ja').toLowerCase().startsWith('ja')?'ja':'en'}})();
 function t(k,p={}){let s=(I18N[lang]&&I18N[lang][k])||I18N.ja[k]||k;for(const [a,b] of Object.entries(p))s=s.replaceAll('{'+a+'}',String(b));return s}
 function applyTranslatedAttributes(){for(const [attribute,key] of [['aria-label','i18nAriaLabel'],['title','i18nTitle'],['alt','i18nAlt']])$$('[data-i18n-'+attribute+']').forEach(e=>e.setAttribute(attribute,t(e.dataset[key])))}
@@ -409,8 +413,12 @@ function autoPromptMask(examples,m){
   const mask=new Float32Array(80*80);let valid=false;
   for(const b of examples){
     if(!autoValidRect(b,0))continue;
-    const x1=Math.max(0,Math.min(80,Math.ceil((b.x*m.width*m.scale+m.padX)/8))),y1=Math.max(0,Math.min(80,Math.ceil((b.y*m.height*m.scale+m.padY)/8))),x2=Math.max(0,Math.min(80,Math.ceil(((b.x+b.w)*m.width*m.scale+m.padX)/8))),y2=Math.max(0,Math.min(80,Math.ceil(((b.y+b.h)*m.height*m.scale+m.padY)/8)));
-    if(x2<=x1||y2<=y1)continue;valid=true;
+    let x1=Math.max(0,Math.min(80,Math.ceil((b.x*m.width*m.scale+m.padX)/8))),y1=Math.max(0,Math.min(80,Math.ceil((b.y*m.height*m.scale+m.padY)/8))),x2=Math.max(0,Math.min(80,Math.ceil(((b.x+b.w)*m.width*m.scale+m.padX)/8))),y2=Math.max(0,Math.min(80,Math.ceil(((b.y+b.h)*m.height*m.scale+m.padY)/8)));
+    // Keep normal model sampling unchanged. A valid sub-cell box still needs its center cell,
+    // including after letterboxing a panorama; never silently omit it from a mixed reference.
+    if(x2<=x1){x1=Math.max(0,Math.min(79,Math.floor(((b.x+b.w/2)*m.width*m.scale+m.padX)/8)));x2=x1+1}
+    if(y2<=y1){y1=Math.max(0,Math.min(79,Math.floor(((b.y+b.h/2)*m.height*m.scale+m.padY)/8)));y2=y1+1}
+    valid=true;
     for(let y=y1;y<y2;y++)mask.fill(1,y*80+x1,y*80+x2);
   }
   if(!valid)throw new Error('autoSmallExample');return mask;
@@ -590,11 +598,12 @@ function dataUrlBytes(s=''){const comma=s.indexOf(',');return comma<0?0:Math.cei
 let storageRenderTimer=null;function renderStorageSoon(){clearTimeout(storageRenderTimer);storageRenderTimer=setTimeout(renderStorage,50)}async function renderStorage(){if(!P)return;const currentBytes=fmtBytes(projectBytes());$('#projectBytes').textContent=currentBytes;$('#workSummaryBytes').textContent=currentBytes;$('#draftBytes').textContent=lastDraftBytes?fmtBytes(lastDraftBytes):'—';$('#draftCompressionState').textContent=P.settings.draftCompression.enabled?t('compressed'):t('useOriginal');$('#draftCompress').checked=P.settings.draftCompression.enabled;$('#draftQuality').value=Math.round(P.settings.draftCompression.quality*100);$('#draftQualityOut').textContent=Math.round(P.settings.draftCompression.quality*100)+'%';try{const e=await navigator.storage?.estimate?.();if(e?.quota)$('#storageAvailable').textContent=fmtBytes(Math.max(0,e.quota-(e.usage||0)))}catch{}}
 function scheduleSave(){clearTimeout(saveTimer);const token=++saveToken;$('#saveState').textContent=t('saving');saveTimer=setTimeout(()=>saveDraft(token),650)}
 function openDb(){return new Promise((ok,ng)=>{const r=indexedDB.open(APP_CONFIG.slug+'-db',2);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('state'))db.createObjectStore('state')};r.onsuccess=()=>ok(r.result);r.onerror=()=>ng(r.error)})}
-async function dbPut(v){const db=await openDb();return new Promise((ok,ng)=>{const tx=db.transaction('state','readwrite');tx.objectStore('state').put(v,'draft');tx.oncomplete=()=>{db.close();ok()};tx.onerror=()=>{db.close();ng(tx.error)}})}async function dbGet(){const db=await openDb();return new Promise((ok,ng)=>{const tx=db.transaction('state');const r=tx.objectStore('state').get('draft');r.onsuccess=()=>{db.close();ok(r.result)};r.onerror=()=>{db.close();ng(r.error)}})}async function dbDel(){const db=await openDb();return new Promise((ok,ng)=>{const tx=db.transaction('state','readwrite');tx.objectStore('state').delete('draft');tx.oncomplete=()=>{db.close();ok()};tx.onerror=()=>{db.close();ng(tx.error)}})}
+async function dbPut(v,isCurrent=()=>true){const db=await openDb();if(!isCurrent()){db.close();return}return new Promise((ok,ng)=>{const tx=db.transaction('state','readwrite');tx.objectStore('state').put(v,'draft');tx.oncomplete=()=>{db.close();ok()};tx.onerror=()=>{db.close();ng(tx.error)}})}async function dbGet(){const db=await openDb();return new Promise((ok,ng)=>{const tx=db.transaction('state');const r=tx.objectStore('state').get('draft');r.onsuccess=()=>{db.close();ok(r.result)};r.onerror=()=>{db.close();ng(r.error)}})}async function dbDel(){const db=await openDb();return new Promise((ok,ng)=>{const tx=db.transaction('state','readwrite');tx.objectStore('state').delete('draft');tx.oncomplete=()=>{db.close();ok()};tx.onerror=()=>{db.close();ng(tx.error)}})}
 function loadImage(src){return new Promise((ok,ng)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=ng;im.src=src})}
-async function webpForDraft(im,quality,maxEdge){const key=`${im.id}|${im.dataUrl.length}|${quality}|${maxEdge}`;if(draftImageCache.has(key))return draftImageCache.get(key);const image=imageCache.get(im.id)||await loadImage(im.dataUrl);const scale=Math.min(1,maxEdge/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*scale)),h=Math.max(1,Math.round(im.height*scale)),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(image,0,0,w,h);const url=c.toDataURL('image/webp',quality);const out={dataUrl:url,mime:'image/webp',width:w,height:h,byteSize:dataUrlBytes(url)};draftImageCache.set(key,out);return out}
-async function makeDraft(){const d=structuredClone(P),cfg=P.settings.draftCompression;if(cfg.enabled){for(const im of d.images){const src=P.images.find(x=>x.id===im.id);const comp=await webpForDraft(src,cfg.quality,cfg.maxEdge);im.dataUrl=comp.dataUrl;im.mime=comp.mime;im.byteSize=comp.byteSize;/* keep logical source dimensions so normalized and pixel coordinates stay stable */}}return d}
-async function saveDraft(token){if(!P)return;try{const d=await makeDraft();if(token!==saveToken)return;await dbPut(d);lastDraftBytes=new Blob([JSON.stringify(d)]).size;$('#saveState').textContent=t('saved');renderStorage()}catch(e){console.error(e);$('#saveState').textContent='!';Toast.show(t('saveError'))}}
+async function webpForDraft(im,quality,maxEdge,isCurrent=()=>true){if(!isCurrent())return null;const key=`${im.id}|${im.dataUrl.length}|${quality}|${maxEdge}`;if(draftImageCache.has(key))return draftImageCache.get(key);const image=imageCache.get(im.id)||await loadImage(im.dataUrl);if(!isCurrent())return null;const scale=Math.min(1,maxEdge/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*scale)),h=Math.max(1,Math.round(im.height*scale)),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(image,0,0,w,h);const url=c.toDataURL('image/webp',quality);const out={dataUrl:url,mime:'image/webp',width:w,height:h,byteSize:dataUrlBytes(url)};draftImageCache.set(key,out);return out}
+// A draft owns one snapshot. Late decodes/writes cannot change a newer project's cache or save status.
+async function makeDraft(project=P,isCurrent=()=>project===P){if(!isCurrent())return null;const d=structuredClone(project),cfg=d.settings.draftCompression;if(cfg.enabled){for(const im of d.images){if(!isCurrent())return null;const comp=await webpForDraft(im,cfg.quality,cfg.maxEdge,isCurrent);if(!isCurrent()||!comp)return null;im.dataUrl=comp.dataUrl;im.mime=comp.mime;im.byteSize=comp.byteSize;/* keep logical source dimensions so normalized and pixel coordinates stay stable */}}return d}
+async function saveDraft(token){const project=P,isCurrent=()=>P===project&&token===saveToken;if(!project||!isCurrent())return;try{const d=await makeDraft(project,isCurrent);if(!d||!isCurrent())return;await dbPut(d,isCurrent);if(!isCurrent())return;lastDraftBytes=new Blob([JSON.stringify(d)]).size;$('#saveState').textContent=t('saved');renderStorage()}catch(e){if(!isCurrent())return;console.error(e);$('#saveState').textContent='!';Toast.show(t('saveError'))}}
 function renderRestoreOffer(){const banner=$('#restoreBanner'),meta=$('#restoreMeta');banner.hidden=!restoreOffer;if(!restoreOffer){meta.textContent='';return}const time=new Intl.DateTimeFormat(lang==='ja'?'ja-JP':'en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(restoreOffer.updatedAt));meta.textContent=t('draftMeta',{images:restoreOffer.images,count:restoreOffer.count,time})}
 // Accepting a workspace invalidates both the visible offer and delayed draft reads.
 function retireRestoreOffer(){restoreOfferGeneration++;restoreOffer=null;renderRestoreOffer()}
@@ -946,7 +955,22 @@ function commitAutoExample(index,box){
 function readAutoExampleBounds(){
   const values=['autoLeft','autoTop','autoRight','autoBottom'].map(key=>$('#'+key).valueAsNumber);
   if(!values.every(n=>Number.isFinite(n)&&n>=0&&n<=100)||values[2]<=values[0]||values[3]<=values[1]){autoStatus('autoInvalidBounds','error');return null}
-  return autoOriginalRect(...values.map(n=>n/100),autoPreviewRotation());
+  const rotation=autoPreviewRotation(),original=autoState.exampleMode==='select'?autoState.examples[autoState.selectedExample]:null;
+  if(original){
+    // The fields show six decimal places in percent. Untouched fields must retain exact source geometry.
+    const r=autoDisplayBox(original,rotation),edges=[r.x,r.y,r.x+r.w,r.y+r.h];
+    for(let i=0;i<4;i++)if(values[i]===Number((edges[i]*100).toFixed(6)))values[i]=edges[i]*100;
+  }
+  const box=autoOriginalRect(...values.map(n=>n/100),rotation);
+  if(original){
+    // Moving both rounded edges can perturb size by at most one display unit (1e-8 normalized).
+    // Restore that size rather than lowering the drawing minimum or accumulating rounding drift.
+    const precision=1e-8+Number.EPSILON;
+    for(const key of ['w','h'])if(Math.abs(box[key]-original[key])<=precision)box[key]=original[key];
+    if(box.x+box.w>1&&box.x+box.w<=1+precision)box.x=1-box.w;
+    if(box.y+box.h>1&&box.y+box.h<=1+precision)box.y=1-box.h;
+  }
+  return box;
 }
 function updateAutoExampleBounds(){if(!autoExamplesEditable()||!autoState.examples[autoState.selectedExample])return;const box=readAutoExampleBounds();if(box)commitAutoExample(autoState.selectedExample,box)}
 function autoTransformExample(box,start,end,handle,rotation){
@@ -1020,10 +1044,14 @@ async function editAutoReference(){
     if(autoState.referenceEdit!==edit)return;
     if(!autoOwnerCurrent(edit.owner)||autoCurrentReference()!==reference||!$('#autoDlg').open){cancelAutoReferenceEdit();return}
     edit.image=image;autoState.busy=false;syncAutoExampleBounds();autoStatus('autoReady');renderAutoPreview();$('#autoCanvas').focus?.({preventScroll:true});
-  }catch{if(autoState.referenceEdit===edit){cancelAutoReferenceEdit();autoStatus('autoReferenceError','error')}}
+  }catch{if(autoState.referenceEdit===edit){cancelAutoReferenceEdit();autoStatus('autoInvalidImage','error')}}
 }
 function cancelAutoReferenceEdit(){
   autoState.referenceEdit=null;autoState.replaceReference=null;autoState.examples=[];resetAutoExampleSelection();resetAutoView();invalidateAutoDetection();renderAll();
+}
+function autoReferenceFailure(error){
+  const key=error?.message;
+  autoStatus(key==='autoSmallExample'?key:['image','invalidImage','autoInvalidImage'].includes(key)?'autoInvalidImage':key==='invalidProject'?'autoReferenceProjectError':'autoReferenceError','error');
 }
 function saveAutoReferenceEdit(){
   const edit=autoState.referenceEdit;if(!edit?.image||autoState.busy||!autoOwnerCurrent(edit.owner)||autoCurrentReference()!==edit.reference||!autoState.examples.length)return false;
@@ -1033,7 +1061,7 @@ function saveAutoReferenceEdit(){
     const cat=activeCategory();validateProject({...P,categories:P.categories.map(c=>c===cat?{...c,detectionReference:ref}:c)});
     if(JSON.stringify(examples)===JSON.stringify(edit.reference.examples)){cancelAutoReferenceEdit();return true}
     pushHistory();cat.detectionReference=ref;autoState.referenceEdit=null;autoState.examples=[];resetAutoExampleSelection();resetAutoView();invalidateAutoDetection();touch();renderAll();Toast.show(t('autoEditSaved'),t('undo'),undo);return true;
-  }catch{autoStatus('autoReferenceError','error');return false}
+  }catch(error){autoReferenceFailure(error);return false}
 }
 function pinAutoExamples(){
   if(autoState.busy||!autoOwnerCurrent(autoState.owner)||(autoCurrentReference()&&autoState.replaceReference!==autoCurrentReference())||!autoState.examples.length)return false;
@@ -1047,7 +1075,7 @@ function pinAutoExamples(){
     validateDetectionReference(ref);if(!autoPromptMask(examples,autoLetterbox(640,640)).some(v=>v))throw new Error('small');
     const cat=activeCategory();validateProject({...P,categories:P.categories.map(c=>c===cat?{...c,detectionReference:ref}:c)});
     pushHistory();cat.detectionReference=ref;autoState.replaceReference=null;autoState.examples=[];resetAutoExampleSelection();resetAutoView();invalidateAutoDetection();touch();renderAll();Toast.show(t('autoPinned'),t('undo'),undo);return true;
-  }catch(error){console.error(error);autoStatus('autoReferenceError','error');return false}
+  }catch(error){console.error(error);autoReferenceFailure(error);return false}
 }
 // Saving is the only commit point; closing or replacing the draft never changes the saved reference.
 async function replaceAutoExamples(){

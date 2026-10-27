@@ -152,3 +152,113 @@ test('photo review no-op or active inference preserves history, redo and existin
   c.P.images[0].markers=[{needsReview:true}];c.quickDetectionBusy=()=>true;c.markImageReviewed();assert.equal(c.P.images[0].markers[0].needsReview,true);assert.equal(c.history.length,0);
   c.activeImage=()=>null;assert.doesNotThrow(()=>c.markImageReviewed());
 });
+
+function draftSaving(){
+  const pending=[],writes=[],messages=[],errors=[],draws=[],state={textContent:'saving'};
+  const project={title:'Old work',categories:[{id:'a',detectionReference:{dataUrl:'reference pixels',examples:[{x:.1,y:.2,w:.3,h:.4}]}}],settings:{draftCompression:{enabled:true,quality:.8,maxEdge:100}},images:[{id:'shared',name:'old.jpg',dataUrl:'old-source',width:400,height:200,mime:'image/jpeg',markers:[{id:'one'}]},{id:'second',name:'second.jpg',dataUrl:'old-second',width:200,height:400,mime:'image/jpeg',markers:[]}]};
+  const c={P:project,saveToken:1,lastDraftBytes:17,structuredClone,Blob,Math,imageCache:new Map(),draftImageCache:new Map(),console:{error:e=>errors.push(e.message)},$:()=>state,t:key=>key,Toast:{show:key=>messages.push(key)},renderStorage(){},
+    loadImage:src=>new Promise((resolve,reject)=>pending.push({src,resolve,reject})),dbPut:async value=>writes.push(structuredClone(value)),
+    document:{createElement(){let src;const canvas={width:0,height:0,getContext:()=>({drawImage(image){src=image.src;draws.push(src)}}),toDataURL(type,quality){return `data:image/webp;base64,${Buffer.from(`${src}|${quality}|${canvas.width}x${canvas.height}`).toString('base64')}`}};return canvas}}};
+  vm.createContext(c);vm.runInContext(section('function dataUrlBytes(', 'function fmtBytes(')+section('async function webpForDraft(', 'function renderRestoreOffer('),c);
+  return{c,project,pending,writes,messages,errors,draws,state};
+}
+const flushDraft=()=>new Promise(resolve=>setImmediate(resolve));
+
+test('compressed draft uses one captured project and quality while preserving logical sizes and references',async()=>{
+  const {c,project,pending,writes}=draftSaving(),before=structuredClone(project),saving=c.saveDraft(1);
+  project.settings.draftCompression.quality=.3;project.images[0].markers.push({id:'later'});
+  pending[0].resolve({src:'old-source'});await flushDraft();pending[1].resolve({src:'old-second'});await saving;
+  assert.equal(writes.length,1);assert.equal(writes[0].images[0].width,400);assert.equal(writes[0].images[0].height,200);
+  assert.equal(Buffer.from(writes[0].images[1].dataUrl.split(',')[1],'base64').toString(),'old-second|0.8|50x100');
+  assert.deepEqual(writes[0].categories,before.categories);assert.deepEqual(writes[0].images[0].markers,[{id:'one'}]);
+  assert.equal(project.images[0].dataUrl,'old-source');assert.equal(project.images[1].mime,'image/jpeg');
+});
+
+test('switching work during compression stops the old draft without touching new work or its cache',async()=>{
+  const {c,pending,writes,messages,errors,state}=draftSaving(),saving=c.saveDraft(1);
+  c.P=structuredClone(c.P);c.P.images=[{...c.P.images[0],dataUrl:'new-source'}];c.saveToken=2;
+  state.textContent='new work is saving';pending[0].resolve({src:'old-source'});await saving;
+  assert.equal(pending.length,1);assert.equal(writes.length,0);assert.deepEqual(messages,[]);assert.deepEqual(errors,[]);
+  assert.equal(state.textContent,'new work is saving');assert.equal(c.lastDraftBytes,17);assert.equal(c.draftImageCache.size,0);
+});
+
+test('an old decoder cannot overwrite the compressed cache for a new project with identical photo IDs and source lengths',async()=>{
+  const {c,pending,writes,state}=draftSaving(),oldSave=c.saveDraft(1);
+  c.P=structuredClone(c.P);c.P.title='New work';c.P.images=[{...c.P.images[0],dataUrl:'new-source'}];c.saveToken=2;
+  const newSave=c.saveDraft(2);assert.deepEqual(pending.map(p=>p.src),['old-source','new-source']);
+  pending[1].resolve({src:'new-source'});await newSave;
+  pending[0].resolve({src:'old-source'});await oldSave;
+  c.saveToken=3;await c.saveDraft(3);
+  assert.equal(writes.length,2);assert.equal(writes[1].title,'New work');
+  assert.equal(Buffer.from(writes[1].images[0].dataUrl.split(',')[1],'base64').toString(),'new-source|0.8|100x50');
+  assert.equal(state.textContent,'saved');assert.equal(pending.length,2,'valid current-project compression remains cached');
+});
+
+for(const change of ['token','project'])test(`a superseded ${change} ignores a late compression failure`,async()=>{
+  const {c,pending,writes,messages,errors,state}=draftSaving(),saving=c.saveDraft(1);
+  if(change==='token')c.saveToken=2;else c.P=structuredClone(c.P);
+  state.textContent='newer work';pending[0].reject(new Error('obsolete decode'));await saving;
+  assert.equal(writes.length,0);assert.deepEqual(messages,[]);assert.deepEqual(errors,[]);assert.equal(state.textContent,'newer work');
+});
+
+for(const outcome of ['success','failure'])test(`an obsolete database ${outcome} cannot mark newer edits saved or failed`,async()=>{
+  const {c,state,messages,errors}=draftSaving();c.P.settings.draftCompression.enabled=false;
+  let resolve,reject;c.dbPut=()=>new Promise((ok,ng)=>{resolve=ok;reject=ng});const saving=c.saveDraft(1);await flushDraft();
+  c.saveToken=2;c.P.images[0].markers.push({id:'unsaved'});state.textContent='saving newer edits';
+  if(outcome==='success')resolve();else reject(new Error('obsolete write'));await saving;
+  assert.equal(state.textContent,'saving newer edits');assert.equal(c.lastDraftBytes,17);assert.deepEqual(messages,[]);assert.deepEqual(errors,[]);
+});
+
+test('the current autosave still reports a real failure and can save successfully on retry',async()=>{
+  const {c,pending,messages,state,writes}=draftSaving();c.P.images=c.P.images.slice(0,1);
+  const failed=c.saveDraft(1);pending[0].reject(new Error('current decode failed'));await failed;
+  assert.equal(state.textContent,'!');assert.deepEqual(messages,['saveError']);assert.equal(writes.length,0);
+  c.saveToken=2;const retry=c.saveDraft(2);pending[1].resolve({src:'old-source'});await retry;
+  assert.equal(writes.length,1);assert.equal(state.textContent,'saved');assert.ok(c.lastDraftBytes>17);
+});
+
+test('saving originals preserves the project snapshot without decoding photos',async()=>{
+  const {c,pending,writes,state}=draftSaving();c.P.settings.draftCompression.enabled=false;
+  const before=structuredClone(c.P);await c.saveDraft(1);
+  assert.equal(pending.length,0);assert.deepEqual(writes,[before]);assert.equal(state.textContent,'saved');
+});
+
+test('an already superseded timer does no preparation or write',async()=>{
+  const {c,pending,writes,state}=draftSaving();c.saveToken=2;state.textContent='newer edits';
+  const saving=c.saveDraft(1);await flushDraft();const started=pending.length;
+  pending[0]?.reject(new Error('obsolete request should not decode'));await saving;
+  assert.equal(started,0);assert.equal(writes.length,0);assert.equal(state.textContent,'newer edits');
+});
+
+function deferredDraftDatabase(){
+  const f=draftSaving(),opens=[],transactions=[],closed=[];let stored;
+  f.c.P.settings.draftCompression.enabled=false;
+  f.c.openDb=()=>new Promise((resolve,reject)=>opens.push({resolve,reject}));
+  vm.runInContext(section('async function dbPut(', 'async function dbGet('),f.c);
+  function connection(name){return{close(){closed.push(name)},transaction(store,mode){
+    transactions.push({name,store,mode});
+    const tx={objectStore:()=>({put(value,key){assert.equal(key,'draft');stored=structuredClone(value)}})};
+    queueMicrotask(()=>tx.oncomplete?.());return tx;
+  }}}
+  return{...f,opens,transactions,closed,connection,stored:()=>stored};
+}
+
+test('an old database open completing after a newer save cannot overwrite the newer draft',async()=>{
+  const {c,opens,transactions,closed,connection,stored,state}=deferredDraftDatabase();
+  const oldSave=c.saveDraft(1);await flushDraft();assert.equal(opens.length,1);
+  c.P=structuredClone(c.P);c.P.title='Newest work';c.P.images[0].markers.push({id:'new-marker'});c.saveToken=2;
+  const newSave=c.saveDraft(2);await flushDraft();assert.equal(opens.length,2);
+  opens[1].resolve(connection('new'));await newSave;
+  opens[0].resolve(connection('old'));await oldSave;
+  assert.equal(stored().title,'Newest work');assert.equal(stored().images[0].markers.length,2);
+  assert.deepEqual(transactions,[{name:'new',store:'state',mode:'readwrite'}]);
+  assert.deepEqual(closed,['new','old']);assert.equal(state.textContent,'saved');
+});
+
+test('new edits while the database opens prevent the obsolete transaction and retain unsaved status',async()=>{
+  const {c,opens,transactions,closed,connection,state}=deferredDraftDatabase(),saving=c.saveDraft(1);
+  await flushDraft();c.saveToken=2;c.P.images[0].markers.push({id:'not-yet-saved'});state.textContent='saving newer edits';
+  opens[0].resolve(connection('obsolete'));await saving;
+  assert.deepEqual(transactions,[]);assert.deepEqual(closed,['obsolete']);assert.equal(state.textContent,'saving newer edits');
+  assert.equal(c.lastDraftBytes,17);
+});

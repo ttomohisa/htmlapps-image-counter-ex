@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0-dev.19 — 2026-10-27
+
+- Fix valid small or image-edge examples disappearing during prompt-grid conversion, which could prevent Save & detect or silently omit an example when larger boxes were also present. Apply the same center-cell fallback during save validation and inference while preserving nonempty intervals and saved box geometry.
+- Preserve numeric-bound precision so moving a small saved example does not reject an unchanged dimension as too small.
+- Report image, example and project-validation failures separately instead of suggesting storage trouble for every failed example save. Preserve pending boxes and any previous saved reference after validation failure.
+- Keep autosave preparation and compression tied to the captured work. Ignore stale cache/status/error updates after a newer save or project replacement, including projects with reused image IDs.
+- Preserve model/runtime assets, schema 4, single-HTML packaging and license/source/build information. Saving small examples does not establish improved detection accuracy.
+
 ## 1.1.0-dev.18 — 2026-10-27
 
 - Move panel access into the photo header with explicit Open panel / Hide panel labels. Closing the right panel with × leaves a visible way to restore it, with matching accessible state and keyboard focus behavior.

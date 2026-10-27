@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.18
+- **Version:** 1.1.0-dev.19
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -138,6 +138,7 @@ Undo/Redo must schedule autosave of the restored state, just like direct edits. 
 - Show current project data size, saved draft size, and available browser storage when available.
 - Default to compressing the **draft copy only** to WebP to reduce local storage usage.
 - Allow draft WebP quality adjustment.
+- Capture the project and compression settings for each autosave. A project replacement or newer save invalidates older preparation, cache updates and status/error reporting; an old photo decode must never borrow images from the new project or overwrite its save state.
 - Restoring a compressed draft must preserve logical image dimensions, markers, categories, notes, completion state, adjustments and optional detection checks/replacement eligibility.
 
 ## 5. Export requirements
@@ -326,7 +327,8 @@ Compatibility exception: the former native resize handler could create an exact 
 - Without saved examples for the selected type, the current-photo action opens setup. Draw individual objects and choose **Save & detect** to register them and start current-photo detection, or **Save & close** to register them for later. The separate Pin action is removed.
 - Each type stores an independent, immutable 640 × 640 letterboxed PNG snapshot with normalized example boxes. It survives source-photo removal, lightweight history and draft/saved-work round trips. CSV contains counts and markers only. Preserve the native app identifier, schema 4 and storage slug `image-counter`.
 - Opening saved examples immediately enters a draft editor over the saved source snapshot, at rotation zero and independent of the current target. Save shares the existing PNG and replaces only its boxes. **Use this photo** stages a fresh source and boxes from the current target without deleting the previous saved reference; only a valid save replaces it.
-- Save validates snapshot/reference geometry, a nonempty prompt mask and project limits before committing one history/autosave transaction. A valid unchanged save creates no history but can continue to detection. Failed, empty or stale saves remain in the editor and cannot start inference. After successful Save & detect, recheck the captured project/photo/type owner, close the editor, then start the shared detection path.
+- Save validates snapshot/reference geometry, a nonempty prompt mask and project limits before committing one history/autosave transaction. A valid unchanged save creates no history but can continue to detection. Failed, empty or stale saves remain in the editor and cannot start inference. Distinguish image decoding, invalid project/size limits and invalid example errors; do not label every failure as storage trouble. Validation failures retain the pending boxes and previous saved reference. After successful Save & detect, recheck the captured project/photo/type owner, close the editor, then start the shared detection path.
+- Every valid positive-size example must contribute to the model prompt, including small boxes, image-edge boxes and boxes on very wide or tall photos. Keep the existing 80 × 80 mask intervals where nonempty; if an axis collapses during quantization, cover the cell containing that box's center on that axis. Keep the saved box geometry unchanged. This prevents save failures and omitted prompts, without promising better detection accuracy for tiny objects.
 - Cancel, Escape, close and stale loading discard pending example changes and retain the saved reference and all counts. Clearing all boxes requires adding at least one valid box before saving. Late image decoding cannot reopen a closed editor or change newer work.
 - Imports validate PNG magic/header dimensions, version, 2 MiB snapshot limit, one to twenty finite in-bounds boxes and aggregate project budget. Existing schema-4 projects without references remain supported.
 
@@ -367,6 +369,6 @@ Compatibility exception: the former native resize handler could create an exact 
 
 ### Detection acceptance checks
 
-- Cover first-time setup, existing-reference edit, save-only and save-and-detect, valid unchanged save, validation failure, close/cancel, staged source replacement, stale asynchronous loading, type switching, Undo/Redo and draft/saved-work round trips.
+- Cover first-time setup, existing-reference edit, save-only and save-and-detect, valid unchanged save, validation failure, close/cancel, staged source replacement, stale asynchronous loading, type switching, Undo/Redo and draft/saved-work round trips. Include small/edge boxes, mixed small and large examples, wide/tall source images and unchanged saved geometry. Check that stale autosave preparation, compression and failure callbacks cannot affect replacement work.
 - Cover local/saved examples, canvas/list selection, selected-only deletion, all resize handles, numeric bounds, rotations, anchored pinch/pan, limits/Fit and interrupted/late gestures without changing saved data.
 - Cover zero/duplicate-only review, all statuses, hidden/other types, both rerun modes, protected markers, errors/truncation/cancellation, one-step run Undo/Redo, keyboard and bilingual layouts. Record physical Android, browser-width and direct-file checks separately; automated checks alone establish none of them.

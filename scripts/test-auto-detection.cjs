@@ -23,6 +23,118 @@ function core(){
 const plain = value => JSON.parse(JSON.stringify(value));
 const box=(x,y,w,h,score=.9)=>({x,y,w,h,score});
 
+// A complete 640×640, 1-bit grayscale PNG; canvas encoding is the only image boundary mocked below.
+const referencePng='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoAAAAKAAQAAAAAktvSOAAAASElEQVR4nO3BAQEAAACCIP+vbkhAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB8GcqAAAFcBkuRAAAAAElFTkSuQmCC';
+function validatedReferenceEditor(width=640,height=640){
+  const f=snapshotEditor(),{c,im}=f;
+  c.atob=s=>Buffer.from(s,'base64').toString('binary');
+  vm.runInContext(source.match(/const MAX_IMAGES=[^;]+;/)[0]+section('function validateProject(','function cloneLight('),c);
+  Object.assign(im,{name:'photo.png',dataUrl:referencePng,width,height});
+  c.P.app='image-counter';c.P.schemaVersion=4;
+  c.imageCache.set(im.id,{naturalWidth:width,naturalHeight:height});
+  c.loadImage=async()=>({naturalWidth:640,naturalHeight:640});
+  const createElement=c.document.createElement;
+  c.document.createElement=tag=>tag==='canvas'?{getContext:()=>({fillRect(){},drawImage(){}}),toDataURL:()=>referencePng}:createElement(tag);
+  vm.runInContext('autoState.owner={project:P,imageId:activeImage().id,dataUrl:activeImage().dataUrl,categoryId:activeCategoryId}',c);
+  return f;
+}
+const occupiedCells=mask=>Array.from(mask, (value,index)=>value?index:-1).filter(index=>index>=0);
+
+// Literal expected cells are hand-derived in the 80×80 prompt grid. Normal ceil intervals must stay unchanged.
+for(const [name,width,height,example,want] of [
+  ['interior tiny box',640,640,{x:.101,y:.101,w:.003,h:.003},[648]],
+  ['top-left tiny box',640,640,{x:.0001,y:.0001,w:.003,h:.003},[0]],
+  ['bottom-right tiny box',640,640,{x:.996,y:.996,w:.004,h:.004},[6399]],
+  ['portrait letterbox',3000,4000,{x:.101,y:.101,w:.003,h:.003},[656]],
+  ['landscape letterbox',4000,3000,{x:.101,y:.101,w:.003,h:.003},[1288]],
+  ['wide panorama',12000,1000,{x:.1,y:.1,w:.1,h:.1},[2968,2969,2970,2971,2972,2973,2974,2975]],
+  ['tall panorama',1000,12000,{x:.1,y:.1,w:.1,h:.1},[677,757,837,917,997,1077,1157,1237]],
+  ['narrow width keeps its noncollapsed height',640,640,{x:.101,y:.101,w:.003,h:.1},[728,808,888,968,1048,1128,1208,1288]],
+  ['ordinary box retains ceil intervals',640,640,{x:.101,y:.101,w:.025,h:.025},[729,730,809,810]]
+])test(`accepted ${name} saves with real reference/project validation and contributes the expected prompt cells`,()=>{
+  const {c,im}=validatedReferenceEditor(width,height);assert.equal(c.autoValidRect(example),true);
+  vm.runInContext('autoState.examples='+JSON.stringify([example]),c);const before=JSON.stringify(im);
+  assert.equal(c.pinAutoExamples(),true);const ref=c.autoCurrentReference();
+  assert.doesNotThrow(()=>c.validateProject(c.P));assert.equal(JSON.stringify(im),before);
+  assert.deepEqual(occupiedCells(c.autoPromptMask(ref.examples,c.autoLetterbox(640,640))),want);
+  assert.equal(c.historyCount,1);assert.equal(vm.runInContext('autoState.examples.length',c),0);
+});
+
+test('a mixed reference includes each tiny example instead of silently dropping it beside a larger one',()=>{
+  const {c}=validatedReferenceEditor();
+  vm.runInContext('autoState.examples=[{x:.5,y:.5,w:.025,h:.025},{x:.101,y:.101,w:.003,h:.003}]',c);
+  assert.equal(c.pinAutoExamples(),true);
+  assert.deepEqual(occupiedCells(c.autoPromptMask(c.autoCurrentReference().examples,c.autoLetterbox(640,640))),[648,3240,3241,3320,3321]);
+});
+
+test('moving a saved narrow example across a prompt-cell boundary still saves with real validation',async()=>{
+  const {c}=validatedReferenceEditor();
+  const reference={version:1,sourceName:'saved.png',dataUrl:referencePng,examples:[{x:.4,y:.5,w:.002,h:.02}]};
+  c.P.categories[0].detectionReference=reference;await c.editAutoReference();
+  c.commitAutoExample(0,{x:.401,y:.501,w:.002,h:.02});
+  assert.equal(c.saveAutoReferenceEdit(),true);
+  assert.equal(c.autoCurrentReference().dataUrl,reference.dataUrl);assert.deepEqual(reference.examples,[{x:.4,y:.5,w:.002,h:.02}]);
+  assert.deepEqual(occupiedCells(c.autoPromptMask(c.autoCurrentReference().examples,c.autoLetterbox(640,640))),[3312]);
+  assert.doesNotThrow(()=>c.validateProject(c.P));assert.equal(c.historyCount,1);
+});
+
+for(const mode of ['new','edit'])for(const [failure,want] of [['invalidProject','autoReferenceProjectError'],['autoSmallExample','autoSmallExample'],['invalidImage','autoInvalidImage'],['unrelatedFailure','autoReferenceError']])
+test(`${mode} reference ${failure} reports the actionable cause and preserves the saved reference and draft`,async()=>{
+  const {c}=validatedReferenceEditor();
+  const reference={version:1,sourceName:'saved.png',dataUrl:referencePng,examples:[{x:.4,y:.5,w:.1,h:.1}]};c.P.categories[0].detectionReference=reference;
+  if(mode==='edit'){await c.editAutoReference();c.addAutoExample({x:.2,y:.2,w:.1,h:.1})}
+  else vm.runInContext('autoState.replaceReference=autoCurrentReference();autoState.examples=[{x:.2,y:.2,w:.1,h:.1}]',c);
+  const before=JSON.stringify(c.P),draft=JSON.stringify(exampleState(c));
+  c.validateProject=()=>{throw new Error(failure)};
+  assert.equal(mode==='edit'?c.saveAutoReferenceEdit():c.pinAutoExamples(),false);
+  assert.equal(vm.runInContext('autoState.message',c),want);
+  assert.equal(c.autoCurrentReference(),reference);assert.equal(JSON.stringify(c.P),before);assert.equal(JSON.stringify(exampleState(c)),draft);assert.equal(c.historyCount,undefined);
+});
+
+test('new reference with an unavailable source image reports the image cause without committing',()=>{
+  const {c,im}=validatedReferenceEditor();const before=JSON.stringify(c.P),draft=JSON.stringify(exampleState(c));c.imageCache.delete(im.id);
+  assert.equal(c.pinAutoExamples(),false);assert.equal(vm.runInContext('autoState.message',c),'autoInvalidImage');
+  assert.equal(JSON.stringify(c.P),before);assert.equal(JSON.stringify(exampleState(c)),draft);assert.equal(c.historyCount,undefined);
+});
+
+test('numeric horizontal movement keeps the untouched narrow letterboxed height instead of rejecting rounded bounds',async()=>{
+  const {c,element}=validatedReferenceEditor(1200,760);
+  vm.runInContext('autoState.examples=[{x:.101,y:.101,w:.004,h:.004}]',c);assert.equal(c.pinAutoExamples(),true);
+  const saved=c.autoCurrentReference(),original={...saved.examples[0]};await c.editAutoReference();
+  assert.deepEqual(['autoLeft','autoTop','autoRight','autoBottom'].map(id=>Number(element('#'+id).value)),[10.1,24.677917,10.5,24.93125]);
+  setExampleBounds(element,[10.2,24.677917,10.6,24.93125]);c.updateAutoExampleBounds();
+  nearBox(exampleState(c)[0],{...original,x:.102});assert.equal(exampleState(c)[0].h,original.h);
+  assert.equal(c.saveAutoReferenceEdit(),true);assert.doesNotThrow(()=>c.validateProject(c.P));nearBox(saved.examples[0],original);
+});
+
+for(const rotation of [0,90,180,270])test(`round-tripping displayed numeric bounds at ${rotation} degrees does not drift the draft`,()=>{
+  const {c,im,element}=validatedReferenceEditor();im.adjustments.rotation=rotation;
+  const original={x:.101234567,y:.203456789,w:.003123456,h:.003234567};
+  vm.runInContext('autoState.examples='+JSON.stringify([original]),c);c.selectAutoExample(0);
+  for(let n=0;n<3;n++){
+    setExampleBounds(element,['autoLeft','autoTop','autoRight','autoBottom'].map(id=>Number(element('#'+id).value)));
+    c.updateAutoExampleBounds();assert.deepEqual(exampleState(c)[0],original);
+  }
+});
+
+test('translating all rounded bounds preserves narrow saved dimensions, including at the bottom-right edge',async()=>{
+  const {c,element}=validatedReferenceEditor();
+  const original={x:.101234567,y:.203456789,w:.002533333333333333,h:.002533333333333333};
+  c.P.categories[0].detectionReference={version:1,sourceName:'saved.png',dataUrl:referencePng,examples:[original]};await c.editAutoReference();
+  setExampleBounds(element,[10.223457,20.445679,10.47679,20.699012]);c.updateAutoExampleBounds();
+  const moved=exampleState(c)[0];assert.ok(moved.x>original.x);assert.ok(moved.y>original.y);assert.equal(moved.w,original.w);assert.equal(moved.h,original.h);
+  setExampleBounds(element,[99.746667,99.746667,100,100]);c.updateAutoExampleBounds();
+  nearBox(exampleState(c)[0],{x:1-original.w,y:1-original.h,w:original.w,h:original.h});
+  assert.equal(c.saveAutoReferenceEdit(),true);assert.doesNotThrow(()=>c.validateProject(c.P));
+});
+
+test('numeric precision recovery does not allow a real reduction below the saved narrow minimum',async()=>{
+  const {c,element}=validatedReferenceEditor(),original={x:.1,y:.2,w:.002533333333333333,h:.002533333333333333};
+  c.P.categories[0].detectionReference={version:1,sourceName:'saved.png',dataUrl:referencePng,examples:[original]};await c.editAutoReference();
+  setExampleBounds(element,[30,40,30+(original.w-2e-8)*100,40+original.h*100]);c.updateAutoExampleBounds();
+  assert.deepEqual(exampleState(c)[0],original);assert.equal(vm.runInContext('autoState.message',c),'autoSmallExample');
+});
+
 test('default visual search retains low-score objects without duplicating overlapping boxes',()=>{
   const select=source.match(/<select id="autoThreshold"[^>]*>([\s\S]*?)<\/select>/)[1];
   const options=[...select.matchAll(/<option value="([^"]+)"([^>]*)>/g)];
