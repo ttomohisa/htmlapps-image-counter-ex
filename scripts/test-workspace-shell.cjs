@@ -1,7 +1,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),test=require('node:test');
 let source=fs.readFileSync(process.env.IMAGE_COUNTER_HTML||require('node:path').join(__dirname,'../src/index.template.html'),'utf8');
 if(source.includes('id="self-extract-payload"'))source=require('node:zlib').gunzipSync(Buffer.from(source.match(/<script id="self-extract-payload" type="application\/octet-stream">([A-Za-z0-9+/=\r\n]+)<\/script>/)[1],'base64')).toString('utf8');
-function fixture(){const nodes=new Map(),events={},calls=[];let c;function node(id){return{id,hidden:false,disabled:false,inert:false,textContent:'',attributes:{},classList:{toggle(){}},setAttribute(k,v){this.attributes[k]=v},getAttribute(k){return this.attributes[k]},getClientRects(){return this.hidden?[]:[{}]},focus(){c.document.activeElement=this},contains(n){return n===this},addEventListener(k,f){this[k]=f}}}const $=s=>{if(!nodes.has(s))nodes.set(s,node(s));return nodes.get(s)};c={lang:'en',P:{images:[{}]},mode:'point',$,activeImage:()=>({}),matchMedia:()=>({matches:false}),quickDetectionBusy:()=>false,document:{body:node('body'),activeElement:null,querySelector:()=>null},getComputedStyle:()=>({visibility:'visible'}),cancelMarkerInteraction:()=>calls.push('cancel'),pointers:new Map([[1,{}]]),gesture:{},requestAnimationFrame:f=>f(),resizeCanvas:()=>calls.push('resize'),renderCanvas(){},addEventListener:(k,f)=>events[k]=f,t:k=>k,photoFilterTarget:()=>null,navigateFilteredPhoto(){},reviewAndNext(){}};c.document.activeElement=c.document.body;vm.createContext(c);const a=source.indexOf('// MOBILE:REVIEW:BEGIN'),b=source.indexOf('// MOBILE:REVIEW:END');vm.runInContext(source.slice(a,b),c);return{c,$,events,calls}}
+function fixture(){const nodes=new Map(),events={},calls=[];let c;function node(id){const classes=new Set();return{id,hidden:false,disabled:false,inert:false,textContent:'',attributes:{},classList:{toggle(name,on){if(on===undefined)on=!classes.has(name);if(on)classes.add(name);else classes.delete(name);return on},contains:name=>classes.has(name)},setAttribute(k,v){this.attributes[k]=v},getAttribute(k){return this.attributes[k]},getClientRects(){return this.hidden?[]:[{}]},focus(){c.document.activeElement=this},contains(n){return n===this},addEventListener(k,f){this[k]=f}}}const $=s=>{if(!nodes.has(s))nodes.set(s,node(s));return nodes.get(s)};c={lang:'en',P:{images:[{}]},mode:'point',$,activeImage:()=>({}),matchMedia:()=>({matches:false}),quickDetectionBusy:()=>false,document:{body:node('body'),activeElement:null,querySelector:()=>null},getComputedStyle:()=>({visibility:'visible'}),cancelMarkerInteraction:()=>calls.push('cancel'),pointers:new Map([[1,{}]]),gesture:{},requestAnimationFrame:f=>f(),resizeCanvas:()=>calls.push('resize'),renderCanvas(){},addEventListener:(k,f)=>events[k]=f,t:k=>k,photoFilterTarget:()=>null,navigateFilteredPhoto(){},reviewAndNext(){}};c.document.activeElement=c.document.body;vm.createContext(c);vm.runInContext(source.slice(source.indexOf('const I18N='),source.indexOf('let lang='))+source.slice(source.indexOf('function t('),source.indexOf('function applyTranslatedAttributes(')),c);const a=source.indexOf('// MOBILE:REVIEW:BEGIN'),b=source.indexOf('// MOBILE:REVIEW:END');vm.runInContext(source.slice(a,b),c);return{c,$,events,calls}}
 test('inspector state belongs to accepted project, survives modes and language without serializing',()=>{const{c,$}=fixture();assert.equal(typeof c.setWorkspacePanel,'function');const before=JSON.stringify(c.P);c.renderWorkspaceShell();c.setWorkspacePanel('detection');assert.equal($('#inspectorDetection').hidden,false);c.mode='review';c.renderWorkspaceShell();assert.equal($('#inspectorDetection').hidden,false);assert.equal(JSON.stringify(c.P),before);c.P={images:[{}]};c.renderWorkspaceShell();assert.equal($('#inspectorPhotos').hidden,false)});
 test('layout transitions abandon gestures before geometry changes and cannot commit later',()=>{const{c,calls,events}=fixture();c.renderWorkspaceShell();c.setWorkspacePanel('project');assert.equal(calls[0],'cancel');assert.equal(c.pointers.size,0);assert.equal(c.gesture,null);calls.length=0;events.resize();assert.equal(calls[0],'cancel')});
 test('busy and modal guards reject inspector changes; close repairs only hidden focus',()=>{const{c,$}=fixture();c.renderWorkspaceShell();c.quickDetectionBusy=()=>true;c.setWorkspacePanel('project');assert.equal($('#inspectorPhotos').hidden,false);c.quickDetectionBusy=()=>false;c.setWorkspacePanel('project');const input=$('#projectTitle');c.document.activeElement=input;input.hidden=true;c.setWorkspaceOpen(false);assert.equal(c.document.activeElement,$('#mobileReviewToggle'));c.document.activeElement=$('#other');c.setWorkspaceOpen(true);assert.equal(c.document.activeElement,$('#other'))});
@@ -27,3 +27,54 @@ test('history and photo add controls retain translated accessible names',()=>{fo
 test('completed filtered run returns focus to tools when its launcher becomes disabled',()=>{const{c,$}=fixture();c.matchMedia=()=>({matches:true});c.renderWorkspaceShell();c.setWorkspacePanel('photos');const opener=$('#quickFiltered');opener.disabled=true;c.document.activeElement=c.document.body;c.focusMobileReviewTarget(opener);assert.equal(c.document.activeElement,$('#inspectorTabPhotos'));c.setWorkspaceOpen(false);c.document.activeElement=c.document.body;c.focusMobileReviewTarget(opener);assert.equal(c.document.activeElement,$('#mobileReviewToggle'))});
 
 test('native dialog closing in mobile tools returns to visible inspector without stealing another owner',()=>{const{c,$}=fixture();c.matchMedia=()=>({matches:true});const viewer={inert:false};$('#canvasWrap').closest=()=>viewer;$('#mobileReviewToggle').getClientRects=()=>viewer.inert?[]:[{}];c.renderWorkspaceShell();c.setWorkspacePanel('detection');c.document.activeElement=c.document.body;$('#autoDlg').close();assert.equal(c.document.activeElement,$('#inspectorTabDetection'));c.document.activeElement=$('#other');$('#autoDlg').close();assert.equal(c.document.activeElement,$('#other'));c.lang='ja';c.renderWorkspaceShell();assert.equal($('#workspaceInspector').attributes['aria-label'],'写真と作業の設定');c.lang='en';c.renderWorkspaceShell();assert.equal($('#inspectorTabs').attributes['aria-label'],'Workspace tools')});
+
+for(const [language,openLabel,closeLabel] of [['ja','パネルを開く','パネルを閉じる'],['en','Open panel','Hide panel']])test(`closing the inspector returns focus to its explicit ${language} opener and reopening preserves the selected panel`,()=>{
+  const{c,$}=fixture();c.lang=language;c.renderWorkspaceShell();c.setWorkspacePanel('detection');
+  const before=JSON.stringify(c.P),toggle=$('#mobileReviewToggle'),label=$('#workspacePanelLabel');
+  assert.equal(label.textContent,closeLabel);assert.equal(toggle.getAttribute('aria-expanded'),'true');
+  assert.equal(toggle.getAttribute('aria-label'),closeLabel);assert.equal(toggle.title,closeLabel);
+  c.document.activeElement=$('#inspectorClose');$('#inspectorClose').onclick();
+  assert.equal($('#workspaceInspector').hidden,true);assert.equal(c.document.activeElement,toggle);
+  assert.equal(label.textContent,openLabel);assert.equal(toggle.getAttribute('aria-expanded'),'false');
+  assert.equal(toggle.getAttribute('aria-label'),openLabel);assert.equal(toggle.title,openLabel);
+  toggle.onclick();
+  assert.equal($('#workspaceInspector').hidden,false);assert.equal($('#inspectorDetection').hidden,false);
+  assert.equal(label.textContent,closeLabel);assert.equal(JSON.stringify(c.P),before);
+});
+
+test('Escape from a panel tab returns keyboard focus to the visible opener, while an input retains Escape ownership',()=>{
+  const{c,$,events}=fixture();c.renderWorkspaceShell();c.setWorkspacePanel('project');
+  const tab=$('#inspectorTabProject');tab.getClientRects=()=>$('#workspaceInspector').hidden?[]:[{}];c.document.activeElement=tab;
+  let prevented=0;events.keydown({key:'Escape',defaultPrevented:false,preventDefault(){prevented++}});
+  assert.equal(prevented,1);assert.equal($('#workspaceInspector').hidden,true);assert.equal(c.document.activeElement,$('#mobileReviewToggle'));
+  $('#mobileReviewToggle').onclick();const input=$('#projectTitle');input.matches=()=>true;c.document.activeElement=input;
+  events.keydown({key:'Escape',defaultPrevented:false,preventDefault(){prevented++}});
+  assert.equal(prevented,1);assert.equal($('#workspaceInspector').hidden,false);assert.equal(c.document.activeElement,input);
+});
+
+for(const guard of ['import','busy','modal','inert'])test(`panel close and reopen reject ${guard} without changing the selected panel or project`,()=>{
+  const{c,$}=fixture();c.renderWorkspaceShell();c.setWorkspacePanel('detection');const before=JSON.stringify(c.P);
+  function lock(on){if(guard==='import')c.quickImportsBusy=()=>on;if(guard==='busy')c.quickDetectionBusy=()=>on;if(guard==='modal')c.document.querySelector=()=>on?{}:null;if(guard==='inert')$('#workspace').inert=on}
+  lock(true);$('#inspectorClose').onclick();assert.equal($('#workspaceInspector').hidden,false);
+  lock(false);$('#inspectorClose').onclick();assert.equal($('#workspaceInspector').hidden,true);
+  lock(true);$('#mobileReviewToggle').onclick();assert.equal($('#workspaceInspector').hidden,true);
+  lock(false);$('#mobileReviewToggle').onclick();assert.equal($('#workspaceInspector').hidden,false);
+  assert.equal($('#inspectorDetection').hidden,false);assert.equal(JSON.stringify(c.P),before);
+});
+
+test('the prominent action follows counting versus review mode without changing inspector state or saved work',()=>{
+  const{c,$}=fixture();c.renderWorkspaceShell();c.setWorkspacePanel('project');const before=JSON.stringify(c.P);
+  for(const mode of ['point','review','rect','pan','review']){
+    c.mode=mode;c.renderWorkspaceShell();
+    assert.equal($('#workspaceDetect').classList.contains('primary'),mode!=='review',mode+' detection priority');
+    assert.equal($('#reviewNext').classList.contains('primary'),mode==='review',mode+' review priority');
+    assert.equal($('#inspectorProject').hidden,false);assert.equal(JSON.stringify(c.P),before);
+  }
+});
+
+test('the panel opener remains a named native button in the photo header and the redundant example launcher is removed',()=>{
+  const head=source.slice(source.indexOf('<div class="viewer-head">'),source.indexOf('<div class="workspace-toolbar">'));
+  assert.match(head,/<button id="mobileReviewToggle"[^>]*type="button"[^>]*aria-controls="workspaceInspector"/);
+  assert.match(head,/id="workspacePanelLabel"/);
+  assert.doesNotMatch(source,/id="workspaceSetup"|\$\('#workspaceSetup'\)/);
+});

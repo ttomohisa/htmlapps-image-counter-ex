@@ -7,7 +7,7 @@ Detection starts at **Standard**. Try **Find more** for missed objects or **More
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.17.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.18.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -39,7 +39,7 @@ Undo / Redo results also auto-save. Resetting image corrections returns the imag
 - **Work through multiple photos** — Filter the thumbnail list by photo status and move between matching photos. Counts show progress across the whole project. **Review complete & next** reviews and completes a photo, then moves to the next incomplete one.
 - **Adjust hard-to-see photos without changing the original** — Brightness, contrast, grayscale, and 90° rotation are non-destructive and are preserved in exports.
 - **Capture photos from the camera** — Review a capture before adding it, retake it, or accept it and continue shooting.
-- **Resume or carry your work** — Autosave in this browser, or use **Save / export → Save work as HTML** to keep photos, saved examples, markers and review progress in a file. Choose **Open work** to resume editing.
+- **Resume or carry your work** — Autosave in this browser, or use **Save → Save work as HTML** to keep photos, saved examples, markers and review progress in a file. Choose **Open work** to resume editing.
 - **Export results in practical formats** — Saved work HTML opens directly as a read-only viewer. You can also export a ZIP containing `markers.csv` and `summary.csv`, with optional annotated JPEG images.
 - **Share a viewer without giving up the data** — The exported viewer can switch images, toggle marker visibility, show image information and comments, and re-export JPEG / CSV+JPEG ZIP. Import it back into Image Counter to resume editing.
 - **Private local runtime** — No account, analytics, remote font, runtime CDN, or image upload. Runtime networking is blocked by CSP with `connect-src 'none'`.
@@ -75,7 +75,7 @@ After examples are saved, **Detect this photo**, **Detect all photos**, and the 
 
 ### Edit saved examples
 
-Open **Edit examples** to adjust the saved source image, even if its original photo has been removed. **Add** draws another box; **Select / edit** selects a box from the image or numbered list. Drag inside a selected box to move it, use its corners to resize it, or enter percentage bounds. **Delete selected example** removes only that box.
+Open **Edit examples** in the **Detection** panel to adjust the saved source image, even if its original photo has been removed. **Add** draws another box; **Select / edit** selects a box from the image or numbered list. Drag inside a selected box to move it, use its corners to resize it, or enter percentage bounds. **Delete selected example** removes only that box.
 
 Pinch or use **− / +** to zoom from 1× to 8×. Two fingers pan; **Pan view** enables one-pointer panning. **Fit** restores the whole image. Zoom changes only the view, not saved coordinates or inference inputs.
 
@@ -89,7 +89,7 @@ The **Detection** panel keeps sensitivity, the current photo's detection region 
 
 **Detect all photos** includes completed photos. A run prepares the model and saved examples once for its captured target list and reports elapsed time including preparation. **Stop** keeps already processed photos; one **Undo** restores the entire run. No other work can be edited while detection is running. Leaving the page stops inference and releases its runtime.
 
-After review, **Review complete & next** clears the photo's review flags, completes it and moves to the next unfinished photo, wrapping once. If all photos are complete, it stays on the current photo. **Clear review flags** clears review state without changing completion. Both are undoable.
+After review, **Review complete & next** clears the photo's review flags, completes it and moves to the next unfinished photo, wrapping once. If all photos are complete, it stays on the current photo. To stay on the photo, open **Project → Photo review**: **Clear review flags** clears review state without changing completion, while the separate completion control completes or reopens it without navigation. These operations remain undoable.
 
 The user reported successful Android Chrome operation with dev.3. Physical Android verification of the newer editor and detection flow remains pending; successful HTTP tests do not establish direct-file support. See the [device checklist](docs/ANDROID_FILE_TEST.md).
 
@@ -103,9 +103,9 @@ Detection still analyzes the full image and accepts boxes only when their center
 
 ## Photo-first workspace
 
-The photo remains the main working area in every mode. Switch between **Photos**, **Detection** and **Project** in one tools panel: Photos holds the list, filter and photo actions; Detection holds examples, regions and detection settings; Project holds totals, types, display and browser-storage settings. Current-photo detection, photo navigation, mode controls and Save stay directly reachable beside the photo.
+The photo remains the main working area in every mode. Switch between **Photos**, **Detection** and **Project** in one tools panel: Photos holds the list, filter and photo actions; Detection holds example editing, regions and detection settings; Project holds photo-review actions, totals, types, display and browser-storage settings. The action row groups detection, **Review complete & next** and **Save** beside the mode controls. Review highlights the next-photo action; other modes highlight detection. The selection row appears only in Review.
 
-On desktop, the tools panel sits to the right and scrolls independently. On narrow screens, **Photos & tools** temporarily replaces the photo area with the panel; **Return to photo** brings it back. Review keeps selection and **Review complete & next** beside the canvas. Its phone bottom bar offers Undo, Redo, previous/next photo and Save; other modes offer Undo, Redo, Add, Types and Save. Panel choices are temporary and reset when you open different work. Physical Android checks for the new workspace remain pending.
+The photo header's **Open panel** button restores the panel after you close it with ×. While open, the button reads **Hide panel**. On desktop, the panel sits to the right and scrolls independently. On narrow screens, it temporarily replaces the photo area; **Return to photo** brings it back. The phone bottom bar offers Undo, Redo, previous/next photo and Save in Review, or Undo, Redo, Add, Types and Save in other modes. Panel choices are temporary and reset when you open different work. Physical Android checks for the new workspace remain pending.
 
 ## Usage
 
@@ -115,9 +115,9 @@ On desktop, the tools panel sits to the right and scrolls independently. On narr
 4. In Point mode, tap/click an object once. In Rectangle mode, drag around one object.
 5. In Review, select existing markers to inspect or delete them. Choose **Single**, select a marker and choose **Edit** to move it or resize a rectangle from its four corner handles.
 6. In Review's Single selection, use the flag button to set or clear **Needs review** while staying in Review. Review automatic results even when no new markers were found.
-7. Use the memo button beside **Complete** to add an image note. On desktop the memo panel can be dragged within the canvas; on mobile it opens below the canvas.
+7. Use the memo button at the upper-right of the photo to add an image note. On desktop the memo panel can be dragged within the canvas; on mobile it opens below the canvas.
 8. Check the photo, then choose **Review complete & next**, or use the status filter in **Photos** to work through matching photos with Previous / Next or arrow keys.
-9. Open **Save / export** (**Save** on mobile), enter a filename, and choose **Save work as HTML** or save a results ZIP. Clear **Include annotated JPEGs** to export only the two CSV files.
+9. Open **Save** (in the bottom bar on mobile), enter a filename, and choose **Save work as HTML** or save a results ZIP. Clear **Include annotated JPEGs** to export only the two CSV files.
 
 The top-right EN / JA and Help controls remain available on narrow screens. **How to use & notes** starts with three steps and four short notes about AI review, saving, privacy and loading time. Optional control and saving tips are collapsed. License, source-code and build information are preserved. Help keeps its heading visible while the contents scroll. At phone widths, the start screen has full-width photo/camera buttons; Build info and the page footer are hidden as before. Build info remains available on wider screens.
 
@@ -156,7 +156,7 @@ Hidden markers cannot be selected. Selection is temporary and is cleared or prun
 
 **Needs review** is a flag layered on top of a normal marker. It does not create another marker type and does not change the count. Flagged markers show an amber `!` badge, and the remaining review count is visible in the image list and project summary.
 
-The photo status also tracks a pending detection check. A zero-result or duplicate-only detection therefore shows **Needs review** with zero flagged markers until you review the photo. The ordinary **Complete** button waits for both marker flags and detection checks to be reviewed.
+The photo status also tracks a pending detection check. A zero-result or duplicate-only detection therefore shows **Needs review** with zero flagged markers until you review the photo. The standalone completion control in **Project → Photo review** waits for both marker flags and detection checks to be reviewed.
 
 Thumbnails and the current-photo bar show **Undetected**, **In progress**, **Needs review** or **Complete**; the summary counts photos in each state. Needs review takes priority over completion. A manually counted photo is In progress, and an untouched old project is not treated as previously detected. Review state is retained in drafts and viewer HTML imports.
 
@@ -181,7 +181,7 @@ The original source image is not overwritten.
 
 ## Save and reopen work
 
-Choose **Save / export → Save work as HTML** to download photos, saved examples, markers and review progress in one file. The save uses the content and filename present when you press Save. The saved HTML opens directly as a **read-only result viewer**; it contains the work data but not the editor or detection model.
+Choose **Save → Save work as HTML** to download photos, saved examples, markers and review progress in one file. The save uses the content and filename present when you press Save. The saved HTML opens directly as a **read-only result viewer**; it contains the work data but not the editor or detection model.
 
 It includes:
 

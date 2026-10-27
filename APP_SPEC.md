@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.17
+- **Version:** 1.1.0-dev.18
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -28,7 +28,7 @@
 7. Correct image visibility if needed with brightness, contrast, grayscale, and 90° rotation. The original image data remains unchanged.
 8. Check each image, then use **Review complete & next** to clear its review state, complete it and continue to the next unfinished image.
 9. Review project-wide totals and per-type totals in **Project**.
-10. Use **Save / export** (**Save** on mobile) to save work as HTML or export a ZIP containing CSV files with optional annotated JPEG images. Resume from **Open work** on the start screen or save dialog.
+10. Use **Save** to save work as HTML or export a ZIP containing CSV files with optional annotated JPEG images. Resume from **Open work** on the start screen or save dialog.
 
 ## 4. Functional requirements
 
@@ -40,7 +40,7 @@
 - Support drag-and-drop and clipboard image paste on desktop.
 - Support live camera capture through `getUserMedia()` when available.
 - Closing the camera dialog or leaving the page invalidates pending camera starts and stops tracks; late results cannot restart capture. Playback errors also release the acquired stream.
-- Show a post-capture review with **Retake**, **Use this photo for new examples**, and **Use & capture next** before adding a camera image.
+- Show a post-capture review with **Retake**, **Use this photo**, and **Use & capture next** before adding a camera image.
 - Fall back to the device camera/file input when live camera access is unavailable.
 
 ### Marker modes
@@ -97,7 +97,7 @@
 - Preserve capture-time metadata: prefer JPEG EXIF DateTimeOriginal/DateTimeDigitized, fall back to the source file timestamp, and use the actual capture time for in-app camera photos.
 - Allow Left/Right arrow keys to move to the previous/next matching image when focus is outside form controls, editable fields and modal dialogs. Preserve native keyboard behavior in the photo filter select.
 - Navigate previous/next through the filtered image list and jump directly to a visible thumbnail.
-- Mark an image complete from the upper-right area of the canvas.
+- Review and complete an image with the toolbar's **Review complete & next**. The **Project → Photo review** controls also allow completion without navigation, reopening a completed photo, or clearing review flags without changing completion.
 - Provide **Next incomplete** navigation.
 - Editing a completed image makes it in-progress again when count data or image correction changes.
 - Show project-wide total marker count, completed image count, needs-review marker count, per-type totals and the number of photos in each status.
@@ -200,9 +200,9 @@ result.zip
 
 ## 6. UI / UX requirements
 
-- In every mode, use a photo-first workspace with one nonmodal inspector whose panels are **写真 / Photos**, **検出 / Detection** and **作業 / Project**. Above 900 px, the inspector occupies a 300 px right column and scrolls independently; it can close and reopen. At 900 px and below, **写真・設定 / Photos & tools** opens it in place of the canvas working area, with **写真に戻る / Return to photo** restoring the photo. Panels switch rather than adding a settings stack above the canvas.
-- Photos owns filtering, matching counts, list-only detection, thumbnails and photo management. Detection owns saved-example setup, sensitivity, detection regions, rerun behavior and current/all-photo detection. Project owns the title, totals, type management and display/storage settings. Current-photo detection is also a direct canvas-toolbar action. Without a reference, label that action as setup and open the example editor; once examples are saved, run detection directly. Keep Save reachable outside the inspector.
-- Keep filename/status/count, mode controls and Previous/Next beside the photo. Show the excluded-current filter notice in canvas view too. Keep the category dock, memo, marker popovers, Review selection and ordinary Complete distinct from **Review complete & next**. Review uses a compact context row with selection actions when meaningful.
+- In every mode, use a photo-first workspace with one nonmodal inspector whose panels are **写真 / Photos**, **検出 / Detection** and **作業 / Project**. Above 900 px, the inspector occupies a 300 px right column and scrolls independently. A photo-header toggle explicitly reads **パネルを開く / Open panel** when closed and **パネルを閉じる / Hide panel** when open; it restores the panel after the × close action. Keep its visible label, accessible label, title, `aria-expanded` and `aria-controls` consistent. At 900 px and below, the panel temporarily replaces the canvas working area, with **写真に戻る / Return to photo** restoring the photo. Panels switch rather than adding a settings stack above the canvas.
+- Photos owns filtering, matching counts, list-only detection, thumbnails and photo management. Detection owns saved-example editing, sensitivity, detection regions, rerun behavior and current/all-photo detection. Project starts with **この写真の確認 / Photo review** for standalone completion/reopening and clearing review flags, then owns the title, totals, type management and display/storage settings. Current-photo detection is also a direct canvas-toolbar action. Without a reference, label that action as setup and open the example editor; once examples are saved, run detection directly. Existing-example editing stays in Detection rather than duplicating it in the toolbar.
+- Keep filename/status/count, panel access and Previous/Next in the photo header. The action row groups mode controls, detection, **Review complete & next** and a quiet **Save** button. Emphasize detection outside Review and **Review complete & next** in Review; retain the same handlers and completion/Undo semantics. Show the excluded-current filter notice in canvas view too. Keep the category dock, memo and marker popovers. The context row contains Review selection controls only and disappears outside Review, rather than retaining a separate completion row.
 - Inspector open/selected-panel state is temporary and scoped to the active project. Reset it on accepted project replacement, preserve it across same-project edits and language changes, and omit it from drafts, saved work and exports. Cancel unfinished marker gestures before layout/panel transitions or responsive changes; never recreate the cached canvas/stage or duplicate IDs.
 - Keep quick-detection progress and Stop outside inert workspace roots. New controls obey existing processing/import/modal guards. Repair focus only if its previous owner becomes hidden, without taking it from another modal or control; dialog launchers remain reachable after resize. Escape may close the inspector only when a native dialog, editor or input does not own it. Support normal keyboard navigation and panel-selector keys.
 - Smartphone usage is a first-class workflow, not a reduced desktop layout.
@@ -212,9 +212,9 @@ result.zip
 - The canvas includes a low-profile translucent type-switching dock along its lower edge, showing type color/name/count and allowing one-tap switching without leaving the image. The dock can be minimized to a small corner control when it covers something that must be counted.
 - On smartphone widths, the old duplicate type-switching area below the canvas is hidden; type management remains available from the canvas `+` button and Project, with a bottom-bar shortcut outside Review.
 - Type switching is one tap.
-- Mobile fixed bottom controls provide **Undo / Redo / Previous photo / Next photo / Save** in Review, and **Undo / Redo / Add image / Add or manage type / Save** in Point, Rectangle and Move. **Review complete & next** remains in the context row beside the canvas. Desktop uses **Save / export** for the same save dialog.
+- Mobile fixed bottom controls provide **Undo / Redo / Previous photo / Next photo / Save** in Review, and **Undo / Redo / Add image / Add or manage type / Save** in Point, Rectangle and Move. Detection and **Review complete & next** remain beside the photo; Save uses the bottom bar without a duplicate mobile toolbar button. Desktop **Save** opens the same save/export dialog.
 - Undo/Redo must be easy to reach on both desktop and mobile.
-- The complete-image control sits around the upper-right of the canvas.
+- The canvas has no competing completion button. Standalone completion and reopening remain in **Project → Photo review**, separate from the toolbar's review-and-advance action.
 - Needs-review state must be visible in the marker, image list/current-image status, and project summary without turning it into a separate marker type.
 - Advanced display settings remain discoverable but do not dominate the counting workflow.
 - Destructive actions use confirmation where data loss is meaningful; single-marker and selected-marker deletion are immediately undoable.
@@ -252,6 +252,8 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 ## 10. Acceptance criteria
 
 - In the photo workspace, the header spans the same full viewport width as the workspace, with consistent outside gutters; right-align toolbar actions to the photo frame edge on wide desktops. Keep setup reachable at 320 px.
+- Closing the inspector with × or an eligible Escape leaves the photo-header **Open panel** action reachable. Reopening retains the selected panel in the same project and updates its visible/accessible state. Verify Japanese and English, keyboard focus, busy/import guards, and header readability at 320 px without horizontally overflowing the page.
+- Outside Review, no empty review-context row or canvas completion overlay remains. Review still exposes selection controls, and standalone completion/reopening and review-only clearing remain available in Project with their original guards and Undo behavior.
 - Detection controls and their toolbar replica refresh together at photo-import start and completion (including errors), selected-type/reference changes and history restoration. Without a saved reference, the current-photo action opens example setup with an explicit setup label. All/list detection still requires saved examples. Explain loading/running/no-photo/empty-filter restrictions; an empty filter does not disable current/all-photo detection. Keep real disabled controls for unavailable operations and descriptive accessible text.
 - No model upload, model restore, backend or precision controls are exposed. Use the unchanged built-in compact model with WASM / FP32. Keep user-meaningful sensitivity, per-photo region and rerun choices in the Detection inspector.
 - Save & detect validates and commits examples before closing the editor and invoking the shared current-photo detection path. Failed/empty/stale saves neither close nor start detection. A valid unchanged save can continue without a history entry. Cancel/close during saved-reference loading or replacement leaves the saved reference intact; a late load cannot reopen or overwrite a newer editor.
@@ -297,9 +299,9 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 
 ## UI / UX layout notes
 
-- The single inspector switches Photos / Detection / Project; its panels do not stack above the photo. Project groups the title, combined current image/project summary, marker display and collapsed work-data controls. Reduce repeated status and nested cards while retaining readable text and usable touch targets.
-- Completion remains visible on the canvas and thumbnails, and correction opens from the canvas toolbar. Detection progress and Stop remain outside the inert editing surface.
-- Image notes open without shifting the page layout and auto-save while typing. The memo icon sits beside Complete at the upper-right of the canvas. On desktop the memo floats at the lower-right of the canvas and its header can be dragged to reposition it within the canvas area; on mobile it opens directly below the canvas. A note indicator remains visible when content exists.
+- The single inspector switches Photos / Detection / Project; its panels do not stack above the photo. Project groups photo-review actions, the title, combined current image/project summary, marker display and collapsed work-data controls. Reduce repeated status and nested cards while retaining readable text and usable touch targets.
+- Completion remains visible in the photo header and thumbnails. Use the toolbar for review-and-advance and Project for standalone completion/reopening or review-only clearing. Image correction remains in Project. Detection progress and Stop remain outside the inert editing surface.
+- Image notes open without shifting the page layout and auto-save while typing. The memo icon is the only action at the upper-right of the canvas. On desktop the memo floats at the lower-right of the canvas and its header can be dragged to reposition it within the canvas area; on mobile it opens directly below the canvas. A note indicator remains visible when content exists.
 - Image deletion is available with photo management in Photos, is disabled for the last remaining image, and always uses the existing confirmation dialog.
 
 - Persistent canvas instruction bubbles are not shown during normal counting.

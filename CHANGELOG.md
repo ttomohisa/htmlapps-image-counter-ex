@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0-dev.18 — 2026-10-27
+
+- Move panel access into the photo header with explicit Open panel / Hide panel labels. Closing the right panel with × leaves a visible way to restore it, with matching accessible state and keyboard focus behavior.
+- Group detection, Review complete & next and quiet Save in the action row. Keep Save in the phone bottom bar, move saved-example editing to Detection, and show the selection row only in Review.
+- Move standalone photo completion/reopening and review-only clearing into Project → Photo review. Remove the competing canvas completion button; retain the memo action and existing review, completion, navigation and Undo semantics.
+- Preserve model/runtime assets, schema 4, offline operation and license/source/build information.
+
 ## 1.1.0-dev.17 — 2026-10-27
 
 - Replace the combined detection/settings dialog with an example editor. Save & detect registers examples and starts detection; Save & close registers them for later, without a separate Pin step. Existing saved examples open directly for editing.

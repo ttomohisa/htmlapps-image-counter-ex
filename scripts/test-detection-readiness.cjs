@@ -13,7 +13,7 @@ function fixture(){
   c.autoBuiltinModel=c.autoState.model;
   c.openAutoDetection=()=>{f.calls.setup=(f.calls.setup||0)+1};
   c.quickProcessImages=async run=>{f.calls.detection=(f.calls.detection||[]).concat(run)};
-  for(const selector of ['#workspaceDetect','#workspaceSetup','#autoOpen','#quickCurrent','#quickAll','#quickFiltered'])f.$(selector).click=function(){if(!this.disabled)return this.onclick?.()};
+  for(const selector of ['#workspaceDetect','#autoOpen','#quickCurrent','#quickAll','#quickFiltered'])f.$(selector).click=function(){if(!this.disabled)return this.onclick?.()};
   c.renderAll();return f;
 }
 function blocked($,selectors){
@@ -39,12 +39,19 @@ test('photo import completion releases a toolbar disabled during the import',()=
   assert.equal($('#workspaceDetectionHint').hidden,true);
 });
 
+test('photo import completion releases the panel opener without a resize or unrelated full render',()=>{
+  const {c,$}=fixture();c.setWorkspaceOpen(false);c.addFiles.pending=1;c.renderAll();
+  assert.equal($('#mobileReviewToggle').disabled,true);assert.equal($('#workspaceInspector').hidden,true);
+  c.addFiles.pending=0;c.quickSync();
+  assert.equal($('#mobileReviewToggle').disabled,false,'the import finally refresh must release panel navigation too');
+  $('#mobileReviewToggle').onclick();assert.equal($('#workspaceInspector').hidden,false);
+});
+
 test('missing reference offers actionable setup for the selected category instead of a disabled detection dead end',()=>{
   const {c,$,category}=fixture();category.name='Small steel tubes';delete category.detectionReference;c.quickSync();
   blocked($,['#quickAll','#quickFiltered']);
   for(const selector of ['#workspaceDetect','#quickCurrent']){assert.equal($(selector).disabled,false,selector);assert.equal($(selector).textContent,c.t('quickSetup'));}
   assert.equal($('#autoOpen').disabled,false);assert.equal($('#autoOpen').textContent,c.t('quickAddExamples'));
-  assert.equal($('#workspaceSetup').hidden,true,'avoid two setup actions beside each other');
   assert.ok($('#quickReferenceHint').textContent.includes(category.name));
 });
 
@@ -57,7 +64,6 @@ test('switching categories and changing references refreshes the action labels w
   delete category.detectionReference;c.quickSync();assert.equal($('#workspaceDetect').textContent,c.t('quickSetup'));
   category.detectionReference=reference;const before=JSON.stringify(c.P);c.quickSync();
   assert.equal($('#workspaceDetect').disabled,false);assert.equal($('#workspaceDetectionHint').hidden,true);
-  assert.equal($('#workspaceSetup').hidden,false);assert.equal($('#workspaceSetup').textContent,c.t('quickEditExamples'));
   assert.equal($('#autoOpen').textContent,c.t('quickEditExamples'));
   assert.equal(JSON.stringify(c.P),before);assert.equal(c.history.length,0);
   assert.ok($('#quickReferenceHint').textContent.includes(c.t('quickReference',{type:category.name,count:reference.examples.length})));
