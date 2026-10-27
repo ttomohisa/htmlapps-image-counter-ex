@@ -8,6 +8,7 @@ function fixture(){
   function element(id){return{id,hidden:false,disabled:false,inert:false,open:false,value:'',textContent:'',style:{},dataset:{},attributes:{},children:[],classList:{values:new Set(),toggle(k,v){if(v)this.values.add(k);else this.values.delete(k)},contains(k){return this.values.has(k)}},setAttribute(k,v){this.attributes[k]=String(v)},getAttribute(k){return this.attributes[k]},focus(){c.document.activeElement=this;calls.focus.push(id)},scrollIntoView(){},append(n){this.children.push(n)},contains(node){return this===node},getClientRects(){return this.hidden?[]:[this.getBoundingClientRect()]},getBoundingClientRect(){return{top:10,bottom:50,left:10,right:100,width:90,height:40}},addEventListener(k,fn){this[k]=fn},closest(){return null}}}
   const $=sel=>{if(!nodes.has(sel))nodes.set(sel,element(sel.slice(1)));return nodes.get(sel)};
   c={console,structuredClone,Date,Math,Set,Map,Number,Array,Error,P:{images,categories:[category],settings:{}},activeImageId:'one',activeCategoryId:'a',mode:'point',history:[],future:[],selectedMarkerId:null,lastMarkerId:null,lastMarkerAt:0,pointers:new Map(),gesture:null,quickState:{run:null,report:null},autoState:{model:{size:1},busy:false},$,document:{body:element('body'),documentElement:{clientWidth:390,clientHeight:844},activeElement:element('body'),querySelector:()=>null,createElement:()=>element('li')},getComputedStyle:el=>({display:el.hidden?'none':'block',visibility:'visible'}),matchMedia:()=>({matches:true}),addEventListener:(k,fn)=>events[k]=fn,requestAnimationFrame:fn=>fn(),Worker:class{},OffscreenCanvas:class{},createImageBitmap(){},id:(()=>{let n=0;return()=>String(++n)})(),scheduleSave(){calls.save++},renderStorageSoon(){},renderCanvas(){},cancelMarkerInteraction(){},resetReviewSelection(){},Toast:{show(){},hide(){}},lang:'en'};
+  c.autoBuiltinModel=c.autoState.model;
   c.activeImage=()=>c.P.images.find(im=>im.id===c.activeImageId);c.activeCategory=()=>category;c.autoCurrentReference=()=>category.detectionReference;c.matchingPhotos=()=>c.P.images.filter(im=>!im.detectionChecks?.some(check=>!check.reviewed));c.setMode=m=>c.mode=m;
   c.photoFilterTarget=direction=>direction<0?images[0]:images[2];c.navigateFilteredPhoto=async id=>{calls.navigation.push(id);c.activeImageId=id};c.reviewAndNext=async()=>{calls.review++;};
   vm.createContext(c);vm.runInContext(section('const I18N=','let lang=')+section('function t(','function applyTranslatedAttributes(')+section('// AUTO:CORE:BEGIN','// AUTO:CORE:END')+section('function cloneLight()','function dataUrlBytes(')+section('function nextOrder(','function addPoint(')+section('// QUICK:CORE:BEGIN','// QUICK:CORE:END')+section('function quickDetectionBusy()','// QUICK:UI:END'),c);
@@ -49,6 +50,40 @@ test('stopping a filtered run preserves earlier commits and one Undo restores th
   c.quickInferImage=async(run,im)=>{if(im.id==='one')return{candidates:[{x:.1,y:.1,w:.2,h:.2,score:.8}],truncated:0};secondStarted();return new Promise(resolve=>resolveSecond=resolve)};
   const pending=c.startQuickDetection('filtered');await started;c.finishQuickDetection(c.quickState.run,'cancelled');resolveSecond({candidates:[{x:.5,y:.5,w:.2,h:.2,score:.8}],truncated:0});await pending;
   assert.equal(images[0].markers.length,1);assert.equal(images[2].markers.length,0);assert.equal(c.history.length,1);c.undo();assert.equal(c.P.images[0].markers.length,0);assert.equal(c.P.images[0].detectionChecks.length,0);
+});
+
+test('a successful zero-result detection returns mobile users from the inspector to the photo for review',async()=>{
+  const {c,$,images}=fixture();c.renderAll();c.setWorkspacePanel('detection');assert.equal($('#workspaceInspector').hidden,false);
+  c.quickInferImage=async()=>({candidates:[],truncated:0});await c.startQuickDetection(false);
+  assert.equal(images[0].markers.length,0);assert.equal(images[0].detectionChecks[0].reviewed,false);assert.equal(c.history.length,1);
+  assert.equal(c.mode,'review');assert.equal($('#workspaceInspector').hidden,true);assert.equal($('#mobileReviewToggle').getAttribute('aria-expanded'),'false');
+});
+
+test('cancelling a partially completed mobile batch reveals the photo while retaining completed results',async()=>{
+  const {c,$,images}=fixture();c.renderAll();c.setWorkspacePanel('detection');let release,started;const waiting=new Promise(resolve=>started=resolve);
+  c.quickInferImage=async(run,im)=>{if(im.id==='one')return{candidates:[{x:.1,y:.1,w:.2,h:.2,score:.8}],truncated:0};started();return new Promise(resolve=>release=resolve)};
+  const pending=c.startQuickDetection(true);await waiting;c.finishQuickDetection(c.quickState.run,'cancelled');release({candidates:[],truncated:0});await pending;
+  assert.equal(images[0].markers.length,1);assert.equal(images[1].markers.length,0);assert.equal(c.mode,'review');assert.equal($('#workspaceInspector').hidden,true);
+  c.undo();assert.equal(c.P.images[0].markers.length,0);
+});
+
+test('detection failure before any result preserves the mobile inspector for retry',async()=>{
+  const {c,$,images}=fixture();c.renderAll();c.setWorkspacePanel('detection');c.quickInferImage=async()=>{throw new Error('autoModelError')};
+  await c.startQuickDetection(false);assert.equal(c.quickState.report.phase,'error');assert.equal(c.history.length,0);assert.equal(images[0].detectionChecks.length,0);
+  assert.equal(c.mode,'point');assert.equal($('#workspaceInspector').hidden,false);assert.equal($('#inspectorDetection').hidden,false);
+});
+
+test('successful desktop detection retains the side inspector while entering review',async()=>{
+  const {c,$}=fixture();c.matchMedia=()=>({matches:false});c.renderAll();c.setWorkspacePanel('detection');c.quickInferImage=async()=>({candidates:[],truncated:0});
+  await c.startQuickDetection(false);assert.equal(c.mode,'review');assert.equal($('#workspaceInspector').hidden,false);assert.equal($('#inspectorDetection').hidden,false);
+});
+
+test('a reference change interrupts a partial run without moving the user out of the mobile inspector',async()=>{
+  const {c,$,category,images}=fixture();c.renderAll();c.setWorkspacePanel('detection');let release,started;const waiting=new Promise(resolve=>started=resolve);
+  c.quickInferImage=async(run,im)=>{if(im.id==='one')return{candidates:[],truncated:0};started();return new Promise(resolve=>release=resolve)};
+  const pending=c.startQuickDetection(true);await waiting;category.detectionReference={...category.detectionReference};c.quickSync();release({candidates:[],truncated:0});await pending;
+  assert.equal(c.quickState.report.phase,'changed');assert.equal(c.history.length,1);assert.equal(images[1].detectionChecks.length,0);
+  assert.equal(c.mode,'point');assert.equal($('#workspaceInspector').hidden,false);
 });
 
 test('mobile Review disclosure is transient, project-owned and preserved across ordinary renders',()=>{

@@ -71,7 +71,7 @@ dialog{width:min(640px,calc(100% - 28px));max-height:min(860px,calc(100dvh - 28p
 /* End mobile start and Help layout */
 .photo-review{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);background:var(--warn-soft);font-size:12px}.photo-review .btn{min-height:40px}.photo-review[data-status="complete"]{background:var(--soft)}.photo-review[data-status="undetected"],.photo-review[data-status="working"]{background:var(--surface)}.photo-review-actions{display:flex;gap:8px;flex-wrap:wrap}.quick-mode{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:11px;color:var(--muted)}.quick-mode select{width:auto;max-width:100%;min-height:38px;font-size:12px}.thumb-copy .photo-status{font-weight:800;color:var(--text)}.thumb[data-status="review"] .photo-status{color:#80580d}.thumb[data-status="complete"] .photo-status{color:var(--accent)}.photo-overview{margin:8px 0;color:var(--muted);font-size:11px;line-height:1.6}.auto-launch{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}.auto-launch small{color:var(--muted);font-size:11px}
 .quick-reference-hint{flex-basis:100%;margin:0;font-size:12px;color:var(--muted);overflow-wrap:anywhere}.quick-progress{position:sticky;top:8px;z-index:25;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px;margin-bottom:12px;box-shadow:0 4px 18px #0001}.quick-progress-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.quick-progress p{font-size:13px;line-height:1.5;margin:8px 0;overflow-wrap:anywhere}.quick-progress progress{width:100%;height:8px;accent-color:var(--primary)}.quick-progress details{font-size:12px;margin-top:8px}.quick-progress ol{max-height:150px;overflow:auto;padding-left:24px;overflow-wrap:anywhere}.quick-progress li{margin:6px 0}#quickProgressTitle{min-width:0;overflow-wrap:anywhere}@media(max-width:760px){.auto-launch #autoOpen{order:3}.auto-launch #quickCurrent,.auto-launch #quickAll{flex:1 1 calc(50% - 8px)}.quick-reference-hint{order:5}.quick-mode{order:4;flex:1 1 100%}.photo-review-actions{width:100%}.photo-review-actions #reviewNext{flex:1}.quick-progress{top:4px;padding:10px}.quick-progress details[open] ol{max-height:100px}}
-#autoDlg{width:min(1060px,calc(100vw - 24px));max-width:1060px;max-height:calc(100dvh - 24px);padding:0;overflow:hidden}#autoDlg[open]{display:flex;flex-direction:column}#autoDlg .dlg-head,#autoDlg .auto-footer{flex:none}#autoDlg .dlg-body{overflow:auto;min-height:0;padding:14px}.auto-layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px}.auto-preview-column{min-width:0}.auto-layout:has(#autoSide[hidden]){grid-template-columns:minmax(0,1fr)}.auto-example-toolbar{display:grid;gap:8px;margin:8px 0}.auto-example-modes,.auto-example-selection{display:flex;gap:8px;align-items:center}.auto-example-modes .btn{flex:1;min-height:44px}.auto-example-modes .btn[aria-pressed=true]{background:var(--accent);color:white}.auto-example-selection label{flex:1;min-width:0;font-size:12px}.auto-example-selection select{width:100%;min-height:44px}.auto-example-selection .btn{min-height:44px;max-width:55%;white-space:normal}.auto-canvas[data-example-mode=select]{cursor:default}.auto-stage{background:#e4e6e2;border:1px solid var(--line);border-radius:10px;overflow:hidden;display:grid;place-items:center}.auto-canvas{display:block;max-width:100%;height:auto;max-height:55vh;touch-action:none;cursor:crosshair}.auto-side{display:grid;gap:12px;align-content:start;min-width:0}.auto-side p,.auto-preview-column p{font-size:12px;line-height:1.6;margin:6px 0;color:var(--muted)}.auto-side input[type=file]{width:100%;font-size:12px}.auto-side select{width:100%}.auto-actions{display:flex;gap:8px;flex-wrap:wrap;margin:9px 0}.auto-actions .btn{flex:1}.auto-bounds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px 0}.auto-bounds label{font-size:11px}.auto-bounds input{width:100%;min-width:0}.auto-footer{padding:12px 14px;border-top:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:12px}.auto-footer p{margin:0;font-size:12px;min-width:0;overflow-wrap:anywhere}.auto-footer .btn{flex:none}.auto-list{max-height:140px;overflow:auto;display:grid;gap:4px}.auto-list label{display:flex;gap:8px;align-items:center;min-height:32px;font-size:12px}.auto-status{min-height:22px;font-size:12px;overflow-wrap:anywhere}.auto-status[data-phase=error]{color:var(--danger)}.auto-legend{display:flex;gap:10px;flex-wrap:wrap}.auto-legend span::before{content:'';display:inline-block;width:9px;height:9px;margin-right:5px;background:var(--legend);border:1px solid rgba(0,0,0,.2)}.auto-details summary{cursor:pointer;font-size:12px;font-weight:700}.auto-details .field{margin-top:8px}.auto-model-help{overflow-wrap:anywhere}html:has(#autoDlg:modal),body:has(#autoDlg:modal){overflow:hidden}
+#autoDlg{width:min(1060px,calc(100vw - 24px));max-width:1060px;max-height:calc(100dvh - 24px);padding:0;overflow:hidden}#autoDlg[open]{display:flex;flex-direction:column}#autoDlg .dlg-head,#autoDlg .auto-footer{flex:none}#autoDlg .dlg-body{overflow:auto;min-height:0;padding:14px}.auto-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}.auto-preview-column{min-width:0}.auto-example-toolbar{display:grid;gap:8px;margin:8px 0}.auto-example-modes,.auto-example-selection{display:flex;gap:8px;align-items:center}.auto-example-modes .btn{flex:1;min-height:44px}.auto-example-modes .btn[aria-pressed=true]{background:var(--accent);color:white}.auto-example-selection label{flex:1;min-width:0;font-size:12px}.auto-example-selection select{width:100%;min-height:44px}.auto-example-selection .btn{min-height:44px;max-width:55%;white-space:normal}.auto-canvas[data-example-mode=select]{cursor:default}.auto-stage{background:#e4e6e2;border:1px solid var(--line);border-radius:10px;overflow:hidden;display:grid;place-items:center}.auto-canvas{display:block;max-width:100%;height:auto;max-height:55vh;touch-action:none;cursor:crosshair}.auto-side{display:grid;gap:12px;align-content:start;min-width:0}.auto-side p,.auto-preview-column p{font-size:12px;line-height:1.6;margin:6px 0;color:var(--muted)}.auto-side input[type=file]{width:100%;font-size:12px}.auto-side select{width:100%}.auto-actions{display:flex;gap:8px;flex-wrap:wrap;margin:9px 0}.auto-actions .btn{flex:1}.auto-bounds{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px 0}.auto-bounds label{font-size:11px}.auto-bounds input{width:100%;min-width:0}.auto-footer{padding:12px 14px;border-top:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:12px}.auto-footer p{margin:0;font-size:12px;min-width:0;overflow-wrap:anywhere}.auto-footer .btn{flex:none}.auto-list{max-height:140px;overflow:auto;display:grid;gap:4px}.auto-list label{display:flex;gap:8px;align-items:center;min-height:32px;font-size:12px}.auto-status{min-height:22px;font-size:12px;overflow-wrap:anywhere}.auto-status[data-phase=error]{color:var(--danger)}.auto-legend{display:flex;gap:10px;flex-wrap:wrap}.auto-legend span::before{content:'';display:inline-block;width:9px;height:9px;margin-right:5px;background:var(--legend);border:1px solid rgba(0,0,0,.2)}.auto-details summary{cursor:pointer;font-size:12px;font-weight:700}.auto-details .field{margin-top:8px}.auto-model-help{overflow-wrap:anywhere}html:has(#autoDlg:modal),body:has(#autoDlg:modal){overflow:hidden}
 .auto-existing-toggle{display:flex;align-items:center;gap:6px;font-size:12px;margin:8px 0;color:var(--muted)}.auto-existing-toggle input{width:18px;height:18px}.auto-reference{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);font-size:12px}.auto-reference strong{display:block;overflow-wrap:anywhere}.auto-reference-scroll{overflow-x:auto;margin:8px 0;max-width:100%}.auto-reference-scroll canvas{display:block;height:72px;max-width:none}.auto-footer{flex-wrap:wrap}.auto-footer p{flex:1 1 100%}
 @media(max-width:760px){#autoDlg{width:calc(100vw - 12px);max-height:calc(100dvh - 12px);margin:auto;border-radius:14px}.auto-layout{grid-template-columns:minmax(0,1fr);gap:12px}.auto-canvas{max-height:42vh}.auto-footer{flex-wrap:wrap;padding-bottom:max(12px,env(safe-area-inset-bottom))}.auto-footer .btn{width:100%}.auto-launch small{display:none}.auto-side .auto-list{max-height:110px}}
 .history-bar{flex-wrap:wrap}.review-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:8px 10px;border-top:1px solid var(--line);background:var(--surface2)}.review-kind{display:flex;gap:3px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}.review-kind .btn{border:0;background:transparent;min-height:36px;padding:5px 10px}.review-kind .btn.active{color:var(--accent);background:var(--soft);box-shadow:inset 0 0 0 1px var(--accent)}.review-selection-count{font-size:11px;font-weight:750;white-space:nowrap}.review-selection-actions{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}.review-selection-actions .btn{min-height:36px}.review-hint{flex-basis:100%;margin:0;color:var(--muted);font-size:11px;line-height:1.5}.canvas-wrap[data-mode="review"]{cursor:grab}.canvas-wrap[data-mode="review"].dragging{cursor:grabbing}.canvas-wrap:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
@@ -93,6 +93,9 @@ body:has(#workspace:not([hidden])) .intro,body:has(#workspace:not([hidden]))>foo
 /* Keep the mobile photo heading to two lines; status matters more than file metadata here. */
 @media(max-width:900px){.viewer-head .image-title{min-width:0;overflow:hidden}.viewer-head #currentImageMeta{display:none}.viewer-head #photoReviewCount{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4;margin:2px 0 0}}
 @media(max-width:900px){.workspace-context .photo-review .btn,.workspace-context .review-toolbar .btn{min-height:36px;font-size:12px}}
+.auto-save-actions{display:flex;gap:8px}.auto-footer p{flex:1 1 auto}.auto-footer .auto-save-actions{margin-left:auto}.detection-reference-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.detection-reference-head strong{font-size:13px}.detection-run-actions{display:grid;gap:8px}.detection-options{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:12px}.detection-region-row{display:flex;align-items:center;gap:8px}.detection-region-row .btn{flex:none;white-space:nowrap}.detection-region-row .quick-reference-hint{min-width:0;overflow-wrap:anywhere}.detection-review-note{font-size:12px;line-height:1.6;color:var(--muted);margin:0 0 4px}.detection-options .quick-mode{margin:0}.detection-options .quick-mode select{width:100%}#autoTargetName{font-weight:700;color:var(--ink)}#autoReplaceExamples{margin:4px 0}#autoInstructions{margin-bottom:10px}#autoStatus:empty{display:none}
+@media(max-width:760px){.auto-footer{gap:6px}.auto-footer p{flex-basis:100%}.auto-save-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.auto-save-actions .btn{min-width:0;white-space:normal;padding:9px 6px}.auto-example-toolbar{gap:5px}.auto-canvas{max-height:44dvh}}
+.auto-source-row{display:flex;align-items:center;justify-content:space-between;gap:8px}.auto-source-row p{min-width:0;overflow-wrap:anywhere}.auto-source-row .btn{flex:none}.auto-example-toolbar{grid-template-columns:minmax(180px,.6fr) minmax(260px,1fr);align-items:end}.auto-example-selection label{display:flex;align-items:center;gap:6px}.auto-example-selection label span{white-space:nowrap}.auto-example-selection select{min-width:0}.auto-example-toolbar p{grid-column:1/-1}#autoSelectionHint:empty{display:none}@media(max-width:760px){.auto-example-toolbar{grid-template-columns:minmax(0,1fr)}.auto-source-row{flex-wrap:wrap}.auto-example-selection label{display:block}.auto-source-row .btn{margin:0 0 4px}}
 </style>
 <style>
 .app-startup{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px;background:var(--bg)}.app-startup>div{max-width:480px;padding:24px;border:1px solid var(--line);border-radius:16px;background:white;box-shadow:var(--shadow)}.app-startup h2{font-size:18px;margin:12px 0}.app-startup p{font-size:13px;color:var(--muted)}.startup-spinner{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:startup-spin 1s linear infinite}@keyframes startup-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.startup-spinner{animation:none}}
@@ -143,7 +146,14 @@ body:has(#workspace:not([hidden])) .intro,body:has(#workspace:not([hidden]))>foo
     <div class="viewer-foot"><div id="nowCountingBar" class="now-counting"><span id="nowDot" class="now-dot"></span><div class="now-copy"><small data-i18n="nowCounting">今数えているもの</small><strong id="nowName">—</strong></div><div id="nowCount" class="now-number">0<small data-i18n="items">個</small></div></div><div id="categoryRow" class="category-row"></div><div class="category-hint"><span data-i18n="catHint">種類を1タップで切り替え。PCでは数字キー1〜9でも切り替えられます。</span><button id="manageCatsInline" type="button" data-i18n="manageTypes">種類を管理</button></div></div>
   </div>
 
-<aside id="workspaceInspector" class="workspace-inspector" aria-label="Workspace tools"><div class="inspector-head"><div id="inspectorTabs" role="tablist" aria-label="Workspace tools"><button id="inspectorTabPhotos" class="inspector-tab" role="tab" type="button" aria-controls="inspectorPhotos" data-workspace-panel="photos">写真</button><button id="inspectorTabDetection" class="inspector-tab" role="tab" type="button" aria-controls="inspectorDetection" data-workspace-panel="detection">検出</button><button id="inspectorTabProject" class="inspector-tab" role="tab" type="button" aria-controls="inspectorProject" data-workspace-panel="project">作業</button></div><button id="inspectorClose" class="icon-btn" type="button" aria-label="Close tools">×</button></div><div class="inspector-body"><section id="inspectorPhotos" role="tabpanel" aria-labelledby="inspectorTabPhotos"><div id="photoFilterPanel" class="photo-filter"><label for="photoFilter" data-i18n="photoFilterLabel">写真一覧</label><select id="photoFilter" aria-describedby="photoFilterHint"><option value="all">すべて</option><option value="undetected">未検出</option><option value="working">作業中</option><option value="review">要確認</option><option value="complete">完了</option></select><span id="photoFilterCount" class="photo-filter-count" aria-live="polite" aria-atomic="true"></span><button id="quickFiltered" aria-describedby="quickReferenceHint" class="btn small soft" type="button" disabled>一覧の写真を検出</button><button id="photoFilterReset" class="btn small" type="button" data-i18n="photoFilterReset" hidden>すべて表示</button><p id="photoFilterHint" class="photo-filter-hint" data-i18n="photoFilterHint">写真一覧と←/→を絞り込みます。「一覧の○枚を検出」はこの一覧が対象です。全写真の検出・書き出し・集計は全写真が対象です。</p><p id="photoFilterOutside" class="photo-filter-notice" data-i18n="photoFilterOutside" role="status" hidden>表示中の写真は絞り込み対象外です</p></div><p id="photoFilterEmpty" class="photo-filter-empty" data-i18n="photoFilterEmpty" role="status" hidden>条件に合う写真がありません</p><div id="photoNavigation" class="image-nav"><div id="imageStrip" class="strip"></div><button id="addImagesBtn" aria-label="画像を追加" data-i18n-aria-label="addPhotos" title="画像を追加" data-i18n-title="addPhotos" class="btn small add-image-btn" type="button"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="15" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="long" data-i18n="addPhotos">画像を追加</span></button><button id="cameraAddBtn" class="icon-btn" type="button" aria-label="カメラで画像を追加" data-i18n-aria-label="cameraAdd"><svg viewBox="0 0 24 24" fill="none"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6H9l1.3-2h3.4L15 6h2.5A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-8Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12.5" r="3.3" stroke="currentColor" stroke-width="1.8"/></svg></button></div><div class="photo-management"><button id="nextIncompleteBtn" class="btn small" type="button" hidden data-i18n="nextIncomplete">次の未完了へ</button><button id="removeImage" class="btn small delete-image-btn" type="button"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M9 7V4h6v3M8 10v7M12 10v7M16 10v7M7 7l1 13h8l1-13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="removeImage">画像を削除</span></button></div></section><section id="inspectorDetection" role="tabpanel" aria-labelledby="inspectorTabDetection" hidden>    <div id="detectionSetup" class="auto-launch"><button id="autoOpen" class="btn small soft" type="button"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5" stroke="currentColor" stroke-width="1.8"/><rect x="7" y="7" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.8"/></svg><span data-i18n="quickSetup">見本・検出設定</span></button><button id="detectionRegionOpen" class="btn small" type="button" data-i18n="regionTitle">検出範囲</button><span id="detectionRegionSummary" class="quick-reference-hint"></span><p id="quickReferenceHint" class="quick-reference-hint"></p><button id="quickCurrent" aria-describedby="quickReferenceHint" class="btn primary small" type="button" data-i18n="quickCurrent" disabled>この写真を検出</button><button id="quickAll" aria-describedby="quickReferenceHint" class="btn small" type="button" data-i18n="quickAll" disabled>全写真を検出</button><label class="quick-mode"><span data-i18n="quickModeLabel">再検出の扱い</span><select id="quickMode" class="select" aria-describedby="quickReferenceHint"><option value="append" data-i18n="quickModeAppend">追加検出</option><option value="replace" data-i18n="quickModeReplace">未確認の自動結果を置換</option></select></label></div></section><section id="inspectorProject" role="tabpanel" aria-labelledby="inspectorTabProject" hidden>  <div id="projectSide" class="side"><div class="project-view-tools"><button id="quickMarkers" class="btn quick-toggle active" type="button" title="マーカー表示" data-i18n-title="markerDisplay"><svg viewBox="0 0 24 24" fill="none"><path d="M3.5 12s3-5 8.5-5 8.5 5 8.5 5-3 5-8.5 5-8.5-5-8.5-5Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.8"/></svg><span class="label" data-i18n="markers">マーカー</span></button><button id="adjustBtn" class="btn adjust-btn" type="button" title="画像の表示補正" data-i18n-title="displayCorrection"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M12 5a7 7 0 0 0 0 14V5Z" fill="currentColor" opacity=".28"/><path d="M4 4l2 2M18 18l2 2M20 4l-2 2M6 18l-2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="label" data-i18n="displayCorrection">画像の表示補正</span></button><button id="displayBtn" class="icon-btn" type="button" aria-label="表示設定" data-i18n-aria-label="displaySettings"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 5v4M8 15v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
+<aside id="workspaceInspector" class="workspace-inspector" aria-label="Workspace tools"><div class="inspector-head"><div id="inspectorTabs" role="tablist" aria-label="Workspace tools"><button id="inspectorTabPhotos" class="inspector-tab" role="tab" type="button" aria-controls="inspectorPhotos" data-workspace-panel="photos">写真</button><button id="inspectorTabDetection" class="inspector-tab" role="tab" type="button" aria-controls="inspectorDetection" data-workspace-panel="detection">検出</button><button id="inspectorTabProject" class="inspector-tab" role="tab" type="button" aria-controls="inspectorProject" data-workspace-panel="project">作業</button></div><button id="inspectorClose" class="icon-btn" type="button" aria-label="Close tools">×</button></div><div class="inspector-body"><section id="inspectorPhotos" role="tabpanel" aria-labelledby="inspectorTabPhotos"><div id="photoFilterPanel" class="photo-filter"><label for="photoFilter" data-i18n="photoFilterLabel">写真一覧</label><select id="photoFilter" aria-describedby="photoFilterHint"><option value="all">すべて</option><option value="undetected">未検出</option><option value="working">作業中</option><option value="review">要確認</option><option value="complete">完了</option></select><span id="photoFilterCount" class="photo-filter-count" aria-live="polite" aria-atomic="true"></span><button id="quickFiltered" aria-describedby="quickReferenceHint" class="btn small soft" type="button" disabled>一覧の写真を検出</button><button id="photoFilterReset" class="btn small" type="button" data-i18n="photoFilterReset" hidden>すべて表示</button><p id="photoFilterHint" class="photo-filter-hint" data-i18n="photoFilterHint">写真一覧と←/→を絞り込みます。「一覧の○枚を検出」はこの一覧が対象です。全写真の検出・書き出し・集計は全写真が対象です。</p><p id="photoFilterOutside" class="photo-filter-notice" data-i18n="photoFilterOutside" role="status" hidden>表示中の写真は絞り込み対象外です</p></div><p id="photoFilterEmpty" class="photo-filter-empty" data-i18n="photoFilterEmpty" role="status" hidden>条件に合う写真がありません</p><div id="photoNavigation" class="image-nav"><div id="imageStrip" class="strip"></div><button id="addImagesBtn" aria-label="画像を追加" data-i18n-aria-label="addPhotos" title="画像を追加" data-i18n-title="addPhotos" class="btn small add-image-btn" type="button"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="15" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="long" data-i18n="addPhotos">画像を追加</span></button><button id="cameraAddBtn" class="icon-btn" type="button" aria-label="カメラで画像を追加" data-i18n-aria-label="cameraAdd"><svg viewBox="0 0 24 24" fill="none"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6H9l1.3-2h3.4L15 6h2.5A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-8Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12.5" r="3.3" stroke="currentColor" stroke-width="1.8"/></svg></button></div><div class="photo-management"><button id="nextIncompleteBtn" class="btn small" type="button" hidden data-i18n="nextIncomplete">次の未完了へ</button><button id="removeImage" class="btn small delete-image-btn" type="button"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M9 7V4h6v3M8 10v7M12 10v7M16 10v7M7 7l1 13h8l1-13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="removeImage">画像を削除</span></button></div></section><section id="inspectorDetection" role="tabpanel" aria-labelledby="inspectorTabDetection" hidden>
+    <div id="detectionSetup" class="auto-launch">
+      <div class="detection-reference-head"><strong data-i18n="quickExamplesTitle">見本</strong><button id="autoOpen" class="btn small" type="button">見本を登録</button></div>
+      <p id="quickReferenceHint" class="quick-reference-hint"></p>
+      <div class="detection-run-actions"><button id="quickCurrent" aria-describedby="quickReferenceHint" class="btn primary" type="button" disabled>この写真を検出</button><button id="quickAll" aria-describedby="quickReferenceHint" class="btn" type="button" data-i18n="quickAll" disabled>全写真を検出</button></div>
+      <p class="detection-review-note" data-i18n="quickReviewGuide">結果は写真上で確認・修正し、「確認完了して次へ」。</p>
+      <div class="detection-options"><label class="quick-mode"><span data-i18n="autoThreshold">検出の感度</span><select id="autoThreshold" class="select"><option value="0.01" data-i18n="autoExplore">多めに拾う</option><option value="0.05" selected data-i18n="autoBroad">標準</option><option value="0.25" data-i18n="autoBalanced">絞り込む</option></select></label><label class="quick-mode"><span data-i18n="quickModeLabel">再検出の扱い</span><select id="quickMode" class="select"><option value="append" data-i18n="quickModeAppend">追加検出</option><option value="replace" data-i18n="quickModeReplace">未確認の自動結果を置換</option></select></label><div class="detection-region-row"><button id="detectionRegionOpen" class="btn small" type="button" data-i18n="regionTitle">検出範囲</button><span id="detectionRegionSummary" class="quick-reference-hint"></span></div></div>
+    </div></section><section id="inspectorProject" role="tabpanel" aria-labelledby="inspectorTabProject" hidden>  <div id="projectSide" class="side"><div class="project-view-tools"><button id="quickMarkers" class="btn quick-toggle active" type="button" title="マーカー表示" data-i18n-title="markerDisplay"><svg viewBox="0 0 24 24" fill="none"><path d="M3.5 12s3-5 8.5-5 8.5 5 8.5 5-3 5-8.5 5-8.5-5-8.5-5Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.8"/></svg><span class="label" data-i18n="markers">マーカー</span></button><button id="adjustBtn" class="btn adjust-btn" type="button" title="画像の表示補正" data-i18n-title="displayCorrection"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M12 5a7 7 0 0 0 0 14V5Z" fill="currentColor" opacity=".28"/><path d="M4 4l2 2M18 18l2 2M20 4l-2 2M6 18l-2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="label" data-i18n="displayCorrection">画像の表示補正</span></button><button id="displayBtn" class="icon-btn" type="button" aria-label="表示設定" data-i18n-aria-label="displaySettings"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 5v4M8 15v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
     <div class="card project-card"><div class="side-head"><div><h2 data-i18n="project">プロジェクト</h2><p data-i18n="autoSave">このブラウザー内に自動保存</p></div><div class="project-head-actions"><span id="saveState" class="save-state" data-i18n="saved">保存済み</span></div></div><div class="field"><label for="projectTitle" data-i18n="projectName">作業名</label><div class="project-title-row"><input id="projectTitle" class="input" maxlength="100" type="text"><button id="typesBtn" class="btn small project-actions-btn" type="button" data-i18n="types">種類</button></div></div></div>
     <div class="card overview-card"><div class="side-head"><div><h2 data-i18n="projectSummary">集計</h2><p id="summaryImagesText">全画像</p></div></div><div class="overview-primary"><div class="overview-block current"><span data-i18n="currentImageCount">この画像のカウント</span><strong id="bigCount">0</strong><div id="activeCatLabel" class="active-cat"><span class="dot"></span><span>—</span></div></div><div class="overview-block"><span data-i18n="totalCount">全体の合計</span><strong id="summaryTotal">0</strong></div></div><div class="overview-secondary"><div class="overview-mini"><span data-i18n="imagesDone">完了画像</span><strong id="summaryDone">0/0</strong></div><div class="overview-mini review"><span data-i18n="needsReview">要確認</span><strong id="summaryReview">0</strong></div></div><p id="photoOverview" class="photo-overview"></p><div id="summaryCats" class="summary-cats"></div></div>
     <div class="card display-card"><div class="side-head"><div><h2 data-i18n="markerDisplay">マーカー表示</h2><p data-i18n="displayHelp">見た目だけを変更します</p></div><button id="openDisplaySide" class="btn small" type="button" data-i18n="details">詳細</button></div><div class="display-list"><div class="display-row"><div><strong data-i18n="showAllMarkers">すべてのマーカー</strong></div><label class="switch"><input id="sideMarkers" type="checkbox" checked><span class="track"></span></label></div><div class="display-row"><div><strong data-i18n="showNumbers">番号を表示</strong></div><label class="switch"><input id="sideNumbers" type="checkbox" checked><span class="track"></span></label></div><div class="display-row"><div><strong data-i18n="markerSize">マーカーサイズ</strong><small id="sideSizeLabel">28 px</small></div><input id="sideSize" type="range" min="12" max="44" step="2" value="28"></div><div class="display-row"><div><strong data-i18n="opacity">透過</strong><small id="sideOpacityLabel">82%</small></div><input id="sideOpacity" type="range" min="25" max="100" step="5" value="82"></div></div></div>
@@ -156,47 +166,29 @@ body:has(#workspace:not([hidden])) .intro,body:has(#workspace:not([hidden]))>foo
 <input id="filesInput" type="file" accept="image/*" multiple hidden><input id="cameraInput" type="file" accept="image/*" capture="environment" hidden><input id="viewerInput" type="file" accept=".html,text/html" hidden>
 <dialog id="detectionRegionDlg" class="region-dialog" aria-labelledby="detectionRegionTitle"><div class="dlg-head"><h2 id="detectionRegionTitle" data-i18n="regionTitle"></h2><button id="detectionRegionClose" class="dlg-close" type="button" data-i18n-aria-label="close" aria-label="閉じる">×</button></div><div class="dlg-body"><p id="detectionRegionTarget"></p><p id="detectionRegionHelp" data-i18n="regionHelp"></p><div class="region-stage"><canvas id="detectionRegionCanvas" tabindex="0" aria-describedby="detectionRegionHelp"></canvas></div><div class="region-bounds"><label><span data-i18n="autoLeft"></span><input id="detectionRegionLeft" type="number" min="0" max="100" step="0.1"></label><label><span data-i18n="autoTop"></span><input id="detectionRegionTop" type="number" min="0" max="100" step="0.1"></label><label><span data-i18n="autoRight"></span><input id="detectionRegionRight" type="number" min="0" max="100" step="0.1"></label><label><span data-i18n="autoBottom"></span><input id="detectionRegionBottom" type="number" min="0" max="100" step="0.1"></label></div><p id="detectionRegionError" role="alert"></p></div><div class="region-footer"><button id="detectionRegionClear" class="btn" type="button" data-i18n="regionFull"></button><button id="detectionRegionCancel" class="btn" type="button" data-i18n="cancel"></button><button id="detectionRegionSave" class="btn primary" type="button" data-i18n="regionSave"></button></div></dialog>
 <dialog id="autoDlg" aria-labelledby="autoTitle">
-  <div class="dlg-head"><h2 id="autoTitle" data-i18n="autoTitle">自動検出</h2><button class="dlg-close" type="button" data-i18n-aria-label="close" aria-label="閉じる">×</button></div>
+  <div class="dlg-head"><h2 id="autoTitle" data-i18n="autoTitle">見本を編集</h2><button id="autoCloseEditor" class="dlg-close" type="button" data-i18n-aria-label="close" aria-label="閉じる">×</button></div>
   <div class="dlg-body"><div class="auto-layout">
     <div class="auto-preview-column">
-      <p id="autoTargetName"></p>
-      <div id="autoReferenceCard" class="auto-reference" hidden><strong id="autoReferenceLabel"></strong><div class="auto-reference-scroll"><canvas id="autoReferenceCanvas" height="72" role="img" data-i18n-aria-label="autoFixedExamples" aria-label="固定した見本"></canvas></div><button id="autoEdit" class="btn small soft" type="button" data-i18n="autoEdit">見本を追加・編集</button> <button id="autoUnpin" class="btn small" type="button" data-i18n="autoUnpin">固定を解除</button></div>
-      <p id="autoEditNote" hidden></p><p id="autoInstructions" data-i18n="autoInstructions">数えたいものを1つずつ囲んでください。見本を囲むだけではカウントは増えません。</p>
+      <div class="auto-source-row"><p id="autoTargetName"></p><button id="autoReplaceExamples" class="btn small" type="button" data-i18n="autoReplaceExamples" hidden>この写真で作り直す</button></div>
+      <p id="autoInstructions" data-i18n="autoInstructions">数えたいものを1つずつ、まずは1〜3個囲んでください。同じ種類の別写真にも使えます。</p>
       <div id="autoExampleToolbar" class="auto-example-toolbar">
         <div class="auto-example-modes"><button id="autoAddMode" class="btn small" type="button" data-i18n="autoAddMode" aria-pressed="true">追加</button><button id="autoSelectMode" class="btn small" type="button" data-i18n="autoSelectMode" aria-pressed="false">選択・修正</button></div>
         <div id="autoExampleSelection" class="auto-example-selection"><label><span data-i18n="autoSelectedExample">選ぶ見本</span><select id="autoExampleSelect" class="input"></select></label><button id="autoDeleteExample" class="btn small" type="button" data-i18n="autoDeleteExample">選んだ見本を削除</button></div>
         <p id="autoSelectionHint"></p>
       </div>
-      <label id="autoExistingToggle" class="auto-existing-toggle"><input id="autoShowExisting" type="checkbox"><span data-i18n="autoShowExisting">追加済みマーカーを点線で表示</span></label>
       <div class="auto-view-tools" role="group" data-i18n-aria-label="autoViewTools" aria-label="画像の表示"><button id="autoZoomOut" class="btn small zoom-step" type="button" data-i18n-aria-label="autoZoomOut" aria-label="縮小">−</button><output id="autoZoomLabel" aria-live="off">100%</output><button id="autoZoomIn" class="btn small zoom-step" type="button" data-i18n-aria-label="autoZoomIn" aria-label="拡大">+</button><button id="autoFit" class="btn small" type="button" data-i18n="autoFit">全体表示</button><button id="autoPanMode" class="btn small" type="button" data-i18n="autoPanMode" aria-pressed="false">表示を移動</button></div>
-      <div class="auto-stage"><canvas id="autoCanvas" class="auto-canvas" tabindex="0" width="640" height="400" aria-describedby="autoInstructions autoZoomHint" data-i18n-aria-label="autoPreview" aria-label="見本と検出候補"></canvas></div><p id="autoZoomHint" data-i18n="autoZoomHint">ピンチで拡大・縮小。2本指、または「表示を移動」で画像を動かせます。</p>
-      <div class="auto-actions"><button id="autoRun" class="btn primary" type="button" data-i18n="autoRun">検出する</button><button id="autoCancel" class="btn" type="button" data-i18n="cancel" disabled>キャンセル</button></div>
-      <p class="auto-legend"><span style="--legend:#b97900" data-i18n="autoExamples">見本</span><span style="--legend:#16624f" data-i18n="autoCandidatesLabel">追加候補</span><span style="--legend:#6b7280" data-i18n="autoExisting">既存・重複</span></p>
-      <div id="autoLocalTools" class="auto-actions"><button id="autoRemoveExample" class="btn small" type="button" data-i18n="autoRemoveExample">最後の見本を取り消す</button><button id="autoClearExamples" class="btn small" type="button" data-i18n="autoClearExamples">見本をすべて消す</button><button id="autoPin" class="btn small" type="button" data-i18n="autoPin">この見本を固定</button></div>
+      <div class="auto-stage"><canvas id="autoCanvas" class="auto-canvas" tabindex="0" width="640" height="400" aria-describedby="autoInstructions autoZoomHint" data-i18n-aria-label="autoPreview" aria-label="見本の枠を編集"></canvas></div><p id="autoZoomHint" data-i18n="autoZoomHint">ピンチで拡大・縮小。2本指、または「表示を移動」で画像を動かせます。</p>
+      <div id="autoLocalTools" class="auto-actions"><button id="autoRemoveExample" class="btn small" type="button" data-i18n="autoRemoveExample">最後の見本を取り消す</button><button id="autoClearExamples" class="btn small" type="button" data-i18n="autoClearExamples">見本をすべて消す</button></div>
       <details id="autoBoundsDetails" class="auto-details"><summary data-i18n="autoKeyboard">数値で見本を囲む（表示画像の%）</summary><div class="auto-bounds">
         <label><span data-i18n="autoLeft">左 (%)</span><input id="autoLeft" class="input" type="number" min="0" max="100" step="0.1" value="10"></label>
         <label><span data-i18n="autoTop">上 (%)</span><input id="autoTop" class="input" type="number" min="0" max="100" step="0.1" value="10"></label>
         <label><span data-i18n="autoRight">右 (%)</span><input id="autoRight" class="input" type="number" min="0" max="100" step="0.1" value="30"></label>
         <label><span data-i18n="autoBottom">下 (%)</span><input id="autoBottom" class="input" type="number" min="0" max="100" step="0.1" value="30"></label>
       </div><button id="autoAddBounds" class="btn small" type="button" data-i18n="autoAddExample">見本を追加</button><button id="autoUpdateBounds" class="btn small" type="button" data-i18n="autoUpdateBounds" hidden>選んだ見本に反映</button></details>
-      <p id="autoExampleCount"></p><p id="autoStatus" class="auto-status" role="status" aria-live="polite"></p>
-    </div>
-    <div id="autoSide" class="auto-side">
-      <p id="autoModelName" class="auto-model-help" role="status"></p>
-      <details id="autoModelDetails" class="auto-details"><summary data-i18n="autoModelSetup">詳細設定</summary>
-        <div class="field"><label for="autoModel" data-i18n="autoModel">対応モデルファイル（開発者向け）</label><input id="autoModel" type="file" accept=".onnx"><p class="auto-model-help" data-i18n="autoModelHelp">通常は内蔵モデルを使います。差し替えは、このアプリ専用の入出力形式に合わせたYOLOEのONNXのみ対応します。一般的なYOLOや別方式のモデルはそのまま使えません（上限256 MiB）。ファイルは外部へ送信しません。</p></div>
-        <button id="autoUseBuiltin" class="btn small" type="button" data-i18n="autoUseBuiltin">内蔵モデルに戻す</button>
-        <div class="field"><label for="autoBackend" data-i18n="autoBackend">処理方法</label><select id="autoBackend" class="input"><option value="wasm" data-i18n="autoCPU">標準（CPU）</option><option value="webgpu" data-i18n="autoGPU">高速（対応GPU）</option></select></div>
-        <div class="field"><label for="autoPrecision" data-i18n="autoPrecision">モデル形式</label><select id="autoPrecision" class="input"><option value="fp32">FP32</option><option value="fp16">FP16 — GPU</option></select></div>
-      </details>
-      <div class="field"><label for="autoThreshold" data-i18n="autoThreshold">検出の確信度</label><select id="autoThreshold" class="input" aria-describedby="autoThresholdHelp"><option value="0.01" data-i18n="autoExplore">さらに広く探す (1%)</option><option value="0.05" selected data-i18n="autoBroad">広く探す (5%)</option><option value="0.1" data-i18n="autoSensitive">やや絞る (10%)</option><option value="0.25" data-i18n="autoBalanced">絞り込む (25%)</option><option value="0.5" data-i18n="autoStrict">厳しく絞る (50%)</option></select><p id="autoThresholdHelp" class="auto-model-help" data-i18n="autoThresholdHelp">まず5%で探し、見落としが多ければ1%、余分な候補が多ければ高い値にします。%は正解率ではありません。</p></div>
-      <p data-i18n="autoReviewHelp">候補を確認し、不要なものをクリックまたは一覧で外してください。見落としは追加後に手動で補えます。</p>
-      <div id="autoCandidateList" class="auto-list" role="group" data-i18n-aria-label="autoCandidatesLabel" aria-label="追加候補"></div>
-      <p data-i18n="autoDuplicateHelp">非表示・別の種類も含め、既存マーカーと重なる候補は除外します。</p>
-      <p id="autoTiming"></p>
+      <p id="autoStatus" class="auto-status" role="status" aria-live="polite"></p>
     </div>
   </div></div>
-  <div class="auto-footer"><button id="autoSaveEdit" class="btn primary" type="button" data-i18n="autoSaveEdit" hidden>見本の変更を保存</button><button id="autoCancelEdit" class="btn" type="button" data-i18n="autoCancelEdit" hidden>変更を取り消す</button><p id="autoSummary" role="status"></p><p id="autoDuplicateNote" data-i18n="autoDuplicateOnlyHelp" hidden></p><button id="autoApply" class="btn primary" type="button" data-i18n="autoApply" disabled>候補をマーカーに追加</button><button id="autoApplyNext" class="btn" type="button" hidden disabled>追加して次を検出</button></div>
+  <div class="auto-footer"><p id="autoExampleCount" aria-live="polite"></p><div class="auto-save-actions"><button id="autoSave" class="btn" type="button" data-i18n="autoSaveClose">保存して閉じる</button><button id="autoSaveDetect" class="btn primary" type="button" data-i18n="autoSaveDetect">保存して検出</button></div></div>
 </dialog>
 <dialog id="typesDlg"><div class="dlg-head"><h2 data-i18n="manageTypes">種類を管理</h2><button class="dlg-close" type="button" aria-label="閉じる" data-i18n-aria-label="close"><svg viewBox="0 0 24 24" fill="none"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div><div class="dlg-body"><p data-i18n="typesExplain">種類ごとに色・名前・表示ON/OFFを設定できます。非表示にしてもカウントデータは消えません。</p><div id="catList" class="cat-list"></div><div class="add-cat"><input id="newCat" class="input" maxlength="40" data-i18n-placeholder="newType" placeholder="新しい種類"><button id="addCat" class="btn primary" type="button" data-i18n="add">追加</button></div></div></dialog>
 <dialog id="displayDlg"><div class="dlg-head"><h2 data-i18n="markerDisplay">マーカー表示</h2><button class="dlg-close" type="button" aria-label="閉じる" data-i18n-aria-label="close"><svg viewBox="0 0 24 24" fill="none"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div><div class="dlg-body"><div class="settings-block"><h3 data-i18n="visibility">表示</h3><div class="display-list"><div class="display-row"><div><strong data-i18n="showAllMarkers">すべてのマーカー</strong><small data-i18n="allMarkerHelp">OFFでもデータは残ります</small></div><label class="switch"><input id="dlgMarkers" type="checkbox" checked><span class="track"></span></label></div><div class="display-row"><div><strong data-i18n="showNumbers">番号を表示</strong></div><label class="switch"><input id="dlgNumbers" type="checkbox" checked><span class="track"></span></label></div></div></div><div class="settings-block"><h3 data-i18n="appearance">大きさ・透過</h3><p data-i18n="appearanceHelp">画像に合わせて、マーカーを見やすい大きさと濃さに調整できます。</p><div class="field"><label for="dlgSize" data-i18n="markerSize">マーカーサイズ</label><div class="slider"><input id="dlgSize" type="range" min="12" max="44" step="2" value="28"><output id="dlgSizeOut">28 px</output></div></div><div class="field"><label for="dlgOpacity" data-i18n="opacity">透過</label><div class="slider"><input id="dlgOpacity" type="range" min="25" max="100" step="5" value="82"><output id="dlgOpacityOut">82%</output></div></div></div><details class="advanced"><summary data-i18n="countingHelp">補助ガイド（必要なときだけ）</summary><div><p data-i18n="guideExplain">大量に数えるとき、数え終わった側を薄く塗って境界線を動かせます。通常はOFFで問題ありません。</p><div class="display-row"><div><strong data-i18n="guide">ガイドを表示</strong></div><label class="switch"><input id="guideToggle" type="checkbox"><span class="track"></span></label></div><div id="guideOptions"><div class="field"><label data-i18n="direction">方向</label><div id="guideSegment" class="segment"><button type="button" data-orient="vertical" class="active" data-i18n="vertical">縦</button><button type="button" data-orient="horizontal" data-i18n="horizontal">横</button></div></div></div></div></details></div></dialog>
@@ -208,7 +200,7 @@ body:has(#workspace:not([hidden])) .intro,body:has(#workspace:not([hidden]))>foo
 <h3 data-i18n="helpQuickTitle">まずは3ステップ</h3>
 <ol class="help-list">
 <li data-i18n="helpQuickPhoto">写真を追加するか撮影し、数える「種類」を選びます。</li>
-<li data-i18n="helpQuickCount">「点」はタップ、「矩形」はドラッグ。AIは「見本設定」で対象を囲み、「この見本を固定」を押すとメイン画面から検出できます。</li>
+<li data-i18n="helpQuickCount">「点」はタップ、「矩形」はドラッグ。自動検出は「見本を登録して始める」で対象を囲み、「保存して検出」を押します。</li>
 <li data-i18n="helpQuickFinish">結果を確認・修正し、「確認完了して次へ」で進みます。「保存・書き出し」（スマホは「保存」）で作業をHTMLに保存できます。</li>
 </ol>
 </section>
@@ -224,7 +216,7 @@ body:has(#workspace:not([hidden])) .intro,body:has(#workspace:not([hidden]))>foo
 <details class="dlg-section help-more">
 <summary data-i18n="helpMoreTitle">便利な操作・保存の補足</summary>
 <p data-i18n="helpReviewDetails">「確認」で選んだマーカーは「編集」で位置や大きさを直せます。「複数」「範囲」で選んで一括削除でき、Undoで戻せます。</p>
-<p data-i18n="quickHelp">見本を「この見本を固定」で登録すると、同じ種類の別写真にも使えます。再検出の「未確認の自動結果を置換」は未修正・未確認の自動結果だけが対象で、手動・確認済み・旧版の結果は残ります。停止しても処理済みの結果は残り、実行全体を1回のUndoで戻せます。</p>
+<p data-i18n="quickHelp">登録した見本は同じ種類の別写真にも使えます。「見本を編集」で修正し、保存せず閉じると変更を取り消します。検出結果は要確認で追加され、0個でも写真を確認してください。再検出の「未確認の自動結果を置換」は未修正・未確認の自動結果だけを置き換えます。停止しても処理済みの結果は残り、実行全体を1回のUndoで戻せます。</p>
 <p data-i18n="photoFilterHelp">「写真一覧」は表示と前後移動を絞り込みます。「一覧の○枚を検出」は開始時の一覧が対象。集計・書き出し・「全写真を検出」「確認完了して次へ」は全写真が対象です。</p>
 <p data-i18n="typeKeyboardNote">PCでは1〜9で種類、←/→で写真を切り替えます。「種類」の名前はTab / Shift+Tabで確定して移動できます。</p>
 <p data-i18n="mobileReviewHelp">「写真」「検出」「作業」で一覧・設定・集計を切り替えます。スマホでは「写真に戻る」でカウント画面に戻れます。</p>
@@ -291,6 +283,10 @@ Object.assign(I18N.en,{quickFiltered:'Detect list ({count})',mobileReviewShow:'S
 Object.assign(I18N.ja,{"helpQuickTitle":"まずは3ステップ","helpQuickPhoto":"写真を追加するか撮影し、数える「種類」を選びます。","helpQuickCount":"「点」はタップ、「矩形」はドラッグ。AIは「見本設定」で対象を囲み、「この見本を固定」を押すとメイン画面から検出できます。","helpQuickFinish":"結果を確認・修正し、「確認完了して次へ」で進みます。「保存・書き出し」（スマホは「保存」）で作業をHTMLに保存できます。","helpNotesTitle":"大切な注意事項","helpAiNote":"AIには誤検出・見落としがあります。0個でも必ず写真を確認し、手動で直してください。","helpStorageNote":"自動保存は、このブラウザー・このページだけです。データ削除や端末変更に備え、大切な作業はHTMLに保存してください。","helpPrivacyNote":"写真・作業データは端末内で処理し、送信しません。ダウンロード済みHTMLはオフラインで使えます。","helpLoadingNote":"モデルなどを含むHTMLのため、初回の読み込みや検出の準備には時間がかかる場合があります。","helpMoreTitle":"便利な操作・保存の補足","helpReviewDetails":"「確認」で選んだマーカーは「編集」で位置や大きさを直せます。「複数」「範囲」で選んで一括削除でき、Undoで戻せます。","quickHelp":"見本を「この見本を固定」で登録すると、同じ種類の別写真にも使えます。再検出の「未確認の自動結果を置換」は未修正・未確認の自動結果だけが対象で、手動・確認済み・旧版の結果は残ります。停止しても処理済みの結果は残り、実行全体を1回のUndoで戻せます。","photoFilterHelp":"「写真一覧」は表示と前後移動を絞り込みます。「一覧の○枚を検出」は開始時の一覧が対象。集計・書き出し・「全写真を検出」「確認完了して次へ」は全写真が対象です。","typeKeyboardNote":"PCでは1〜9で種類、←/→で写真を切り替えます。「種類」の名前はTab / Shift+Tabで確定して移動できます。","mobileReviewHelp":"「写真」「検出」「作業」で一覧・設定・集計を切り替えます。スマホでは「写真に戻る」でカウント画面に戻れます。","helpSaveDetails":"保存したHTMLを直接開くと閲覧専用です。「作業を開く」で編集を再開できます。集計ZIPはCSVと、必要に応じてマーカー付きJPEGを保存します。"});
 Object.assign(I18N.en,{"helpQuickTitle":"Start in 3 steps","helpQuickPhoto":"Add photos or take a picture, then choose the type to count.","helpQuickCount":"Tap in Point mode or drag in Rectangle mode. For AI, open Set up examples, outline an object, then choose Pin these examples to enable detection from the main screen.","helpQuickFinish":"Check and correct the results, then choose Review complete & next. Use Save / export (Save on phones) to save your work as HTML.","helpNotesTitle":"Important notes","helpAiNote":"AI can miss objects or detect the wrong ones. Check every photo, even with zero results, and correct it manually.","helpStorageNote":"Autosave stays in this browser on this page. Save important work as HTML before clearing browser data or changing devices.","helpPrivacyNote":"Photos and work data are processed on your device and are not uploaded. A downloaded HTML works offline.","helpLoadingNote":"The HTML includes the model and runtime, so the first load and detection preparation can take time.","helpMoreTitle":"More controls and saving tips","helpReviewDetails":"In Review, select a marker and choose Edit to change its position or size. Use Multiple or Range to delete a selection together; Undo restores it.","quickHelp":"Pin these examples reuses them for other photos of the same type. Replace unreviewed auto results changes only untouched, unreviewed automatic results; manual, reviewed and older-version results stay. Stop keeps processed results. One Undo reverses the whole run.","photoFilterHelp":"Photo list filters thumbnails and previous/next navigation. Detect list uses the matches when you start. Totals, exports, Detect all photos and Review complete & next still use all photos.","typeKeyboardNote":"On desktop, use 1–9 for types and ←/→ for photos. In Types, Tab / Shift+Tab commits a name and moves to the next or previous control.","mobileReviewHelp":"Use Photos, Detection and Project to switch the list, settings and totals. On phones, Return to photo returns to counting.","helpSaveDetails":"Opening a saved HTML directly shows a read-only viewer. Use Open work to resume editing. Results ZIP saves CSV files with optional annotated JPEGs."});
 // HELP:CONCISE:END
+// DETECTION:GUIDED:BEGIN
+Object.assign(I18N.ja,{"autoTitle":"見本を編集","autoPreview":"見本の枠を編集","autoDeleteExample":"選んだ見本を削除","autoSelectHint":"枠の中をドラッグで移動、四隅でサイズを変更できます。","autoSaveClose":"保存して閉じる","autoSaveDetect":"保存して検出","autoReplaceExamples":"この写真で作り直す","autoEditorTarget":"「{type}」の見本 · {source}","autoInstructions":"数えたいものを1つずつ、まずは1〜3個囲んでください。同じ種類の別写真にも使えます。","autoEditInstructions":"枠を選ぶと移動・サイズ変更・削除ができます。「追加」で見本を増やせます。","autoEditorReady":"","autoModelError":"検出に失敗しました。再試行し、続く場合は作業を保存してブラウザーを開き直してください。","autoInvalidOutput":"検出結果を読み取れませんでした。もう一度検出してください。","autoInvalidModel":"内蔵モデルを読み込めませんでした。作業を保存してページを開き直してください。","autoPinned":"見本を保存しました","autoThreshold":"検出の感度","autoExplore":"多めに拾う","autoBroad":"標準","autoBalanced":"絞り込む","quickSetup":"見本を登録して始める","quickAddExamples":"見本を登録","quickEditExamples":"見本を編集","quickExamplesTitle":"見本","quickReference":"「{type}」· 見本 {count} 個を登録済み","quickNeedReference":"「{type}」の見本を登録すると、同じ種類の写真を続けて検出できます。","quickReviewGuide":"結果は写真上で確認・修正し、「確認完了して次へ」。","helpQuickCount":"「点」はタップ、「矩形」はドラッグ。自動検出は「見本を登録して始める」で対象を囲み、「保存して検出」を押します。","quickHelp":"登録した見本は同じ種類の別写真にも使えます。「見本を編集」で修正し、保存せず閉じると変更を取り消します。検出結果は要確認で追加され、0個でも写真を確認してください。再検出の「未確認の自動結果を置換」は未修正・未確認の自動結果だけを置き換えます。停止しても処理済みの結果は残り、実行全体を1回のUndoで戻せます。"});
+Object.assign(I18N.en,{"autoTitle":"Edit examples","autoPreview":"Edit example boxes","autoSelectHint":"Drag inside a box to move it, or drag a corner to resize.","autoSaveClose":"Save & close","autoSaveDetect":"Save & detect","autoReplaceExamples":"Use this photo for new examples","autoEditorTarget":"Examples for “{type}” · {source}","autoInstructions":"Box 1–3 individual objects to start. Saved examples can be reused for this type on other photos.","autoEditInstructions":"Select a box to move, resize or delete it. Use Add to draw more examples.","autoEditorReady":"","autoModelError":"Detection failed. Try again; if it keeps failing, save your work and reopen the browser.","autoInvalidOutput":"The detection result could not be read. Please try detecting again.","autoInvalidModel":"The built-in model could not be loaded. Save your work and reopen the page.","autoPinned":"Examples saved","autoThreshold":"Detection sensitivity","autoExplore":"Find more","autoBroad":"Standard","autoBalanced":"More selective","quickSetup":"Add examples to start","quickAddExamples":"Add examples","quickEditExamples":"Edit examples","quickExamplesTitle":"Examples","quickReference":"“{type}” · {count} examples saved","quickNeedReference":"Save examples for “{type}” to detect the same objects across photos.","quickReviewGuide":"Check and correct results on the photo, then choose Review complete & next.","helpQuickCount":"Tap with Point or drag with Rectangle. For detection, choose Add examples to start, box objects, then Save & detect.","quickHelp":"Saved examples can be reused for the same type on other photos. Edit examples to change them; closing without saving cancels changes. Results are added as Needs review; inspect photos even when detection finds zero. Replace unreviewed auto results only replaces untouched, unreviewed automatic results. Stopping keeps finished results; one Undo reverts the whole detection run."});
+// DETECTION:GUIDED:END
 let lang=(()=>{try{return localStorage.getItem(APP_CONFIG.slug+':lang')||((navigator.language||'ja').toLowerCase().startsWith('ja')?'ja':'en')}catch{return (navigator.language||'ja').toLowerCase().startsWith('ja')?'ja':'en'}})();
 function t(k,p={}){let s=(I18N[lang]&&I18N[lang][k])||I18N.ja[k]||k;for(const [a,b] of Object.entries(p))s=s.replaceAll('{'+a+'}',String(b));return s}
 function applyTranslatedAttributes(){for(const [attribute,key] of [['aria-label','i18nAriaLabel'],['title','i18nTitle'],['alt','i18nAlt']])$$('[data-i18n-'+attribute+']').forEach(e=>e.setAttribute(attribute,t(e.dataset[key])))}
@@ -835,76 +831,49 @@ document.addEventListener('keydown',editorKeydown);
 // AUTO:UI:BEGIN
 // bytesAsync returns a fresh copy, so transferring it never detaches the cached model.
 const autoBuiltinModel=Object.freeze({name:'YOLOE-26n compact',size:6756087,async arrayBuffer(){return (await StandaloneAssets.bytesAsync('yoloe-26n','model')).buffer}});
-const autoState={generation:0,job:null,urls:[],busy:false,owner:null,model:autoBuiltinModel,examples:[],candidates:[],excluded:new Set(),drag:null,referenceEdit:null,selectedExample:-1,exampleMode:'add',view:{zoom:1,panX:0,panY:0},viewMode:'edit',truncated:0,phase:'ready',message:'autoReady'};
+const autoState={generation:0,job:null,urls:[],busy:false,owner:null,model:autoBuiltinModel,examples:[],candidates:[],excluded:new Set(),drag:null,referenceEdit:null,replaceReference:null,selectedExample:-1,exampleMode:'add',view:{zoom:1,panX:0,panY:0},viewMode:'edit',truncated:0,phase:'ready',message:'autoReady'};
 function autoStatus(key,phase='ready'){
-  if(key==='autoReady'&&autoState.referenceEdit)key='autoEditInstructions';
-  if(key==='autoReady'&&autoCurrentReference())key='autoFixedReady';
+  if(key==='autoReady')key='autoEditorReady';
   autoState.phase=phase;autoState.message=key;
-  const el=$('#autoStatus');el.dataset.phase=phase;el.textContent=t(key);renderAutoControls();
+  const el=$('#autoStatus');el.dataset.phase=phase;el.textContent=key==='autoEditorReady'?'':t(key);renderAutoControls();
 }
-function autoResetResults(){autoState.candidates=[];autoState.excluded.clear();autoState.truncated=0;$('#autoTiming').textContent='';$('#autoCandidateList').textContent=''}
+function autoResetResults(){autoState.candidates=[];autoState.excluded.clear();autoState.truncated=0}
 function invalidateAutoDetection(){
   autoStopJob();autoResetResults();autoState.drag=null;autoStatus('autoReady');renderAutoPreview();
 }
 function autoSyncOwner(){
   if(!$('#autoDlg').open)return;
   if(!autoOwnerCurrent(autoState.owner)){$('#autoDlg').close();autoStopJob();autoResetResults();return}
-  if(autoState.referenceEdit&&autoState.referenceEdit.reference!==autoCurrentReference()){cancelAutoReferenceEdit();return}
+  if((autoState.referenceEdit&&autoState.referenceEdit.reference!==autoCurrentReference())||(autoState.replaceReference&&autoState.replaceReference!==autoCurrentReference())){$('#autoDlg').close();return}
   renderAutoControls();renderAutoPreview();
 }
 async function openAutoDetection(){
-  if(typeof quickDetectionBusy==='function'&&quickDetectionBusy())return;
+  if((typeof quickDetectionBusy==='function'&&quickDetectionBusy())||(typeof quickImportsBusy==='function'&&quickImportsBusy()))return;
   const im=activeImage();if(!im)return;
   cancelMarkerInteraction();pointers.clear();gesture=null;selectedMarkerId=null;renderAll();
-  autoStopJob();autoState.owner={project:P,imageId:im.id,dataUrl:im.dataUrl,categoryId:activeCategoryId};autoState.examples=[];autoState.drag=null;autoState.referenceEdit=null;resetAutoExampleSelection();resetAutoView();$('#autoShowExisting').checked=false;autoResetResults();
+  autoStopJob();autoState.owner={project:P,imageId:im.id,dataUrl:im.dataUrl,categoryId:activeCategoryId};autoState.examples=[];autoState.drag=null;autoState.referenceEdit=null;autoState.replaceReference=null;resetAutoExampleSelection();resetAutoView();autoResetResults();
   $('#autoDlg').showModal();autoStatus('autoReady');
+  if(autoCurrentReference()){await editAutoReference();return}
   if(!imageCache.has(im.id)){
+    autoState.busy=true;autoStatus('autoLoadingImage','loading-runtime');
     const owner=autoState.owner;
-    try{const image=await loadImage(im.dataUrl);if(autoState.owner!==owner||!autoOwnerCurrent(owner)||!$('#autoDlg').open)return;imageCache.set(im.id,image)}catch{if(autoState.owner===owner)autoStatus('autoInvalidImage','error');return}
+    try{const image=await loadImage(im.dataUrl);if(autoState.owner!==owner||!autoOwnerCurrent(owner)||!$('#autoDlg').open)return;imageCache.set(im.id,image);autoState.busy=false;autoStatus('autoReady')}catch{if(autoState.owner===owner){autoState.busy=false;autoStatus('autoInvalidImage','error')}return}
   }
   renderAutoPreview();
 }
-function autoSelected(){return autoState.candidates.filter((b,i)=>!autoState.excluded.has(i))}
-function autoPreviewSelection(){return autoFilter(autoSelected(),activeImage()?.markers||[],activeImage()?.detectionRegion)}
 function autoCurrentReference(){return activeCategory()?.detectionReference||null}
-function autoNextImage(){const index=P?.images.findIndex(im=>im.id===activeImage()?.id)??-1;return index>=0?P.images[index+1]:null}
-function renderAutoReference(){
-  const ref=autoCurrentReference(),editing=!!autoState.referenceEdit;$('#autoReferenceCard').hidden=!ref||editing;
-  $('#autoLocalTools').hidden=!!ref&&!editing;$('#autoBoundsDetails').hidden=!!ref&&!editing;
-  $('#autoInstructions').textContent=t(editing?'autoEditInstructions':ref?'autoFixedInstructions':'autoInstructions');
-  if(!ref){autoState.referencePreview=null;return}
-  $('#autoReferenceLabel').textContent=t('autoFixedLabel',{type:activeCategory().name,source:ref.sourceName});
-  if(autoState.referencePreview===ref)return;
-  autoState.referencePreview=ref;const c=$('#autoReferenceCanvas');c.width=ref.examples.length*80;c.height=72;
-  loadImage(ref.dataUrl).then(image=>{
-    if(autoState.referencePreview!==ref||autoCurrentReference()!==ref)return;
-    const x=c.getContext('2d');ref.examples.forEach((b,i)=>{const scale=Math.min(68/(b.w*640),68/(b.h*640)),w=b.w*640*scale,h=b.h*640*scale;x.drawImage(image,b.x*640,b.y*640,b.w*640,b.h*640,i*80+(72-w)/2,(72-h)/2,w,h)});
-  }).catch(()=>{if(autoState.referencePreview===ref)autoState.referencePreview=null});
-}
 function renderAutoControls(){
-  const busy=autoState.busy,valid=autoOwnerCurrent(autoState.owner),ref=autoCurrentReference(),editing=!!autoState.referenceEdit,examples=editing?autoState.examples.length:ref?ref.examples.length:autoState.examples.length,selection=autoPreviewSelection(),cat=activeCategory();
-  $('#autoRun').disabled=busy||editing||!valid||!examples||!autoState.model;
-  for(const key of ['autoRun','autoCancel','autoApply','autoSide','autoExistingToggle'])$('#'+key).hidden=editing;
-  $('#autoSaveEdit').hidden=$('#autoCancelEdit').hidden=!editing;$('#autoSaveEdit').disabled=busy||!valid||!examples;
-  $('#autoEdit').disabled=busy||!valid;$('#autoPin').hidden=editing;
-  $('#autoEditNote').hidden=!editing;$('#autoEditNote').textContent=editing?t('autoEditNote',{source:autoState.referenceEdit.reference.sourceName}):'';
-  $('#autoCancel').disabled=!busy;$('#autoApply').disabled=busy||!valid||!selection.accepted.length;
-  $('#autoRemoveExample').disabled=busy||(!!ref&&!editing)||!examples;$('#autoClearExamples').disabled=busy||(!!ref&&!editing)||!examples;$('#autoAddBounds').disabled=busy||(!!ref&&!editing);
-  $('#autoPin').disabled=busy||!valid||!!ref||!examples;$('#autoUnpin').disabled=busy||!valid;
-  $('#autoApplyNext').hidden=editing||!ref||!autoNextImage();$('#autoApplyNext').disabled=busy||!valid||autoState.phase!=='result';
-  $('#autoApplyNext').textContent=t(selection.accepted.length?'autoApplyNext':'autoNext');
-  $('#autoTargetName').hidden=editing;$('#autoTargetName').textContent=t('autoTarget',{name:activeImage()?.name||'',index:(P?.images.indexOf(activeImage())??-1)+1,total:P?.images.length||0});
-  for(const key of ['autoBackend','autoPrecision','autoThreshold','autoLeft','autoTop','autoRight','autoBottom'])$('#'+key).disabled=busy;
-  if(ref&&!editing)for(const key of ['autoLeft','autoTop','autoRight','autoBottom'])$('#'+key).disabled=true;
-  renderAutoReference();renderAutoExampleTools();renderAutoViewTools();
-  const builtin=autoState.model===autoBuiltinModel;
-  $('#autoModelName').textContent=builtin?t('autoBuiltinName'):(autoState.model?.name||t('autoInvalidModel'));
-  $('#autoUseBuiltin').disabled=busy||builtin;$('#autoModel').disabled=busy;
-  $('#autoPrecision').disabled=busy||builtin;
-  if(builtin)$('#autoPrecision').value='fp32';
+  const busy=autoState.busy,valid=autoOwnerCurrent(autoState.owner),editing=!!autoState.referenceEdit,examples=autoState.examples.length,editable=autoExamplesEditable();
+  $('#autoSave').disabled=$('#autoSaveDetect').disabled=!editable||!examples;
+  $('#autoRemoveExample').disabled=$('#autoClearExamples').disabled=!editable||!examples;
+  $('#autoAddBounds').disabled=!editable;
+  $('#autoReplaceExamples').hidden=!autoCurrentReference()||!!autoState.replaceReference;
+  $('#autoReplaceExamples').disabled=busy||!valid;
+  $('#autoTargetName').textContent=t('autoEditorTarget',{type:activeCategory()?.name||'',source:editing?autoState.referenceEdit.reference.sourceName:activeImage()?.name||''});
+  $('#autoInstructions').hidden=editing;$('#autoInstructions').textContent=t(editing?'autoEditInstructions':'autoInstructions');
+  for(const key of ['autoLeft','autoTop','autoRight','autoBottom'])$('#'+key).disabled=!editable;
+  renderAutoExampleTools();renderAutoViewTools();
   $('#autoExampleCount').textContent=t('autoExampleCount',{count:examples});
-  $('#autoDuplicateNote').hidden=editing||autoState.phase!=='result'||!!selection.accepted.length||!selection.duplicates;
-  $('#autoSummary').hidden=editing;$('#autoSummary').textContent=t('autoSummary',{count:selection.accepted.length,duplicates:selection.duplicates,excluded:autoState.excluded.size,type:cat?.name||''})+(autoState.truncated?' '+t('autoTruncated',{count:autoState.truncated}):'');
 }
 function autoDisplayBox(b,rot){const a=toDisplayNorm(b.x,b.y,rot),z=toDisplayNorm(b.x+b.w,b.y+b.h,rot);return{x:Math.min(a.u,z.u),y:Math.min(a.v,z.v),w:Math.abs(a.u-z.u),h:Math.abs(a.v-z.v)}}
 function renderAutoPreview(){
@@ -916,9 +885,6 @@ function renderAutoPreview(){
   x.save();x.translate((.5+view.panX)*w,(.5+view.panY)*h);x.scale(view.zoom,view.zoom);x.translate(-w/2,-h/2);
   if(rot===90){x.translate(w,0);x.rotate(Math.PI/2);x.drawImage(image,0,0,h,w)}else if(rot===180){x.translate(w,h);x.rotate(Math.PI);x.drawImage(image,0,0,w,h)}else if(rot===270){x.translate(0,h);x.rotate(-Math.PI/2);x.drawImage(image,0,0,h,w)}else x.drawImage(image,0,0,w,h);x.restore();
   function draw(b,color,label='',dashed=false){const r=autoDisplayBox(b,rot),q=autoViewPoint(r.x,r.y),left=q.u*w,top=q.v*h;if(left+r.w*w*view.zoom<=0||top+r.h*h*view.zoom<=0||left>=w||top>=h)return;x.save();x.strokeStyle=color;x.lineWidth=2*px;x.setLineDash(dashed?[5*px,4*px]:[]);x.strokeRect(left,top,r.w*w*view.zoom,r.h*h*view.zoom);if(label){x.font=`bold ${12*py}px sans-serif`;const width=x.measureText(label).width+8*px,y=Math.max(0,top-17*py);x.fillStyle=color;x.fillRect(left,y,width,17*py);x.fillStyle='#fff';x.fillText(label,left+4*px,y+13*py)}x.restore()}
-  for(const m of ($('#autoShowExisting').checked?im.markers:[])){if(m.shape==='rect')draw(m,'#6b7280','',true);else{const p=toDisplayNorm(m.x,m.y,rot),q=autoViewPoint(p.u,p.v);x.beginPath();x.arc(q.u*w,q.v*h,4*px,0,Math.PI*2);x.fillStyle='#6b7280';x.fill()}}
-  const accepted=new Set(autoPreviewSelection().accepted);
-  autoState.candidates.forEach((b,i)=>draw(b,accepted.has(b)?'#16624f':'#6b7280',String(i+1),!accepted.has(b)));
   const d=autoState.drag;
   autoState.examples.forEach((b,i)=>{const shown=d?.kind==='transform'&&d.index===i?d.preview:b;draw(shown,autoState.exampleMode==='select'&&i===autoState.selectedExample?'#1859a3':'#b97900',t('autoExampleShort',{count:i+1}))});
   const selected=autoState.examples[autoState.selectedExample];
@@ -928,33 +894,26 @@ function renderAutoPreview(){
   }
   if(d?.kind==='add')draw(autoOriginalRect(d.u,d.v,d.endU,d.endV,rot),'#b97900','',true)
 }
-function renderAutoCandidateList(){
-  const root=$('#autoCandidateList');root.textContent='';
-  autoState.candidates.forEach((b,i)=>{
-    const label=document.createElement('label'),input=document.createElement('input'),text=document.createElement('span');input.type='checkbox';input.checked=!autoState.excluded.has(i);input.dataset.candidate=String(i);
-    text.textContent=t('autoCandidateItem',{count:i+1,score:Math.round(b.score*100)});input.onchange=()=>{if(input.checked)autoState.excluded.delete(i);else autoState.excluded.add(i);renderAutoControls();renderAutoPreview()};label.append(input,text);root.append(label);
-  });
-}
 function addAutoExample(b){
   if(!autoExamplesEditable())return;
   if(!autoValidRect(b)||autoState.examples.length>=20){autoStatus('autoSmallExample','error');return}
   invalidateAutoDetection();autoState.examples.push(b);autoState.selectedExample=autoState.examples.length-1;syncAutoExampleBounds();autoStatus('autoReady');renderAutoPreview();
 }
-function autoExamplesEditable(){return !autoState.busy&&autoOwnerCurrent(autoState.owner)&&(!autoCurrentReference()||!!autoState.referenceEdit&&autoState.referenceEdit.reference===autoCurrentReference()&&!!autoState.referenceEdit.image)}
+function autoExamplesEditable(){return !autoState.busy&&autoOwnerCurrent(autoState.owner)&&(!autoCurrentReference()||autoState.replaceReference===autoCurrentReference()||!!autoState.referenceEdit&&autoState.referenceEdit.reference===autoCurrentReference()&&!!autoState.referenceEdit.image)}
 function resetAutoExampleSelection(){autoState.selectedExample=-1;autoState.exampleMode='add';autoState.drag=null}
 function syncAutoExampleBounds(){
   const b=autoState.examples[autoState.selectedExample];if(!b)return;const r=autoDisplayBox(b,autoPreviewRotation());
   ['autoLeft','autoTop','autoRight','autoBottom'].forEach((key,i)=>$('#'+key).value=String(Number(([r.x,r.y,r.x+r.w,r.y+r.h][i]*100).toFixed(6))));
 }
 function renderAutoExampleTools(){
-  const editable=autoExamplesEditable(),shown=!autoCurrentReference()||!!autoState.referenceEdit,selecting=autoState.exampleMode==='select',selected=!!autoState.examples[autoState.selectedExample];
+  const editable=autoExamplesEditable(),shown=!autoCurrentReference()||!!autoState.referenceEdit||!!autoState.replaceReference,selecting=autoState.exampleMode==='select',selected=!!autoState.examples[autoState.selectedExample];
   $('#autoExampleToolbar').hidden=!shown;$('#autoExampleSelection').hidden=!selecting;
   for(const [id,mode]of [['autoAddMode','add'],['autoSelectMode','select']]){$('#'+id).disabled=!editable;$('#'+id).setAttribute('aria-pressed',String(autoState.viewMode!=='pan'&&autoState.exampleMode===mode))}
   const picker=$('#autoExampleSelect'),labels=[t('autoNoExample'),...autoState.examples.map((_,i)=>t('autoExampleShort',{count:i+1}))],signature=JSON.stringify(labels);
   if(picker.dataset.options!==signature){picker.replaceChildren(...labels.map((label,i)=>{const o=document.createElement('option');o.value=String(i-1);o.textContent=label;return o}));picker.dataset.options=signature}
   picker.value=String(selected?autoState.selectedExample:-1);picker.disabled=!editable||!autoState.examples.length;
   $('#autoDeleteExample').disabled=!editable||!selected;$('#autoUpdateBounds').hidden=!selecting;$('#autoUpdateBounds').disabled=!editable||!selected;
-  $('#autoAddBounds').hidden=selecting;$('#autoSelectionHint').textContent=t(autoState.viewMode==='pan'?'autoPanHint':selecting?'autoSelectHint':'autoAddHint');$('#autoCanvas').dataset.exampleMode=shown?autoState.exampleMode:'';
+  $('#autoAddBounds').hidden=selecting;$('#autoSelectionHint').textContent=autoState.viewMode==='pan'?t('autoPanHint'):selecting?t('autoSelectHint'):'';$('#autoCanvas').dataset.exampleMode=shown?autoState.exampleMode:'';
 }
 function selectAutoExample(index){
   if(!autoExamplesEditable())return;autoState.drag=null;autoState.viewMode='edit';autoState.exampleMode='select';autoState.selectedExample=Number.isInteger(index)&&autoState.examples[index]?index:-1;syncAutoExampleBounds();renderAutoControls();renderAutoPreview();
@@ -1041,40 +1000,6 @@ function autoMovePinch(){
   autoSetView(z,(a.screenU+b.screenU)/2-.5-(autoPinch.anchorU-.5)*z,(a.screenV+b.screenV)/2-.5-(autoPinch.anchorV-.5)*z);renderAutoViewTools();renderAutoPreview();
 }
 function autoWorkerSource(){return [autoRoundEven,autoLetterbox,autoValidRect,autoPromptMask,autoOverlap,autoCandidates,autoCheckTensor,autoRunModel].map(fn=>fn.toString()).join('\n')+'\n('+autoDetectWorker.toString()+')();'}
-async function startAutoDetection(){
-  const reference=autoCurrentReference();
-  if(autoState.busy||autoState.referenceEdit||!autoOwnerCurrent(autoState.owner)||!(reference?.examples.length||autoState.examples.length))return;
-  const examples=(reference?.examples||autoState.examples).map(b=>({...b})),model=autoState.model,backend=$('#autoBackend').value,precision=$('#autoPrecision').value;
-  if(!model||!model.size||model.size>256*1024*1024){autoStatus('autoInvalidModel','error');return}
-  if(precision==='fp16'&&backend!=='webgpu'){autoStatus('autoFP16GPU','error');return}
-  if(typeof Worker!=='function'||typeof OffscreenCanvas!=='function'||typeof createImageBitmap!=='function'){autoStatus('autoUnsupported','error');return}
-  resetReviewSelection();cancelMarkerInteraction();pointers.clear();gesture=null;autoState.exampleMode='add';autoState.viewMode='edit';autoClearPointers();autoStopJob();autoResetResults();autoState.busy=true;const token=autoState.generation;autoStatus('autoLoading','loading-runtime');
-  let bitmap,referenceBitmap;
-  try{
-    const dependency=backend==='webgpu'?'ort-webgpu':'ort-wasm';
-    const [moduleBytes,wasm,modelBuffer]=await Promise.all([StandaloneAssets.bytesAsync(dependency,'main'),StandaloneAssets.bytesAsync(dependency,'wasm'),model.arrayBuffer()]);
-    if(!autoJobCurrent(token,model,reference))return;
-    const im=activeImage(),target=imageCache.get(im.id)||await loadImage(im.dataUrl);
-    if(!autoJobCurrent(token,model,reference))return;
-    imageCache.set(im.id,target);renderAutoPreview();bitmap=await createImageBitmap(target);
-    if(!autoJobCurrent(token,model,reference)){bitmap.close();return}
-    if(reference){const source=await loadImage(reference.dataUrl);if(!autoJobCurrent(token,model,reference)){bitmap.close();return}referenceBitmap=await createImageBitmap(source);if(!autoJobCurrent(token,model,reference)){bitmap.close();referenceBitmap.close();return}}
-    const moduleUrl=URL.createObjectURL(new Blob([moduleBytes],{type:'text/javascript'})),workerUrl=URL.createObjectURL(new Blob([autoWorkerSource()],{type:'text/javascript'}));autoState.urls.push(moduleUrl,workerUrl);
-    const worker=new Worker(workerUrl,{type:'module'});autoState.job=worker;
-    worker.onerror=event=>{event.preventDefault();if(!autoJobCurrent(token,model,reference))return;console.error('Auto detection worker:',event.message);autoStopJob();autoStatus('autoModelError','error')};
-    worker.onmessage=({data})=>{
-      if(!autoJobCurrent(token,model,reference))return;
-      if(data.phase==='processing'){autoStatus('autoProcessing','processing');return}
-      autoStopJob();
-      if(data.phase==='error'){console.error('Auto detection:',data.detail);autoStatus(data.code in I18N.ja?data.code:'autoModelError','error');return}
-      if(data.phase!=='result'||!Array.isArray(data.candidates)||data.candidates.length>1000||data.candidates.some(b=>!autoValidRect(b))||(data.truncated!==undefined&&(!Number.isInteger(data.truncated)||data.truncated<0))){autoStatus('autoInvalidOutput','error');return}
-      autoState.candidates=data.candidates;autoState.truncated=data.truncated||0;
-      $('#autoTiming').textContent=t('autoTiming',{init:(data.initMs/1000).toFixed(1),run:(data.inferenceMs/1000).toFixed(1)});
-      renderAutoCandidateList();autoStatus(autoState.candidates.length?'autoReview':'autoZero','result');renderAutoPreview();
-    };
-    worker.postMessage({moduleUrl,wasm:wasm.buffer,model:modelBuffer,bitmap,referenceBitmap,examples,backend,precision,threshold:Number($('#autoThreshold').value)},[wasm.buffer,modelBuffer,bitmap,...(referenceBitmap?[referenceBitmap]:[])]);bitmap=null;referenceBitmap=null;
-  }catch(error){bitmap?.close();referenceBitmap?.close();if(!autoJobCurrent(token,model,reference))return;console.error(error);autoStopJob();autoStatus('autoModelError','error')}
-}
 function autoPreviewRotation(){return autoState.referenceEdit?0:(activeImage()?.adjustments.rotation||0)}
 async function editAutoReference(){
   const reference=autoCurrentReference();if(autoState.busy||!reference||!autoOwnerCurrent(autoState.owner))return;
@@ -1084,24 +1009,24 @@ async function editAutoReference(){
     const image=await loadImage(reference.dataUrl);
     if(autoState.referenceEdit!==edit)return;
     if(!autoOwnerCurrent(edit.owner)||autoCurrentReference()!==reference||!$('#autoDlg').open){cancelAutoReferenceEdit();return}
-    edit.image=image;autoState.busy=false;syncAutoExampleBounds();autoStatus('autoEditInstructions');renderAutoPreview();$('#autoCanvas').focus?.({preventScroll:true});
+    edit.image=image;autoState.busy=false;syncAutoExampleBounds();autoStatus('autoReady');renderAutoPreview();$('#autoCanvas').focus?.({preventScroll:true});
   }catch{if(autoState.referenceEdit===edit){cancelAutoReferenceEdit();autoStatus('autoReferenceError','error')}}
 }
 function cancelAutoReferenceEdit(){
-  autoState.referenceEdit=null;autoState.examples=[];resetAutoExampleSelection();resetAutoView();invalidateAutoDetection();renderAll();
+  autoState.referenceEdit=null;autoState.replaceReference=null;autoState.examples=[];resetAutoExampleSelection();resetAutoView();invalidateAutoDetection();renderAll();
 }
 function saveAutoReferenceEdit(){
-  const edit=autoState.referenceEdit;if(!edit?.image||autoState.busy||!autoOwnerCurrent(edit.owner)||autoCurrentReference()!==edit.reference||!autoState.examples.length)return;
+  const edit=autoState.referenceEdit;if(!edit?.image||autoState.busy||!autoOwnerCurrent(edit.owner)||autoCurrentReference()!==edit.reference||!autoState.examples.length)return false;
   try{
     const examples=Object.freeze(autoState.examples.map(b=>Object.freeze({...b}))),ref=Object.freeze({...edit.reference,examples});
     validateDetectionReference(ref);if(!autoPromptMask(examples,autoLetterbox(640,640)).some(v=>v))throw new Error('small');
     const cat=activeCategory();validateProject({...P,categories:P.categories.map(c=>c===cat?{...c,detectionReference:ref}:c)});
-    if(JSON.stringify(examples)===JSON.stringify(edit.reference.examples)){cancelAutoReferenceEdit();return}
-    pushHistory();cat.detectionReference=ref;autoState.referenceEdit=null;autoState.examples=[];resetAutoExampleSelection();resetAutoView();invalidateAutoDetection();touch();renderAll();$('#autoRun').focus?.();Toast.show(t('autoEditSaved'),t('undo'),undo);
-  }catch{autoStatus('autoReferenceError','error')}
+    if(JSON.stringify(examples)===JSON.stringify(edit.reference.examples)){cancelAutoReferenceEdit();return true}
+    pushHistory();cat.detectionReference=ref;autoState.referenceEdit=null;autoState.examples=[];resetAutoExampleSelection();resetAutoView();invalidateAutoDetection();touch();renderAll();Toast.show(t('autoEditSaved'),t('undo'),undo);return true;
+  }catch{autoStatus('autoReferenceError','error');return false}
 }
 function pinAutoExamples(){
-  if(autoState.busy||!autoOwnerCurrent(autoState.owner)||autoCurrentReference()||!autoState.examples.length)return;
+  if(autoState.busy||!autoOwnerCurrent(autoState.owner)||(autoCurrentReference()&&autoState.replaceReference!==autoCurrentReference())||!autoState.examples.length)return false;
   try{
     const im=activeImage(),image=imageCache.get(im.id);if(!image)throw new Error('image');
     const m=autoLetterbox(image.naturalWidth,image.naturalHeight),c=document.createElement('canvas');c.width=c.height=640;
@@ -1111,59 +1036,42 @@ function pinAutoExamples(){
     const ref=Object.freeze({version:1,sourceName:im.name,dataUrl:c.toDataURL('image/png'),examples:Object.freeze(examples)});
     validateDetectionReference(ref);if(!autoPromptMask(examples,autoLetterbox(640,640)).some(v=>v))throw new Error('small');
     const cat=activeCategory();validateProject({...P,categories:P.categories.map(c=>c===cat?{...c,detectionReference:ref}:c)});
-    pushHistory();cat.detectionReference=ref;autoState.examples=[];resetAutoExampleSelection();resetAutoView();invalidateAutoDetection();touch();renderAll();$('#autoRun').focus?.();Toast.show(t('autoPinned'),t('undo'),undo);
-  }catch(error){console.error(error);autoStatus('autoReferenceError','error')}
+    pushHistory();cat.detectionReference=ref;autoState.replaceReference=null;autoState.examples=[];resetAutoExampleSelection();resetAutoView();invalidateAutoDetection();touch();renderAll();Toast.show(t('autoPinned'),t('undo'),undo);return true;
+  }catch(error){console.error(error);autoStatus('autoReferenceError','error');return false}
 }
-async function autoApplyAndNext(){
-  const next=autoNextImage(),reference=autoCurrentReference(),previousOwner=autoState.owner;
-  if(autoState.busy||!autoOwnerCurrent(autoState.owner)||!reference||!next||autoState.phase!=='result')return;
-  const count=applyAutoCandidates(autoState.owner,autoSelected(),activeCategory()?.id);
-  if(count)Toast.show(t('autoAdded',{count}),t('undo'),undo);
-  autoStopJob();autoResetResults();autoState.examples=[];autoState.drag=null;resetAutoView();
-  const targetOwner=autoState.owner={project:P,imageId:next.id,dataUrl:next.dataUrl,categoryId:activeCategory().id};
-  autoState.busy=true;const token=autoState.generation,model=autoState.model;
-  $('#autoCanvas').width=640;autoStatus('autoLoadingImage','loading-runtime');
-  try{
-    const switched=await switchImage(next.id);
-    if(switched===false){
-      if(token===autoState.generation&&autoState.owner===targetOwner&&model===autoState.model&&reference===autoCurrentReference()&&$('#autoDlg').open){
-        autoStopJob();if(autoOwnerCurrent(previousOwner)){autoState.owner=previousOwner;autoStatus('autoInvalidImage','error')}
-      }
-      return;
-    }
-    if(!autoJobCurrent(token,model,reference)||!$('#autoDlg').open)return;autoState.busy=false;await startAutoDetection();
+// Saving is the only commit point; closing or replacing the draft never changes the saved reference.
+async function replaceAutoExamples(){
+  if(autoState.busy||!autoOwnerCurrent(autoState.owner)||!autoCurrentReference())return;
+  const owner=autoState.owner,reference=autoCurrentReference(),im=activeImage();
+  autoState.referenceEdit=null;autoState.replaceReference=reference;autoState.examples=[];resetAutoExampleSelection();resetAutoView();invalidateAutoDetection();
+  if(!imageCache.has(im.id)){
+    autoState.busy=true;autoStatus('autoLoadingImage','loading-runtime');
+    try{const image=await loadImage(im.dataUrl);if(autoState.owner!==owner||!autoOwnerCurrent(owner)||autoState.replaceReference!==reference||!$('#autoDlg').open)return;imageCache.set(im.id,image);autoState.busy=false}
+    catch{if(autoState.owner===owner){autoState.busy=false;autoStatus('autoInvalidImage','error')}return}
   }
-  catch(error){if(!autoJobCurrent(token,model,reference))return;autoStopJob();autoStatus('autoInvalidImage','error')}
+  autoStatus('autoReady');renderAutoPreview();$('#autoCanvas').focus?.({preventScroll:true});
 }
-$('#autoEdit').onclick=editAutoReference;$('#autoSaveEdit').onclick=saveAutoReferenceEdit;$('#autoCancelEdit').onclick=cancelAutoReferenceEdit;$('#autoShowExisting').onchange=renderAutoPreview;
-$('#autoPin').onclick=pinAutoExamples;
-$('#autoUnpin').onclick=()=>{if(autoState.busy||!autoOwnerCurrent(autoState.owner)||!autoCurrentReference())return;pushHistory();delete activeCategory().detectionReference;autoState.examples=[];resetAutoExampleSelection();resetAutoView();invalidateAutoDetection();touch();renderAll();$('#autoBoundsDetails').querySelector('summary')?.focus();Toast.show(t('autoUnpinned'),t('undo'),undo)};
-$('#autoApplyNext').onclick=autoApplyAndNext;
+async function saveAutoExamples(detect=false){
+  const owner=autoState.owner;
+  if(!$('#autoDlg').open||!autoOwnerCurrent(owner))return false;
+  const saved=autoState.referenceEdit?saveAutoReferenceEdit():pinAutoExamples();
+  if(!saved||autoState.owner!==owner||!autoOwnerCurrent(owner)||!autoCurrentReference())return false;
+  $('#autoDlg').close();
+  if(detect)await startQuickDetection(false);
+  return true;
+}
+$('#autoSave').onclick=()=>saveAutoExamples(false);$('#autoSaveDetect').onclick=()=>saveAutoExamples(true);
+$('#autoReplaceExamples').onclick=replaceAutoExamples;
+$('#autoCloseEditor').onclick=()=>$('#autoDlg').close();
 $('#autoOpen').onclick=openAutoDetection;
-$('#autoDlg').addEventListener('close',()=>{autoStopJob();autoResetResults();autoState.owner=null;autoState.examples=[];autoState.drag=null;autoState.referenceEdit=null;resetAutoExampleSelection();resetAutoView()});
+$('#autoDlg').addEventListener('close',()=>{autoStopJob();autoResetResults();autoState.owner=null;autoState.examples=[];autoState.drag=null;autoState.referenceEdit=null;autoState.replaceReference=null;resetAutoExampleSelection();resetAutoView()});
 $('#autoDlg').addEventListener('cancel',()=>autoStopJob());
 $('#autoDlg').addEventListener('keydown',e=>e.stopPropagation());
-$('#autoModel').onchange=e=>{
-  invalidateAutoDetection();const model=e.target.files[0]||autoBuiltinModel;autoState.model=model;
-  if(model&&(!model.size||model.size>256*1024*1024)){autoState.model=null;e.target.value='';autoStatus('autoInvalidModel','error');return}
-  autoStatus('autoReady');
-};
-$('#autoUseBuiltin').onclick=()=>{
-  autoState.model=autoBuiltinModel;$('#autoModel').value='';$('#autoBackend').value='wasm';$('#autoPrecision').value='fp32';
-  invalidateAutoDetection();
-};
-for(const key of ['autoBackend','autoPrecision','autoThreshold'])$('#'+key).onchange=invalidateAutoDetection;
-$('#autoRun').onclick=startAutoDetection;
-$('#autoCancel').onclick=()=>{autoStopJob();autoStatus('autoCancelled');renderAutoPreview()};
 $('#autoAddMode').onclick=()=>setAutoExampleMode('add');$('#autoSelectMode').onclick=()=>setAutoExampleMode('select');
 $('#autoExampleSelect').onchange=e=>selectAutoExample(Number(e.target.value));$('#autoDeleteExample').onclick=deleteAutoExample;$('#autoUpdateBounds').onclick=updateAutoExampleBounds;
 $('#autoRemoveExample').onclick=()=>{if(!autoExamplesEditable()||!autoState.examples.length)return;invalidateAutoDetection();autoState.examples.pop();autoState.selectedExample=Math.min(autoState.selectedExample,autoState.examples.length-1);syncAutoExampleBounds();renderAutoControls();renderAutoPreview()};
 $('#autoClearExamples').onclick=()=>{if(!autoExamplesEditable())return;invalidateAutoDetection();autoState.examples=[];resetAutoExampleSelection();renderAutoControls();renderAutoPreview()};
 $('#autoAddBounds').onclick=()=>{if(!autoExamplesEditable())return;const box=readAutoExampleBounds();if(box)addAutoExample(box)};
-$('#autoApply').onclick=()=>{
-  if(autoState.busy)return;const count=applyAutoCandidates(autoState.owner,autoSelected(),activeCategory()?.id);
-  if(count){$('#autoDlg').close();Toast.show(t('autoAdded',{count}),t('undo'),undo)}else{renderAutoControls();renderAutoPreview()}
-};
 $('#autoZoomIn').onclick=()=>autoZoomView(1.5);$('#autoZoomOut').onclick=()=>autoZoomView(1/1.5);
 $('#autoFit').onclick=()=>{if(autoState.busy||!autoOwnerCurrent(autoState.owner))return;resetAutoView();renderAutoControls();renderAutoPreview()};
 $('#autoPanMode').onclick=()=>{if(autoState.busy||!autoOwnerCurrent(autoState.owner))return;autoClearPointers();autoState.viewMode=autoState.viewMode==='pan'?'edit':'pan';renderAutoControls();renderAutoPreview()};
@@ -1176,7 +1084,7 @@ autoCanvas.addEventListener('pointerdown',e=>{
   if(autoSuppressPointer||!e.isPrimary){autoSuppressPointer=true;return}
   autoPointerSeed={selectedExample:autoState.selectedExample,exampleMode:autoState.exampleMode};
   if(autoState.viewMode==='pan'){autoState.drag={kind:'pan',id:e.pointerId,...p,view:{...autoState.view}};return}
-  if(autoCurrentReference()&&!autoState.referenceEdit&&!autoState.candidates.length){autoStatus('autoFixedInstructions');return}
+  if(!autoExamplesEditable())return;
   if(autoExamplesEditable()&&autoState.exampleMode==='select'){
     const hit=autoHitExample(p,e.pointerType);selectAutoExample(hit?.index??-1);if(!hit)return;
     const original={...autoState.examples[hit.index]};autoState.drag={kind:'transform',id:e.pointerId,...p,index:hit.index,handle:hit.handle,original,preview:original};
@@ -1199,10 +1107,7 @@ autoCanvas.addEventListener('pointerup',e=>{
   const p=autoCanvasPoint(e);
   if(d.kind==='transform'){if(Math.hypot(p.x-d.x,p.y-d.y)>3)commitAutoExample(d.index,autoTransformExample(d.original,d,p,d.handle,autoPreviewRotation()))}
   else if(d.kind==='pan'){autoSetView(d.view.zoom,d.view.panX+p.screenU-d.screenU,d.view.panY+p.screenV-d.screenV);renderAutoViewTools()}
-  else if(Math.abs(p.x-d.x)<6&&Math.abs(p.y-d.y)<6&&autoState.candidates.length){
-    const q=fromDisplayNorm(p.u,p.v,autoPreviewRotation()),index=autoState.candidates.findIndex(b=>q.x>=b.x&&q.x<=b.x+b.w&&q.y>=b.y&&q.y<=b.y+b.h);
-    if(index>=0){if(autoState.excluded.has(index))autoState.excluded.delete(index);else autoState.excluded.add(index);const input=$('#autoCandidateList').querySelector(`[data-candidate="${index}"]`);if(input)input.checked=!autoState.excluded.has(index);renderAutoControls()}
-  }else addAutoExample(autoOriginalRect(d.u,d.v,p.u,p.v,autoPreviewRotation()));
+  else addAutoExample(autoOriginalRect(d.u,d.v,p.u,p.v,autoPreviewRotation()));
   renderAutoPreview();
 });
 for(const event of ['pointercancel','lostpointercapture'])autoCanvas.addEventListener(event,e=>{
@@ -1416,7 +1321,7 @@ function renderWorkspaceShell(){
   for(const panel of ['photos','detection','project']){const key=panel[0].toUpperCase()+panel.slice(1),selected=workspaceShell.panel===panel,tab=$('#inspectorTab'+key);$('#inspector'+key).hidden=!selected;tab.textContent=names[panel];tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1}
   $('#mobileReviewTools').hidden=false;$('#mobileReviewToggle').hidden=false;$('#mobileReviewToggle').setAttribute('aria-expanded',String(open));$('#mobileReviewToggle').textContent=lang==='ja'?'写真・設定':'Photos & tools';
   $('#inspectorClose').textContent=mobile?(lang==='ja'?'写真に戻る':'Return to photo'):'×';$('#inspectorClose').setAttribute('aria-label',lang==='ja'?'写真に戻る':'Return to photo');
-  $('#workspaceDetect').textContent=t('quickCurrent');$('#workspaceDetect').disabled=$('#quickCurrent').disabled;$('#workspaceSetup').textContent=lang==='ja'?'見本設定':'Set up examples';
+  if(typeof renderQuickDetection==='function')renderQuickDetection();
   $('#mobileReviewNotice').textContent=!$('#photoFilterOutside').hidden?t('photoFilterOutside'):'';
   $('#mobileBar').classList.toggle('review-mobile',mode==='review');
   $('#mobPrev').disabled=$('#prevImage').disabled||quickDetectionBusy();$('#mobNext').disabled=$('#nextImage').disabled||quickDetectionBusy();$('#mobReviewNext').disabled=$('#reviewNext').disabled||quickDetectionBusy();
@@ -1454,16 +1359,19 @@ function quickSync(){
 function renderQuickDetection(){
   const run=quickState.run,report=run||quickState.report,category=activeCategory(),ref=category?.detectionReference,busy=!!run,loading=quickImportsBusy(),matches=matchingPhotos();
   $('#quickFiltered').textContent=t('quickFiltered',{count:matches.length});$('#quickFiltered').disabled=busy||loading||!matches.length||!ref;
-  $('#quickMode').disabled=busy||loading;$('#quickCurrent').disabled=busy||loading||!activeImage()||!ref;$('#quickAll').disabled=busy||loading||!P?.images.length||!ref;
+  $('#quickMode').disabled=$('#autoThreshold').disabled=busy||loading;
+  $('#quickCurrent').disabled=busy||loading||!activeImage();$('#quickAll').disabled=busy||loading||!P?.images.length||!ref;
+  $('#autoOpen').disabled=busy||loading||!activeImage();$('#autoOpen').textContent=t(ref?'quickEditExamples':'quickAddExamples');
   const reason=busy?t('quickBusyHint'):loading?t('quickWaitingPhotos'):!P?.images.length?t('quickNeedPhoto'):!ref?t('quickNeedReference',{type:category?.name||''}):'';
-  const currentReason=reason||(!activeImage()?t('quickNeedPhoto'):'');
-  const ready=ref?t('quickReference',{type:category.name,count:ref.examples.length})+' '+t($('#quickMode').value==='replace'?'quickReplaceHint':'quickAppendHint'):'';
+  const currentReason=busy||loading||!activeImage()?reason:'';
+  const ready=ref?t('quickReference',{type:category.name,count:ref.examples.length}):'';
   $('#quickReferenceHint').textContent=reason||ready;$('#quickReferenceHint').dataset.blocked=String(!!reason);
-  // Import completion calls quickSync without a full workspace render: update both launchers here.
+  // Import completion must update both launchers without waiting for a full workspace render.
   $('#workspaceDetect').disabled=$('#quickCurrent').disabled;
-  $('#workspaceDetect').title=$('#quickCurrent').title=currentReason||ready;$('#quickAll').title=reason||ready;$('#quickFiltered').title=reason||(!matches.length?t('quickNoMatches'):ready);
-  $('#workspaceDetectionHint').hidden=!currentReason;
-  $('#workspaceDetectionHint').textContent=currentReason&&!busy&&!loading&&P?.images.length&&!ref?t('quickNeedReferenceShort',{type:category?.name||''}):currentReason;
+  $('#workspaceDetect').textContent=$('#quickCurrent').textContent=t(ref?'quickCurrent':'quickSetup');
+  $('#workspaceSetup').textContent=t('quickEditExamples');$('#workspaceSetup').hidden=!ref;$('#workspaceSetup').disabled=busy||loading||!activeImage();
+  $('#workspaceDetect').title=$('#quickCurrent').title=currentReason||ready||t('quickNeedReference',{type:category?.name||''});$('#quickAll').title=reason||ready;$('#quickFiltered').title=reason||(!matches.length?t('quickNoMatches'):ready);
+  $('#workspaceDetectionHint').hidden=!currentReason;$('#workspaceDetectionHint').textContent=currentReason;
   $('#workspace').inert=busy;$('#mobileBar').inert=busy;$('#toast').inert=busy;
   const panel=$('#quickProgress');panel.hidden=!report;if(!report)return;
   $('#quickCancel').hidden=!busy;$('#quickDismiss').hidden=busy;
@@ -1477,7 +1385,11 @@ function renderQuickDetection(){
 function finishQuickDetection(run,phase){
   if(quickState.run!==run)return;
   quickState.run=null;run.phase=phase;if(Number.isFinite(run.startedAt))run.elapsedMs=Math.max(0,Date.now()-run.startedAt);run.cancelInference?.();quickState.report=run.project===P?run:null;
-  if(run.historyStarted&&run.project===P&&phase!=='changed')setMode('review');
+  if(run.historyStarted&&run.project===P&&phase!=='changed'){
+    // On phones the inspector replaces the photo; reveal the results before entering Review.
+    if(typeof mobileReviewActive==='function'&&mobileReviewActive()&&typeof workspaceShell!=='undefined')workspaceShell.open=false;
+    setMode('review');
+  }
   renderAll();
   if([$('#quickCancel'),$('#quickProgress'),document.body].includes(document.activeElement)){const opener=$(run.opener);if(typeof focusMobileReviewTarget==='function')focusMobileReviewTarget(opener);else opener?.focus()}
 }
@@ -1486,16 +1398,15 @@ async function startQuickDetection(all=false){
   if(document.querySelector('dialog[open]:not(#adjustDlg)'))return;
   if($('#adjustDlg').open)$('#adjustDlg').close();
   const targets=all==='filtered'?[...matchingPhotos()]:all===true?[...P.images]:[activeImage()];if(!targets.length)return;
-  const model=autoState.model,backend=$('#autoBackend').value,precision=$('#autoPrecision').value;
+  const model=autoBuiltinModel,backend='wasm',precision='fp32';
   if(!model?.size||model.size>256*1024*1024){Toast.show(t('autoInvalidModel'));return}
-  if(precision==='fp16'&&backend!=='webgpu'){Toast.show(t('autoFP16GPU'));return}
   if(typeof Worker!=='function'||typeof OffscreenCanvas!=='function'||typeof createImageBitmap!=='function'){Toast.show(t('autoUnsupported'));return}
   cancelMarkerInteraction();pointers.clear();gesture=null;resetReviewSelection();Toast.hide();
   const run={startedAt:Date.now(),project:P,category:activeCategory(),reference:autoCurrentReference(),model,backend,precision,mode:$('#quickMode').value==='replace'?'replace':'append',threshold:Number($('#autoThreshold').value),sources:P.images.map(image=>({image,dataUrl:image.dataUrl})),targets,rows:[],added:0,removed:0,index:0,historyStarted:false,phase:'loading-runtime',opener:all==='filtered'?'#quickFiltered':all===true?'#quickAll':'#quickCurrent'};
   quickState.run=run;quickState.report=null;renderAll();$('#quickProgress').focus();$('#quickProgress').scrollIntoView({block:'nearest'});
   await quickProcessImages(run);
 }
-$('#quickMode').onchange=renderQuickDetection;$('#quickCurrent').onclick=()=>startQuickDetection(false);$('#quickAll').onclick=()=>startQuickDetection(true);$('#quickFiltered').onclick=()=>startQuickDetection('filtered');
+$('#quickMode').onchange=renderQuickDetection;$('#quickCurrent').onclick=()=>{if($('#quickCurrent').disabled)return;return autoCurrentReference()?startQuickDetection(false):openAutoDetection()};$('#quickAll').onclick=()=>startQuickDetection(true);$('#quickFiltered').onclick=()=>startQuickDetection('filtered');
 $('#quickCancel').onclick=()=>{if(quickState.run)finishQuickDetection(quickState.run,'cancelled')};
 $('#quickDismiss').onclick=()=>{const opener=$(quickState.report?.opener||'#quickCurrent');quickState.report=null;renderQuickDetection();focusMobileReviewTarget(opener)};
 addEventListener('pagehide',()=>{if(quickState.run)finishQuickDetection(quickState.run,'cancelled')});

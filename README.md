@@ -1,20 +1,20 @@
 # Image Counter EX
 
-Detection starts at **5%**. Try **1%** for missed objects or 10–50% for fewer unwanted candidates, then review the boxes. Scores are not accuracy percentages. The built-in model uses **FP32** computation: its stored weights are FP16, but computation remains FP32. See the [diagnosis and validation](docs/DETECTION_ACCURACY.md).
+Detection starts at **Standard**. Try **Find more** for missed objects or **More selective** for fewer unwanted results, then review the boxes. The built-in model uses **FP32** computation: its stored weights are FP16, but computation remains FP32. See the [diagnosis and validation](docs/DETECTION_ACCURACY.md).
 
 [![GitHub Pages](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml)
 [![Single HTML](https://img.shields.io/badge/distribution-single%20HTML-0ea5e9)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.16.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.17.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
 
-Main-screen detection becomes available after examples are pinned for the selected type. If unavailable, nearby text explains setup or ongoing photo loading. **Advanced settings** accepts only compatible custom YOLOE exports; ordinary model files cannot be swapped in directly.
+If no examples are saved for the selected type, the main action opens example setup. Nearby text explains ongoing photo loading or processing. The built-in model is used automatically.
 
-Pin examples for repeated inspections: after outlining, choose **Pin these examples**. Each counting type keeps its own reference. Other photos can use **Detect** immediately; after review, **Add and detect next** advances through the image list. Pinned references survive draft restoration and viewer HTML import, even if the original photo is removed. Use **Add / edit examples** to adjust them on the saved image, or **Unpin examples** to start over on another photo. Results still need checking on every photo.
+For repeated inspections, draw examples once and choose **Save & detect**. The app saves them for the selected type, adds detection results as **Needs review**, and returns to the photo for checking. Other photos can use the same examples with **Detect this photo** or **Detect all photos**. Saved examples remain available in browser autosave and saved work HTML, even after removing their original photo.
 
 ## 🚀 Live demo
 
@@ -24,7 +24,7 @@ GitHub Pages delivers the initial HTML. After it loads, image decoding, counting
 
 The initial HTML includes the model and detection runtimes, so opening it can take time on a slower connection or device. A startup notice remains until the app is ready. The self-extract variant shows **Loading application file**, **Unpacking locally**, then **Starting**. Detection assets are decoded when you run Detect; they are already included in the initial file. These notices explain the wait; they do not promise faster loading.
 
-[![Image Counter screenshot](assets/screenshot-en.png)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
+[![Image Counter screenshot](assets/screenshot.png)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
 
 Undo / Redo results also auto-save. Resetting image corrections returns the image to in-progress. During rapid viewer navigation, images and counts switch together; a decoding failure keeps the previous image and lets you retry or select another.
 
@@ -39,7 +39,7 @@ Undo / Redo results also auto-save. Resetting image corrections returns the imag
 - **Work through multiple photos** — Filter the thumbnail list by photo status and move between matching photos. Counts show progress across the whole project. **Review complete & next** reviews and completes a photo, then moves to the next incomplete one.
 - **Adjust hard-to-see photos without changing the original** — Brightness, contrast, grayscale, and 90° rotation are non-destructive and are preserved in exports.
 - **Capture photos from the camera** — Review a capture before adding it, retake it, or accept it and continue shooting.
-- **Resume or carry your work** — Autosave in this browser, or use **Save / export → Save work as HTML** to keep photos, pinned examples, markers and review progress in a file. Choose **Open work** to resume editing.
+- **Resume or carry your work** — Autosave in this browser, or use **Save / export → Save work as HTML** to keep photos, saved examples, markers and review progress in a file. Choose **Open work** to resume editing.
 - **Export results in practical formats** — Saved work HTML opens directly as a read-only viewer. You can also export a ZIP containing `markers.csv` and `summary.csv`, with optional annotated JPEG images.
 - **Share a viewer without giving up the data** — The exported viewer can switch images, toggle marker visibility, show image information and comments, and re-export JPEG / CSV+JPEG ZIP. Import it back into Image Counter to resume editing.
 - **Private local runtime** — No account, analytics, remote font, runtime CDN, or image upload. Runtime networking is blocked by CSP with `connect-src 'none'`.
@@ -65,33 +65,33 @@ Open the [GitHub Pages demo](https://ttomohisa.github.io/htmlapps-image-counter-
 
 The first build downloads pinned ONNX Runtime JS/WASM packages. Generated HTML embeds them; no runtime library download is needed. The compact YOLOE-26n model is also embedded; there is no additional runtime download.
 
-## Local auto detection
+## Try automatic detection
 
-Use **Add / edit examples** to adjust a pinned reference on its saved source image. Choose **Add** to draw another box, or **Select / edit** to select a box on the image or by its number in the example list. Drag inside the selected box to move it, drag any of its four corner handles to resize it, or change the percentage bounds and choose **Update selected example**. Boxes stay within the image. Delete removes only the selected example; it is unavailable with no selection. These controls also work for examples before pinning them.
+1. Select the type you want to count. Choose **Add examples to start** beside the photo, or open examples from the **Detection** panel.
+2. Draw one or more examples around individual objects. Choose **Save & detect** to save those examples for this type and detect the current photo, or **Save & close** to register them for later.
+3. Check the results in the photo's **Review** mode. New automatic markers are **Needs review**. Remove unwanted markers, correct boxes or add missed objects manually, then choose **Review complete & next**.
 
-For small boxes, pinch the preview or use **− / +** to zoom from 1× to 8×. Move two fingers together to pan, or choose **Pan view** and drag with one pointer. **Fit** restores the whole image. The controls stay beside the preview, and the corner handles stay the same screen size. Choosing Add or Select / edit exits Pan view and keeps the view; closing the dialog or changing its source resets it. Zoom changes only the view, so saved boxes, source pixels and detection inputs are unchanged.
+After examples are saved, **Detect this photo**, **Detect all photos**, and the filtered **Detect list (N)** action use them directly. Every successfully processed photo needs review, including zero or duplicate-only results. Detection runs use the built-in compact model automatically; there is no model upload, processor or precision setting.
 
-Pinned changes stay pending until **Save example changes**; one **Undo** restores the previous reference. **Discard changes** or closing the dialog keeps the saved reference. Interrupted pointer actions or a second touch discard the unfinished add, move or resize; a pinch keeps the selected example, and lifting the remaining finger cannot commit the abandoned edit. Example edits do not change counts. **Unpin examples** starts over on the current photo. Dashed boxes are existing count markers and are hidden by default; overlapping results cannot be counted again.
+### Edit saved examples
 
-Pin examples for the selected type in **Examples / detection settings**, available from **Detection**. **Detect this photo** is also available beside the canvas; **Detect all photos** is in Detection. All-photo detection includes completed photos. Choose **Add detections** (default) to keep existing markers, or **Replace unreviewed auto results** to refresh only unreviewed, untouched automatic markers of the selected type. New results are marked **Needs review**, and overlaps with retained markers are skipped.
+Open **Edit examples** to adjust the saved source image, even if its original photo has been removed. **Add** draws another box; **Select / edit** selects a box from the image or numbered list. Drag inside a selected box to move it, use its corners to resize it, or enter percentage bounds. **Delete selected example** removes only that box.
 
-Replacement protects manual, reviewed, edited and other-type markers. It also protects results made before dev.10, whose automatic origin cannot be reliably identified. Moving, resizing, changing type or toggling review protects a marker from later replacement; marking it Needs review again does not undo that protection. Each photo changes only after successful detection. A valid zero-result replacement can remove the eligible old results; failed, cancelled or incomplete replacement results keep them. **Stop** keeps processed photos, and one **Undo** restores the whole run.
+Pinch or use **− / +** to zoom from 1× to 8×. Two fingers pan; **Pan view** enables one-pointer panning. **Fit** restores the whole image. Zoom changes only the view, not saved coordinates or inference inputs.
 
-A main-screen detection run prepares the model and pinned examples once, then reuses them across its photos. This avoids repeating preparation for every photo. The result shows total elapsed time, including preparation. Finish, Stop or a runtime error releases the run’s resources; the next run starts fresh. The model and detection settings are unchanged.
+Choose **Use this photo for new examples** to draw a fresh set on the currently selected photo. Your previous saved examples remain unchanged until a valid save. Closing the editor discards unsaved edits; a changed save is reversible with one Undo. Interrupted gestures and a second finger discard unfinished box edits. At least one valid example is required to save. Editing examples alone never changes counts.
 
-Every successfully detected photo needs review, even when the result is zero or all candidates overlap existing markers. After a run with successful photos, the canvas enters **Review**, including when you stop after partial success. Applying candidates from the detection dialog also enters Review. After checking the photo, **Review complete & next** clears review state, marks it complete and advances to the next incomplete photo, wrapping to the start when needed. It stays on the final photo when all are complete. **Clear review flags** clears review state without completing it. Both review actions support Undo.
+### Run and review
 
-![Reviewing local detection candidates](assets/auto-detection.jpg)
+The **Detection** panel keeps sensitivity, the current photo's detection region and rerun behavior beside the detection actions. Start with **Standard**; use **Find more** for misses or **More selective** for fewer unwanted results. Detection uses original pixels, without brightness or contrast display corrections.
 
-Navigating away cancels running detection and leaves controls usable when a cached page returns. Android Chrome hardware and direct-file operation remain pending; see the [device check procedure](docs/ANDROID_FILE_TEST.md).
+**Add detections** preserves existing markers. **Replace unreviewed auto results** updates only eligible automatic markers of the selected type inside the detection region. Manual, reviewed, edited, other-type and older-version markers stay intact. A valid zero result can remove eligible old results; failed, cancelled or incomplete results cannot. Moving, resizing, changing type or toggling a marker's review flag removes its replacement eligibility.
 
-1. Select the target marker type and open **Examples / detection settings** from **Detection**.
-2. Use the built-in model with the default CPU / FP32 settings. **Advanced settings / model** optionally accepts a compatible custom model; **Use built-in model** restores the default.
-3. In **Add** mode, outline one or more examples or enter left/top/right/bottom percentages under **Enter example bounds**. To adjust a box, choose **Select / edit**, select it on the canvas or by its list number, then move, resize, delete or update its numeric bounds. The numbered controls and numeric fields also support keyboard operation.
-4. Select **Detect**. Click boxes or uncheck candidates you do not want. Counts stay unchanged during preview.
-5. Select **Add candidates as markers**. Existing overlaps are excluded, including other/hidden types. One Undo reverses the entire batch.
+**Detect all photos** includes completed photos. A run prepares the model and saved examples once for its captured target list and reports elapsed time including preparation. **Stop** keeps already processed photos; one **Undo** restores the entire run. No other work can be edited while detection is running. Leaving the page stops inference and releases its runtime.
 
-Cancel or close the dialog to stop inference. The model is retained only for the current page session; it is not included in drafts or exports. The preview uses original pixels without display brightness/contrast corrections.
+After review, **Review complete & next** clears the photo's review flags, completes it and moves to the next unfinished photo, wrapping once. If all photos are complete, it stays on the current photo. **Clear review flags** clears review state without changing completion. Both are undoable.
+
+The user reported successful Android Chrome operation with dev.3. Physical Android verification of the newer editor and detection flow remains pending; successful HTTP tests do not establish direct-file support. See the [device checklist](docs/ANDROID_FILE_TEST.md).
 
 ## Detection area and filtered runs
 
@@ -166,7 +166,7 @@ Use **Photo list** immediately above the thumbnails to choose **All**, **Undetec
 
 The current photo stays on the canvas if it falls outside the filter, with **Current photo is outside this filter** explaining why its thumbnail is absent. Previous / Next and `←` / `→` visit only matching photos in project order and stop at either end. From an excluded photo, they choose the nearest match before or after it. If there are no matches, the list shows **No photos match** and both directions are unavailable.
 
-The filter stays selected as you edit, review, use Undo/Redo or change language in the same project. New work, Open work, draft restoration and page reload start at All. Filtering does not change counts or saved data. Summaries, exports, **Detect all photos**, **Next incomplete**, **Review complete & next** and the detection dialog's next-photo actions still cover the entire project, so those navigation actions can open a photo outside the filter.
+The filter stays selected as you edit, review, use Undo/Redo or change language in the same project. New work, Open work, draft restoration and page reload start at All. Filtering does not change counts or saved data. Summaries, exports, **Detect all photos**, **Next incomplete** and **Review complete & next** still cover the entire project, so those navigation actions can open a photo outside the filter.
 
 ### Image display correction
 
@@ -181,7 +181,7 @@ The original source image is not overwritten.
 
 ## Save and reopen work
 
-Choose **Save / export → Save work as HTML** to download photos, pinned examples, markers and review progress in one file. The save uses the content and filename present when you press Save. The saved HTML opens directly as a **read-only result viewer**; it contains the work data but not the editor or detection model.
+Choose **Save / export → Save work as HTML** to download photos, saved examples, markers and review progress in one file. The save uses the content and filename present when you press Save. The saved HTML opens directly as a **read-only result viewer**; it contains the work data but not the editor or detection model.
 
 It includes:
 
@@ -222,7 +222,7 @@ result.zip
 
 ### Saved HTML image compression
 
-**Compress saved photos** converts photos to WebP to reduce file size. Turn it off to preserve fine detail for later inspection. Pinned example snapshots stay unchanged. Annotated images in CSV + image ZIP exports remain JPEG.
+**Compress saved photos** converts photos to WebP to reduce file size. Turn it off to preserve fine detail for later inspection. Saved example snapshots stay unchanged. Annotated images in CSV + image ZIP exports remain JPEG.
 
 ## Camera and captured time
 
@@ -295,7 +295,7 @@ The GitHub Pages version still requires the initial HTML request. For use with t
 
 ## Limitations
 
-- Local detection is experimental: false positives and missed objects require human review. Process one photo or all photos sequentially using pinned examples; tiles are not included.
+- Local detection is experimental: false positives and missed objects require human review. Process one photo or all photos sequentially using saved examples; tiles are not included.
 - One project supports up to 30 images in the current UI.
 - Individual images over 35 MB are rejected, and the project has a 220 MB source-data guard.
 - Large or high-resolution multi-image projects can consume substantial device memory and browser storage.

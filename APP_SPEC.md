@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.16
+- **Version:** 1.1.0-dev.17
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -11,7 +11,7 @@
 
 ## 2. Product principles
 
-1. **Manual counting first.** Dialog detection produces temporary candidates. Explicit quick-detection actions append unreviewed markers or replace eligible unreviewed automatic results. Every successful quick detection requires human review, including zero-result runs, before photo completion.
+1. **Manual counting first.** All automatic-detection actions append unreviewed markers or replace eligible unreviewed automatic results through the same workflow. Every successfully processed photo requires human review, including zero-result runs, before photo completion.
 2. **Local-first.** Images, markers, notes, drafts, and exports stay in the browser. Runtime network access is blocked with `connect-src 'none'`.
 3. **Fast repetitive work.** Undo/Redo, category switching, current-category emphasis, and mobile controls must remain reachable while counting.
 4. **Editable source data, read-only sharing.** The main app edits projects. Exported viewer HTML is read-only, but can be imported back into the main app to resume editing.
@@ -40,7 +40,7 @@
 - Support drag-and-drop and clipboard image paste on desktop.
 - Support live camera capture through `getUserMedia()` when available.
 - Closing the camera dialog or leaving the page invalidates pending camera starts and stops tracks; late results cannot restart capture. Playback errors also release the acquired stream.
-- Show a post-capture review with **Retake**, **Use this photo**, and **Use & capture next** before adding a camera image.
+- Show a post-capture review with **Retake**, **Use this photo for new examples**, and **Use & capture next** before adding a camera image.
 - Fall back to the device camera/file input when live camera access is unavailable.
 
 ### Marker modes
@@ -67,7 +67,7 @@
 - Range selection is pending until release. Pointer cancellation, lost capture or a second pointer abandons the unfinished selection without changing the prior selection, marker data, completion, history, redo or autosave. Pinch/two-finger pan remains available; surviving and late events cannot commit an abandoned selection.
 - Selection is temporary UI state, scoped to the current project and photo. Clear or prune it on project/photo replacement, mode changes, marker/type hiding or removal, history restoration and detection transitions. Never let a selected ID from another photo, a hidden marker or a stale gesture be deleted.
 - Delete only the selected eligible markers in the current photo, in one history transaction and one autosave request. Set that photo's completion to false; preserve every other marker, photo and detection check. Provide immediate Undo without a confirmation dialog. Undo/Redo restores the entire deletion and completion change together. An empty or stale selection does not add history or discard redo.
-- Enter Review after a main-screen run with at least one successfully processed photo, including successful zero-result photos and a run stopped after partial success. Applying dialog candidates also enters Review. Failed or cancelled work with no successful photo must not cause a stale transition in another project.
+- Enter Review after a main-screen run with at least one successfully processed photo, including successful zero-result photos and a run stopped after partial success. Failed or cancelled work with no successful photo must not cause a stale transition in another project.
 - Review mode, submode, selected IDs and range geometry are not stored in projects, drafts, viewer HTML or CSV. Schema, model assets, thresholds and detection algorithms remain unchanged.
 
 ### Types and visibility
@@ -111,7 +111,7 @@
 - Previous/Next and Left/Right move only through matching photos in project order without wrapping. If the current photo is excluded, use the nearest matching photo before/after its project position. Disable a direction when no match exists there; both directions are unavailable for an empty result.
 - Keep the selected filter as temporary UI state for the live project. Preserve it across same-project edits, status changes, photo additions/removals, Undo/Redo and language changes. Reset to All when a new project, opened work or restored draft is accepted, and after page reload. Failed or cancelled replacement leaves the active filter intact.
 - Changing or resetting the filter must not edit project data, counts, completion, history, redo, timestamps or autosave. Do not serialize it in schema 4, drafts, saved work/viewer HTML or CSV.
-- Project summaries, all exports, **Detect all photos**, **Next incomplete**, **Review complete & next** and the detection dialog's next-photo actions retain their full-project scope. These actions may explicitly select a photo outside the filter; keep that photo visible with the same notice.
+- Project summaries, all exports, **Detect all photos**, **Next incomplete**, **Review complete & next** retain their full-project scope. These actions may explicitly select a photo outside the filter; keep that photo visible with the same notice.
 - Guard pending filtered navigation against filter changes, project replacement and stale image decoding. Only a still-current request may commit the photo and its data; a failed decode keeps the previously displayed photo and allows retry.
 
 ### Scoped detection (introduced in 1.1.0-dev.14)
@@ -201,7 +201,7 @@ result.zip
 ## 6. UI / UX requirements
 
 - In every mode, use a photo-first workspace with one nonmodal inspector whose panels are **写真 / Photos**, **検出 / Detection** and **作業 / Project**. Above 900 px, the inspector occupies a 300 px right column and scrolls independently; it can close and reopen. At 900 px and below, **写真・設定 / Photos & tools** opens it in place of the canvas working area, with **写真に戻る / Return to photo** restoring the photo. Panels switch rather than adding a settings stack above the canvas.
-- Photos owns filtering, matching counts, list-only detection, thumbnails and photo management. Detection owns pinned-example setup, detection regions, rerun behavior and current/all-photo detection. Project owns the title, totals, type management and display/storage settings. Current-photo detection is also a direct canvas-toolbar action, visibly unavailable without a reference. Keep setup discoverable from that area and Save reachable outside the inspector.
+- Photos owns filtering, matching counts, list-only detection, thumbnails and photo management. Detection owns saved-example setup, sensitivity, detection regions, rerun behavior and current/all-photo detection. Project owns the title, totals, type management and display/storage settings. Current-photo detection is also a direct canvas-toolbar action. Without a reference, label that action as setup and open the example editor; once examples are saved, run detection directly. Keep Save reachable outside the inspector.
 - Keep filename/status/count, mode controls and Previous/Next beside the photo. Show the excluded-current filter notice in canvas view too. Keep the category dock, memo, marker popovers, Review selection and ordinary Complete distinct from **Review complete & next**. Review uses a compact context row with selection actions when meaningful.
 - Inspector open/selected-panel state is temporary and scoped to the active project. Reset it on accepted project replacement, preserve it across same-project edits and language changes, and omit it from drafts, saved work and exports. Cancel unfinished marker gestures before layout/panel transitions or responsive changes; never recreate the cached canvas/stage or duplicate IDs.
 - Keep quick-detection progress and Stop outside inert workspace roots. New controls obey existing processing/import/modal guards. Repair focus only if its previous owner becomes hidden, without taking it from another modal or control; dialog launchers remain reachable after resize. Escape may close the inspector only when a native dialog, editor or input does not own it. Support normal keyboard navigation and panel-selector keys.
@@ -243,17 +243,18 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 
 ## 9. Non-goals for v1.0.0
 
-- Automatic counting without user review (local detection previews are supported in the development build).
+- Automatic counting without user review.
 - OCR-based counting.
 - Cloud collaboration or shared server projects.
 - XLSX export (planned for a later version).
-- Merging existing markers automatically. Quick replacement is limited to explicitly eligible, unreviewed automatic results; dialog candidate import only filters duplicates.
+- Merging existing markers automatically. Replacement is limited to explicitly eligible, unreviewed automatic results.
 
 ## 10. Acceptance criteria
 
 - In the photo workspace, the header spans the same full viewport width as the workspace, with consistent outside gutters; right-align toolbar actions to the photo frame edge on wide desktops. Keep setup reachable at 320 px.
-- Quick-detection controls and their toolbar replica refresh together at photo-import start and completion (including errors), selected-type changes, pin/unpin and history restoration. Show selected-type missing-reference guidance in the photo view and above inspector actions, including the exact Pin these examples step. Explain loading/running/no-photo/empty-filter restrictions; an empty filter does not disable current/all-photo detection. Keep real disabled controls and descriptive accessible text.
-- Advanced model loading remains developer-only compatible runtime-prompt YOLOE ONNX; ordinary model files are not interchangeable. Keep the built-in model unchanged.
+- Detection controls and their toolbar replica refresh together at photo-import start and completion (including errors), selected-type/reference changes and history restoration. Without a saved reference, the current-photo action opens example setup with an explicit setup label. All/list detection still requires saved examples. Explain loading/running/no-photo/empty-filter restrictions; an empty filter does not disable current/all-photo detection. Keep real disabled controls for unavailable operations and descriptive accessible text.
+- No model upload, model restore, backend or precision controls are exposed. Use the unchanged built-in compact model with WASM / FP32. Keep user-meaningful sensitivity, per-photo region and rerun choices in the Detection inspector.
+- Save & detect validates and commits examples before closing the editor and invoking the shared current-photo detection path. Failed/empty/stale saves neither close nor start detection. A valid unchanged save can continue without a history entry. Cancel/close during saved-reference loading or replacement leaves the saved reference intact; a late load cannot reopen or overwrite a newer editor.
 
 - At 1360 × 900, verify the ordinary photo workspace starts its canvas within approximately the top 220 CSS px, gives it at least 55% of viewport height, and requires no document-level vertical scroll for normal counting; the inspector may scroll.
 - At Japanese 390 × 844 and English 320 × 740, verify the canvas starts within approximately the top 260 CSS px and remains usefully tall without document-level horizontal overflow. The inspector temporarily replaces the canvas rather than stacking above it. Keep bounded inspector/memo scrolling; short or landscape screens may scroll when needed to preserve usable controls.
@@ -275,7 +276,7 @@ Current stable desktop and mobile Chromium, Safari, and Firefox where the used b
 - Review taps and single/multiple-mode drags leave counts and geometry unchanged; Edit preserves the selected marker and opens the matching Point/Rectangle mode.
 - Multiple toggles and additive range selection use only visible markers in the current photo at 0/90/180/270 degrees, including zoomed/panned views. Cancelled or interrupted range gestures leave prior selection and project/history state intact.
 - Bulk deletion removes only the visible selected markers in the current photo, preserves detection checks and other photos, clears completion and supports one-step Undo/Redo and autosave. Empty/stale selections are no-ops; hidden markers, mode/photo changes and restored history cannot leave actionable stale selection.
-- Successful quick detection, including zero results and a stopped run with earlier successful photos, and dialog application enter Review. Selection UI is temporary and absent from draft/viewer/CSV data.
+- Successful quick detection, including zero results and a stopped run with earlier successful photos enter Review. Selection UI is temporary and absent from draft/viewer/CSV data.
 - Per-type numbering and category switching work.
 - Multi-image totals, needs-review totals, and completion state work.
 - Photo filtering uses the shared status precedence and full-project option counts, including flagged completed photos and zero-result pending checks. Empty results and a current photo outside the filter are clearly explained without an automatic photo switch.
@@ -315,77 +316,55 @@ Editor and viewer CSV use the same serializer: formula-like text receives a lead
 
 Compatibility exception: the former native resize handler could create an exact 0.003-wide/high rectangle extending past the right/bottom image edge by at most 0.003. Import/restore moves only that affected origin inward, retaining its minimum size. Out-of-range origins and other oversized rectangles still fail validation. New resizes keep the minimum rectangle fully inside the image.
 
-## Local visual detection — 1.1.0 development milestone
+## Local visual detection — unified workflow (1.1.0-dev.17)
 
-- Current-image detection through Auto detect; one to twenty examples, drawn or entered using displayed-image percentage bounds. Examples never create counts.
-- Local custom YOLOE runtime-prompt ONNX file, nonempty and at most 256 MiB; ordinary fixed-prompt YOLO exports are incompatible. The file is selected again after page reload and is not saved in projects.
-- CPU uses FP32 / ORT Web 1.29.0; explicit GPU mode uses ORT Web 1.27.0 and supports FP32 or FP16 on compatible hardware. No automatic fallback: a retry starts a fresh Worker.
-- ORT assets are embedded and decoded lazily. Blob module Workers, wasmBinary, one WASM thread and wasm-unsafe-eval retain connect-src 'none'. No external runtime fetch.
-- Phases: ready → loading-runtime → processing → result or error. Cancel/close/model or setting changes invalidate the job; source ownership is checked again before result/application. Worker termination interrupts compute.
-- Navigating away stops any active detection and updates its controls/status before the page is cached. Returning to a cached page allows another run; already completed review candidates remain available. Long type names wrap in the application summary even at 320 px.
-- Inference uses original decoded pixels, without brightness/contrast corrections. Preview shares existing 0/90/180/270-degree transforms; all candidate geometry remains normalized to the original image, including compressed drafts.
-- Confidence presets: 0.01 / 0.05 default / 0.1 / 0.25 / 0.5. The development default favors recall for visual prompting; scores are not calibrated accuracy percentages. Explain the false-positive tradeoff next to the control. NMS IoU > 0.5 suppresses lower-score boxes. Preview is capped at 1000 with the omitted count shown.
-- Click a candidate or uncheck its list item to exclude it. Existing rectangles match by IoU >= 0.5 or intersection/smaller-area >= 0.8; an existing point inside a candidate also excludes it. This includes hidden and other-category markers. Recheck duplicates against current markers and accepted batch on Apply.
-- Apply creates ordinary schema-4 rectangle markers in the active category with needsReview:false. One history entry, one autosave request, completed image becomes incomplete. Zero accepted candidates change nothing. Undo/Redo restores markers and completion together.
-- Candidates, temporary examples, computed prompts, model files and runtime state never enter project/draft/viewer/CSV. Explicitly pinned examples are stored per category as an independent 640 × 640 PNG snapshot plus normalized example boxes (one to twenty). They survive source-photo removal and draft/viewer round trips; CSV contains counts and markers only. Existing native app identifier and storage slug image-counter remain unchanged for compatibility; product/repository labels use EX.
-- The compact 6.44 MiB YOLOE-26n model is embedded and selected by default (CPU / FP32). No model picker is required. Advanced settings can load a custom model or restore the built-in model. Model weights inflate lazily on Detect; each Worker receives a fresh transferable copy. The integrated release is AGPL v3 with offline license text and public corresponding source. Within-batch prompt reuse is described below; cross-run prompt caching and tiles remain deferred.
-- See docs/YOLOE_VALIDATION.md for measured results and explicitly untested environments; direct file-origin detection is not considered verified solely by a successful build or HTTP test.
+### Example setup and editing
 
-### Reusable examples (1.1.0-dev.4)
+- The dialog edits examples only; it contains no inference, candidate-selection or model-settings workflow. One to twenty valid examples are required. Examples never create counts.
+- Without saved examples for the selected type, the current-photo action opens setup. Draw individual objects and choose **Save & detect** to register them and start current-photo detection, or **Save & close** to register them for later. The separate Pin action is removed.
+- Each type stores an independent, immutable 640 × 640 letterboxed PNG snapshot with normalized example boxes. It survives source-photo removal, lightweight history and draft/saved-work round trips. CSV contains counts and markers only. Preserve the native app identifier, schema 4 and storage slug `image-counter`.
+- Opening saved examples immediately enters a draft editor over the saved source snapshot, at rotation zero and independent of the current target. Save shares the existing PNG and replaces only its boxes. **Use this photo** stages a fresh source and boxes from the current target without deleting the previous saved reference; only a valid save replaces it.
+- Save validates snapshot/reference geometry, a nonempty prompt mask and project limits before committing one history/autosave transaction. A valid unchanged save creates no history but can continue to detection. Failed, empty or stale saves remain in the editor and cannot start inference. After successful Save & detect, recheck the captured project/photo/type owner, close the editor, then start the shared detection path.
+- Cancel, Escape, close and stale loading discard pending example changes and retain the saved reference and all counts. Clearing all boxes requires adding at least one valid box before saving. Late image decoding cannot reopen a closed editor or change newer work.
+- Imports validate PNG magic/header dimensions, version, 2 MiB snapshot limit, one to twenty finite in-bounds boxes and aggregate project budget. Existing schema-4 projects without references remain supported.
 
-- Pin examples for the active counting type; show cropped thumbnails, source filename and current target filename. Unpin is undoable. Snapshots are immutable and shared by lightweight history.
-- Run the prompt-extraction pass on the saved reference snapshot and the detection pass on the current target photo. Target coordinates and duplicate suppression always use the target photo. Rotation and display corrections do not change saved source pixels.
-- After reviewing a result, Add and detect next applies accepted candidates as one undoable batch to the current image, then detects the next image in list order. Zero accepted candidates allow proceeding without history changes. Each new result requires review; images are not marked complete automatically.
-- Image loading, inference, cancellation and late callbacks are guarded by project, image, category, generation, model and reference identity. Cancel/close during transition must not start a later detection.
-- Imports validate snapshot PNG magic/header dimensions, version, payload limit (2 MiB), one to twenty finite in-bounds regions and aggregate project budget. Previous schema-4 projects without references remain supported.
+### Selecting and adjusting examples
 
-### Main-screen detection (introduced in 1.1.0-dev.5; updated in dev.11)
+- Both new examples and saved-reference drafts provide **Add** and **Select / edit** modes. Add draws a new box; Select / edit selects from the canvas or numbered list without creating a box. Show the selected box distinctly; deletion affects only that box and is unavailable without selection.
+- Drag inside a selected box to move it or use any of its four corner handles to resize it. Keep positive-size geometry inside the image at every supported rotation. Percentage bounds describe displayed-image coordinates; map them through the existing display/original transform. Saved snapshots use rotation zero.
+- Selection fills left/top/right/bottom bounds. In Select / edit, the numeric action updates that example; in Add it adds a new example. Validate finite 0–100% values, ordered edges and valid size before committing. Invalid values leave geometry unchanged. Keep keyboard-accessible selection, deletion and numeric controls.
+- Pointer cancellation, lost capture or the start of multitouch abandons the unfinished add/move/resize. Preserve selection and reject surviving/late events from that gesture. Selection and unfinished geometry are temporary and never serialized.
+- Support 1–8× zoom with anchored pinch, two-finger pan, **Pan view** for one-pointer panning, adjacent **− / +**, zoom level and **Fit** controls. Buttons scale by 1.5 within limits; Fit restores the whole image. Corner handles retain a fixed CSS size.
+- Image, overlays and pointer mapping share one viewport transform. Zoom/pan changes no boxes, saved pixels, counts, inference input or history. Reset the view on dialog/source/reference transitions; switching Add / Select keeps it and exits Pan view.
 
-- Detect this photo / Detect list (N) / Detect all photos use the selected type’s pinned reference and current detection settings without opening the dialog. No reference or pending photo import disables these actions; Detect list also requires a nonempty matching list.
-- All photos means the complete image list, including completed photos, processed sequentially in list order. Existing overlaps of any type are excluded after applying the chosen replacement rule. New rectangles carry `needsReview:true` and `autoPending:true`; successfully checked photos become incomplete.
-- One Undo reverses the whole run, including additions, replacements, detection checks and completion changes. A successful zero-result or duplicate-only photo still records an unreviewed check and participates in that transaction.
-- Show progress, filename, added/removed counts, per-photo results and a Stop action. On completion or interruption, show total elapsed duration including preparation. Stop retains processed photos’ changes; the active photo cannot commit late results. Bad target images are reported and skipped; inference/runtime errors stop the run.
-- Reuse one Worker, model session and computed reference prompt within each main-screen run. Prepare the reference once and process targets sequentially with guarded request IDs. Finish, Stop, runtime failure, stale ownership and page navigation terminate the Worker and release transient bitmaps/URLs/runtime state. A later run starts fresh; dialog detection keeps its one-shot lifecycle. No model, precision, threshold, preprocessing or schema change is implied by reuse.
-- Lock editing, navigation, imports and hidden toast actions during processing. Reject stale project/image/model/reference ownership before committing. Release worker/bitmaps/Blob URLs on finish, cancellation and page navigation.
-- Pinned examples, resulting markers and detection checks persist through existing draft/viewer flows. Transient progress reports, elapsed duration, computed prompts, runtime state and the selected rerun mode do not persist.
+### Detection and lifecycle
 
-### Photo review (introduced in 1.1.0-dev.6; updated in dev.10)
+- Use the embedded 6.44 MiB YOLOE-26n automatically with CPU/WASM FP32 computation. Stored FP16 weights do not change compute precision. Remove user-facing model-file, backend and precision settings. The existing embedded assets remain unchanged; WebGPU assets may remain bundled but are not selectable in this workflow.
+- ORT assets and model weights decode lazily. Blob module Workers, `wasmBinary`, one WASM thread and `wasm-unsafe-eval` retain `connect-src 'none'`; no external runtime request occurs. Each run receives fresh transferable model bytes.
+- **Detect this photo**, **Detect list (N)** and **Detect all photos**, including Save & detect, use the same captured selected-type reference and detection settings. Pending imports or processing block starts. All/list require saved examples, and list also requires matching photos. All includes completed photos; list captures its matching-photo snapshot at start.
+- Run phases are ready → loading-runtime → processing → result or error. Reuse one Worker, model session and computed visual prompt within a run; prepare the saved reference once and then process targets sequentially with guarded request IDs. A later run starts fresh.
+- The reference pass uses saved-source pixels and the detection pass uses original target pixels, without display brightness/contrast corrections. Preprocessing and candidates retain original-image normalized coordinates, including compressed drafts and all 0/90/180/270-degree displays.
+- Sensitivity presets are **Find more** (0.01), **Standard** (0.05, default) and **More selective** (0.25). The labels describe the missed-object/extra-result tradeoff instead of presenting scores as accuracy percentages. NMS IoU > 0.5 suppresses lower-score boxes. Cap results at 1000 and report truncation; reject truncated replacement results.
+- Validate complete output, then apply the photo's inclusive center-inside detection region. Existing rectangle overlaps are duplicates at IoU ≥ 0.5 or intersection/smaller-area ≥ 0.8; a point inside a candidate also excludes it. Include hidden/other-type markers and accepted new candidates when checking duplicates.
+- New automatic rectangles carry `needsReview:true` and `autoPending:true`. Every successfully processed photo becomes incomplete and receives an unreviewed detection check, including zero or duplicate-only results. Review occurs on the main photo canvas, with no separate candidate Apply action.
+- One lazy history transaction covers the entire run's additions, removals, checks and completion changes. **Stop** preserves earlier committed photos and one Undo restores them all. Target decode failures are reported and skipped; runtime/output failures stop the run. Failure or cancellation cannot partially commit the current photo.
+- Lock editing, navigation, imports and hidden toast actions while running. Check project/photo/type/model/reference identities before committing. Stop, finish, stale ownership and page navigation terminate the Worker, reject pending work, close untransferred bitmaps and revoke URLs. Returning to a cached page allows another run.
+- Show progress, target filename, added/removed counts, per-photo results and Stop outside inert editing roots. Report total elapsed time including preparation. Runtime assets, computed prompts, progress reports, selected rerun mode and temporary example edits never enter project/draft/viewer/CSV data.
+- The integrated release remains AGPL v3 with offline license text and public corresponding source. Tiles and cross-run prompt caching remain deferred. See `docs/YOLOE_VALIDATION.md` for measured results and explicitly untested environments; HTTP success does not establish direct file-origin detection.
 
-- When the current photo contains review flags or unreviewed detection checks, show its flagged-marker count and Mark this photo reviewed beside the photo workflow. The action clears all review flags and replacement eligibility and reviews all checks in that photo, including hidden and other types, with one Undo/Redo transaction and autosave. Counts, geometry, other photos and completion remain unchanged. No-op actions preserve history/redo; inference blocks review edits.
-- Pin/unpin immediately synchronizes the main-screen reference count, action availability and history controls. New local examples must be pinned to reuse them outside the dialog.
+### Review, status and safe reruns
 
-### Editing pinned examples (1.1.0-dev.7)
+- Derive photo status in order: flagged marker or unreviewed detection check → **Needs review**; completed → **Complete**; marker or reviewed check → **In progress**; otherwise → **Undetected**. Do not invent legacy detection history. Show text/accessible status beside counts; zero-result checks do not inflate the flagged-marker count.
+- Enter Review after any run with a successfully committed photo, including zero results and Stop after partial success. Failed/cancelled work with no success must not trigger a stale transition in another project.
+- **Clear review flags** clears all photo flags and replacement eligibility and reviews all checks, including hidden/other types, in one undoable transaction. It preserves counts, geometry, other photos and completion. No-op review preserves history/redo; inference blocks edits.
+- **Review complete & next** performs the same review, sets completion and navigates to the next incomplete photo in list order, wrapping once and skipping the current photo. When all are complete, remain on the photo and announce completion. Undo/Redo restores the photo data.
+- **Add detections** preserves existing markers. **Replace unreviewed auto results** removes only the selected category's `autoPending === true && needsReview === true` markers whose centers are inside the detection region. Preserve manual, reviewed, edited, other-type, outside-region and legacy detections without explicit eligibility.
+- Committed moves, resizes, type changes and review toggles remove eligibility; reflagging never recreates it. Cancelled edits preserve eligibility. Undo restores prior eligibility with prior geometry/state.
+- Complete inference and validate the full output before atomically replacing/adding for each photo. Duplicate filtering uses retained markers. A valid zero-result replacement may remove eligible old results; failed, malformed, cancelled or truncated results cannot remove them.
+- Optional schema-4 `image.detectionChecks` stores at most one `{categoryId, detectedAt, reviewed}` per category. Every successful detection refreshes its timestamp and sets `reviewed:false`. Validate categories/timestamps/booleans on import; preserve checks and eligibility in history, drafts and saved work. Type deletion removes its checks and protects reassigned markers.
 
-- Add / edit examples opens the saved 640 px source snapshot with a mutable copy of the pinned boxes. Display and drawing use snapshot coordinates, independent of target rotation or source-photo existence. Detection and candidate application are unavailable during editing.
-- Save replaces the category reference as one Undo transaction; Discard, dialog close or stale loading never changes the saved reference or any count. Saving no changes preserves history. Clearing all boxes requires adding at least one valid box before saving.
-- Existing count markers are hidden by default in the detection preview, with an explicit dashed-marker display toggle. Fixed-mode guidance explains how to add examples or unpin/start over on another photo. Duplicate-only results explain why they cannot be added again.
+### Detection acceptance checks
 
-### Selecting and adjusting examples (1.1.0-dev.8)
-
-- Both unpinned current-photo examples and the pinned-reference draft editor provide explicit Add and Select / edit modes. Add draws a new example; Select / edit selects an existing example from its canvas box or numbered list control without creating a box.
-- Show the selected example distinctly. Delete affects only that selected example and is disabled when nothing is selected. Selecting another example does not change any geometry or count.
-- Drag inside the selected box to move it; drag one of its four corner handles to resize it. Keep positive-size geometry inside the image at all supported rotations. Pinned-reference editing continues to use the saved snapshot at rotation zero.
-- Selecting an example fills the left/top/right/bottom percentage bounds for the displayed image. The numeric action updates that selected example in Select / edit mode and adds an example in Add mode. Validate finite values within 0–100%, ordered edges and valid size before committing; invalid input leaves the box unchanged. Keep keyboard-accessible selection, deletion and numeric controls.
-- Pointer cancellation, lost capture and the start of a multitouch gesture discard the pending add/move/resize. Late pointer events must not commit an abandoned gesture. Examples, counts, saved references and project history remain unchanged by cancellation.
-- Edits to a pinned reference remain a temporary copy until Save example changes. Discard, Escape, dialog close and stale ownership discard the draft. A changed, valid save is one Undo/Redo transaction; an unchanged save creates no history. At least one valid example is required to save.
-- Unpinned examples remain local to the dialog until explicitly pinned. Example editing never adds count markers. Model assets, dependencies, the project schema and storage identifiers are unchanged.
-- Acceptance checks cover local and pinned examples, canvas/list selection, selected-only deletion, all four handles, numeric updates, pointer cancellation/multitouch, rotated targets, save/discard/close, Undo/Redo and draft/viewer round trips. Desktop browser, direct-file and physical Android results must be recorded separately; automated checks alone do not establish those passes.
-
-### Example-preview zoom and pan (1.1.0-dev.9)
-
-- Local examples and pinned-reference drafts support 1–8× preview zoom. Pinch keeps the image point beneath the gesture anchored; two-finger movement pans the view. **Pan view** provides one-pointer panning without adding or editing a box. Choosing Add or Select / edit exits Pan view.
-- Keep **−**, **+**, the zoom level and **Fit** beside the preview at desktop and mobile widths. Each button step divides or multiplies zoom by 1.5 within the limits; Fit restores the whole-image view. Controls support keyboard activation. Corner handles retain a fixed CSS size as the image zooms.
-- Reuse the same viewport transform for image rendering, overlays and pointer-to-image coordinates. Add, select, move, resize and numeric bounds continue to use normalized source-image geometry at every rotation. View changes never modify boxes, the saved PNG, counts, inference input or project history.
-- A second pointer abandons any pending add/move/resize while retaining the selected example, then starts the view gesture. Extra pointers, cancellation and surviving/late pointer events cannot commit an abandoned edit.
-- Zoom/pan are temporary and are not saved in drafts or exports. Reset the view on dialog open/close, source changes, entering/saving/discarding pinned-reference editing, pin/unpin and next-photo transitions. Switching between Add and Select / edit keeps the current view.
-- Acceptance checks include magnified small-box edits, anchored pinch/two-finger pan, limits/Fit, pointer cancellation, source-boundary resets and unchanged saved data. Record physical Android touch tests separately from desktop pointer simulation and narrow-width layout checks.
-
-### Photo status, review completion and safe reruns (1.1.0-dev.10)
-
-- Derive status in this order: any flagged marker or unreviewed detection check → **要確認 / Needs review**; completed → **完了 / Complete**; any marker or reviewed detection check → **作業中 / In progress**; otherwise → **未検出 / Undetected**. A legacy empty photo has no inferred detection history. Show status and flagged-marker count in thumbnails and the current-photo bar, with per-status photo totals in the summary. Use text and accessible labels, not color alone.
-- **確認完了して次へ / Review complete & next** clears all marker review flags and `autoPending` fields, marks every photo check reviewed and sets completion in one history transaction. Navigate to the next incomplete photo in list order, wrapping once and skipping the current photo. If none remains, stay on the photo and announce completion. Undo/Redo restores the photo data; review-only remains a separate action that does not complete a photo.
-- The main-screen `quickMode` control defaults to **Append**. **Replace unreviewed auto results** removes only markers in the captured selected category where `autoPending === true && needsReview === true`. Preserve manual markers, other types, reviewed/edited automatic markers and older-version detections without this explicit field. Explain this legacy protection beside the mode control and in Help.
-- Only new main-screen quick-detection markers receive `autoPending:true`. Committed moves, resizes, category changes and individual review toggles remove eligibility; reflagging never recreates it. Photo-level review also removes it. Cancelled edits leave it unchanged. Undo can restore the prior field with the prior geometry/review state.
-- Complete inference and validate its full result before a per-photo atomic replacement/addition. Filter duplicates against the retained markers and accepted new candidates. A valid zero-result replacement may remove eligible old results. Cancellation, failure or malformed output preserves that photo; reject truncated results in replacement mode so partial output cannot erase old results.
-- Keep schema version 4 and the existing storage identity. Optional `image.detectionChecks` contains at most one `{categoryId, detectedAt, reviewed}` record per category. Each successful quick detection updates that category's timestamp and sets `reviewed:false`, even if no markers were added. Validate referenced categories, timestamps and boolean fields on import; preserve checks and eligible marker fields in history, drafts and viewer round trips. Removing a category removes its checks and protects reassigned markers.
-- Acceptance checks cover all four statuses, zero/duplicate-only review, wrap/last-photo behavior, hidden/other types, both rerun modes, protected old/manual/edited results, cancelled edits, truncated/malformed/error/cancelled inference, one-step run Undo/Redo, draft/viewer round trips and Japanese/English keyboard/mobile controls. Dependencies, model assets, offline behavior and one-file distribution are unchanged.
+- Cover first-time setup, existing-reference edit, save-only and save-and-detect, valid unchanged save, validation failure, close/cancel, staged source replacement, stale asynchronous loading, type switching, Undo/Redo and draft/saved-work round trips.
+- Cover local/saved examples, canvas/list selection, selected-only deletion, all resize handles, numeric bounds, rotations, anchored pinch/pan, limits/Fit and interrupted/late gestures without changing saved data.
+- Cover zero/duplicate-only review, all statuses, hidden/other types, both rerun modes, protected markers, errors/truncation/cancellation, one-step run Undo/Redo, keyboard and bilingual layouts. Record physical Android, browser-width and direct-file checks separately; automated checks alone establish none of them.

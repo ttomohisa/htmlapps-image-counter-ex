@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0-dev.17 — 2026-10-27
+
+- Replace the combined detection/settings dialog with an example editor. Save & detect registers examples and starts detection; Save & close registers them for later, without a separate Pin step. Existing saved examples open directly for editing.
+- Keep replacement examples pending until Save. Closing the editor preserves the saved reference; valid changed saves remain undoable. Preserve selected-box editing, numeric bounds, zoom and pinch.
+- Route all detection through the same main-screen Review flow, with needs-review markers, zero-result checks, Stop and run-level Undo. An unset current-photo action opens example setup instead of remaining disabled.
+- Remove model-file upload, processor and precision controls. Use the existing compact built-in model with WASM / FP32 automatically; keep sensitivity, detection region and rerun behavior in the Detection panel. Model/runtime assets, schema 4 and license/source/build contents remain unchanged.
+
 ## 1.1.0-dev.16 — 2026-10-27
 
 - Align the workspace header with the full-width photo layout and right-align photo-toolbar actions inside the frame. Keep example setup reachable at narrow phone widths.

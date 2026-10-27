@@ -134,7 +134,7 @@ test('batch Worker creates one session, extracts one prompt and closes all trans
   assert.deepEqual(messages.filter(m=>m.phase==='result').map(m=>m.requestId),[1,2]);assert.ok(bitmaps.every(b=>b.closed===1));assert.ok(f.tensors.every(t=>t.disposed));
 });
 
-test('ordinary dialog Worker remains two-pass and releases its session after the result',async()=>{
+test('non-batch Worker remains two-pass and releases its session after the result',async()=>{
   const c=core(),f=runtimeFixture(),messages=[],bitmaps=[];let releases=0;
   Object.assign(f.ort,{env:{wasm:{}},InferenceSession:{create:async()=>f.session}});f.session.release=async()=>{releases++};
   Object.assign(c,{self:{postMessage:data=>messages.push(data)},performance:{now:()=>0},importOrt:async()=>f.ort,OffscreenCanvas:class{getContext(){return{fillRect(){},drawImage(){},getImageData(){return{data:new Uint8Array(640*640*4)}}}}}});
@@ -208,12 +208,12 @@ function detectionUI(useDefault=false){
   };
   const im={id:'one',dataUrl:'pixels',width:600,height:800,adjustments:{rotation:90},markers:[],completed:true},
     project={categories:[{id:'a',name:'A'}],images:[im]},model={};
-  Object.assign(c,{$:element,P:project,activeImage:()=>im,activeCategory:()=>project.categories[0],t:key=>key,
+  Object.assign(c,{$:element,P:project,activeImage:()=>im,activeCategoryId:'a',activeCategory:()=>project.categories[0],quickDetectionBusy:()=>false,t:key=>key,
     URL:{revokeObjectURL:url=>revoked.push(url)},addEventListener:(name,handler)=>events.set(name,handler),
     renderAll(){},document:{activeElement:null,createElement:node},imageCache:new Map(),model,worker:{terminate:()=>terminated++}});
   vm.runInContext(section('function displayDims(','function canvasCssSize('),c);
   vm.runInContext(section('// AUTO:UI:BEGIN','// AUTO:UI:END'),c);
-  vm.runInContext("autoState.owner={project:P,imageId:'one',dataUrl:'pixels'};autoState.examples=[{x:.1,y:.1,w:.2,h:.2}]",c);
+  vm.runInContext("autoState.owner={project:P,imageId:'one',dataUrl:'pixels',categoryId:'a'};autoState.examples=[{x:.1,y:.1,w:.2,h:.2}]",c);
   if(!useDefault)vm.runInContext('autoState.model=model',c);
   const pointer=(name,{id=1,primary=true,x=78,y=68,type='touch',button=0}={})=>{
     element('#autoCanvas').listeners.get(name)({pointerId:id,isPrimary:primary,button,pointerType:type,clientX:x,clientY:y,preventDefault(){}});
@@ -224,7 +224,7 @@ function detectionUI(useDefault=false){
 test('embedded model is ready without a file selection and survives transfer on repeated runs',async()=>{
   const {c,element}=detectionUI(true),reads=[];
   c.StandaloneAssets={bytesAsync:async(...args)=>{reads.push(args);return new Uint8Array([1,2,3])}};
-  c.renderAutoControls();assert.equal(element('#autoRun').disabled,false);
+  c.renderAutoControls();assert.equal(element('#autoSaveDetect').disabled,false);
   assert.equal(reads.length,0,'opening detection must not inflate weights');
   const model=vm.runInContext('autoState.model',c);
   assert.equal(model.size,6756087);
@@ -232,101 +232,20 @@ test('embedded model is ready without a file selection and survives transfer on 
   assert.equal(first.byteLength,0);
   assert.deepEqual([...new Uint8Array(await model.arrayBuffer())],[1,2,3]);
   assert.deepEqual(reads,[['yoloe-26n','model'],['yoloe-26n','model']]);
-  assert.equal(element('#autoPrecision').disabled,true);
 });
-test('restoring the embedded model clears stale custom-model results and restores CPU FP32',()=>{
-  const {c,element}=detectionUI();
-  element('#autoBackend').value='webgpu';element('#autoPrecision').value='fp16';
-  element('#autoModel').value='custom.onnx';
-  vm.runInContext('autoState.candidates=[{x:.1,y:.1,w:.2,h:.2,score:.9}]',c);
-  const token=vm.runInContext('autoState.generation',c);
-  element('#autoUseBuiltin').onclick();
-  assert.equal(c.autoJobCurrent(token,c.model),false);
-  assert.equal(vm.runInContext('autoState.model.size',c),6756087);
-  assert.equal(vm.runInContext('autoState.candidates.length',c),0);
-  assert.equal(element('#autoBackend').value,'wasm');assert.equal(element('#autoPrecision').value,'fp32');
-  assert.equal(element('#autoRun').disabled,false);assert.equal(element('#autoModel').value,'');
-});
-test('saved fixed examples enable detection on another photo without drawing local boxes',()=>{
-  const {c,element}=detectionUI(true);c.renderAutoReference=()=>{};
-  const ref={sourceName:'source.jpg',dataUrl:'saved pixels',examples:[box(.1,.2,.2,.2)]};c.P.categories[0].detectionReference=ref;
-  vm.runInContext('autoState.examples=[]',c);c.renderAutoControls();
-  assert.equal(element('#autoRun').disabled,false);assert.equal(element('#autoAddBounds').disabled,true);
-  const token=vm.runInContext('autoState.generation',c),model=vm.runInContext('autoState.model',c);
-  assert.equal(c.autoJobCurrent(token,model,ref),true);
-  c.P.categories[0].detectionReference={...ref};assert.equal(c.autoJobCurrent(token,model,ref),false);
-});
-test('next-image detection uses the pinned source without transferring old candidates to the next photo',async()=>{
-  const {c,element}=detectionUI(true);c.renderAutoReference=()=>{};
-  const ref={sourceName:'source.jpg',dataUrl:'saved pixels',examples:[box(.1,.2,.2,.2)]};c.P.categories[0].detectionReference=ref;
-  const next={...c.P.images[0],id:'two',dataUrl:'target pixels',markers:[]};c.P.images.push(next);
-  const calls=[];c.currentIndex=()=>c.P.images.indexOf(c.activeImage());c.switchImage=async()=>{c.activeImage=()=>next};
-  c.applyAutoCandidates=(owner,items)=>{calls.push(['apply',owner.imageId,items.length]);return items.length};
-  c.startAutoDetection=async()=>calls.push(['detect',c.activeImage().id,c.autoCurrentReference()===ref]);
-  c.Toast={show(){}};c.undo=()=>{};
-  vm.runInContext("autoState.candidates=[{x:.1,y:.1,w:.2,h:.2,score:.8}];autoState.phase='result'",c);
-  await c.autoApplyAndNext();
-  assert.deepEqual(calls,[['apply','one',1],['detect','two',true]]);
-  assert.equal(vm.runInContext('autoState.candidates.length',c),0);assert.equal(next.markers.length,0);
-});
-for(const change of ['close','reference','model'])test(`next-image load cannot start stale detection after ${change}`,async()=>{
-  const {c,element}=detectionUI(true);c.renderAutoReference=()=>{};
-  c.P.categories[0].detectionReference={sourceName:'source',examples:[box(.1,.1,.2,.2)]};
-  const next={...c.P.images[0],id:'two',dataUrl:'next',markers:[]};c.P.images.push(next);
-  let finish,started=0;c.switchImage=()=>{c.activeImage=()=>next;return new Promise(resolve=>finish=resolve)};
-  c.applyAutoCandidates=()=>0;c.startAutoDetection=async()=>started++;
-  vm.runInContext("autoState.phase='result'",c);const pending=c.autoApplyAndNext();
-  if(change==='close'){element('#autoDlg').open=false;element('#autoDlg').listeners.get('close')()}
-  if(change==='reference')c.P.categories[0].detectionReference={examples:[]};
-  if(change==='model')vm.runInContext('autoState.model={}',c);
-  finish();await pending;assert.equal(started,0);
-});
-test('fixed examples ignore drawing but still allow excluding candidates',()=>{
-  const {c,pointer}=detectionUI(true);c.renderAutoReference=()=>{};
-  c.P.categories[0].detectionReference={examples:[box(.1,.1,.2,.2)]};
-  vm.runInContext('autoState.examples=[];autoState.candidates=[{x:.1,y:.2,w:.2,h:.2,score:.9}]',c);
-  pointer('pointerdown');pointer('pointermove',{x:174,y:122});pointer('pointerup',{x:174,y:122});
-  assert.equal(vm.runInContext('autoState.examples.length',c),0);
-  pointer('pointerdown',{x:198,y:86});pointer('pointerup',{x:199,y:87});
-  assert.equal(vm.runInContext('autoState.excluded.has(0)',c),true);
-});
-test('pinning stores an independent letterboxed source without changing counts, and unpin is undoable',()=>{
+test('saving new examples stores an independent letterboxed source without changing counts',()=>{
   const {c,im,element}=detectionUI(true);c.renderAutoReference=()=>{};c.renderAutoPreview=()=>{};im.name='reference.jpg';
   c.imageCache.set(im.id,{naturalWidth:1200,naturalHeight:600});const draws=[],snapshots=[];
   c.document={createElement:()=>({getContext:()=>({fillRect(){},drawImage:(...a)=>draws.push(a.slice(1))}),toDataURL:()=>'snapshot'})};
   c.validateDetectionReference=()=>{};c.validateProject=()=>{};c.pushHistory=()=>snapshots.push({...c.P.categories[0]});c.touch=()=>{};c.Toast={show(){}};c.undo=()=>{};
   const original=plain(vm.runInContext('autoState.examples',c)),before=JSON.stringify(im);
-  c.pinAutoExamples();const ref=c.autoCurrentReference();
+  assert.equal(c.pinAutoExamples(),true);const ref=c.autoCurrentReference();
   assert.equal(ref.dataUrl,'snapshot');assert.equal(ref.sourceName,'reference.jpg');
   assert.deepEqual(draws,[[0,160,640,320]]);
   assert.deepEqual([...c.autoPromptMask(ref.examples,c.autoLetterbox(640,640))],[...c.autoPromptMask(original,c.autoLetterbox(1200,600))]);
   assert.equal(JSON.stringify(im),before);assert.equal(ref.examples.length,1);
   assert.equal(vm.runInContext('autoState.examples.length',c),0);
-  element('#autoUnpin').onclick();assert.equal(c.autoCurrentReference(),null);
-  c.P.categories[0]=snapshots.pop();assert.equal(c.autoCurrentReference(),ref);
-});
-test('returning from page cache after interrupted detection restores usable controls',()=>{
-  for(const phase of ['loading-runtime','processing']){
-    const {c,element,events,revoked,terminated}=detectionUI();
-    vm.runInContext(`autoState.busy=true;autoState.job=worker;autoState.urls=['blob:runtime','blob:worker'];autoStatus('${phase==='processing'?'autoProcessing':'autoLoading'}','${phase}')`,c);
-    const token=vm.runInContext('autoState.generation',c);
-    assert.equal(element('#autoRun').disabled,true);
-    events.get('pagehide')({persisted:true});events.get('pageshow')?.({persisted:true});
-    assert.equal(terminated(),1);assert.deepEqual(revoked,['blob:runtime','blob:worker']);
-    assert.equal(c.autoJobCurrent(token,c.model),false,'An interrupted job must not commit a late result');
-    assert.equal(element('#autoStatus').textContent,'autoCancelled');
-    assert.equal(element('#autoRun').disabled,false);assert.equal(element('#autoCancel').disabled,true);
-    assert.equal(element('#autoBackend').disabled,false);assert.equal(element('#autoAddBounds').disabled,false);
-    assert.equal(vm.runInContext('autoState.examples.length',c),1);
-  }
-});
-test('page cache navigation preserves completed detection candidates for review',()=>{
-  const {c,element,events}=detectionUI();
-  vm.runInContext("autoState.candidates=[{x:.4,y:.4,w:.1,h:.1,score:.9}];autoStatus('autoReview','result')",c);
-  events.get('pagehide')({persisted:true});events.get('pageshow')?.({persisted:true});
-  assert.equal(element('#autoStatus').textContent,'autoReview');
-  assert.equal(element('#autoApply').disabled,false);
-  assert.equal(vm.runInContext('autoState.candidates.length',c),1);
+  assert.equal(snapshots.length,1);c.P.categories[0]=snapshots.pop();assert.equal(c.autoCurrentReference(),null);
 });
 // These synthetic events exercise production handlers, not native touch dispatch or device rendering.
 for(const {rotation,start,end} of [
@@ -341,10 +260,9 @@ for(const {rotation,start,end} of [
   assert.equal(vm.runInContext('autoState.drag',c),null);assert.equal(JSON.stringify(c.P),before,'Examples must not change counts or completion');
 });
 for(const rotation of [90,270])for(const cancellation of ['pointercancel','lostpointercapture','second-pointer-first','primary-pointer-first'])
-test(`${cancellation} abandons example/candidate interaction at ${rotation} degrees`,()=>{
+test(`${cancellation} abandons example interaction at ${rotation} degrees`,()=>{
   const {c,im,pointer}=detectionUI();im.adjustments.rotation=rotation;
-  vm.runInContext('autoState.candidates=[{x:.1,y:.1,w:.4,h:.4,score:.9}];autoState.excluded.add(0)',c);
-  const snapshot=()=>JSON.stringify({project:c.P,state:plain(vm.runInContext('({examples:autoState.examples,candidates:autoState.candidates,excluded:[...autoState.excluded]})',c))});
+  const snapshot=()=>JSON.stringify({project:c.P,state:plain(vm.runInContext('({examples:autoState.examples,selected:autoState.selectedExample})',c))});
   const before=snapshot();pointer('pointerdown');pointer('pointermove',{x:174,y:122});
   if(cancellation==='pointercancel'||cancellation==='lostpointercapture')pointer(cancellation);
   else{
@@ -352,34 +270,10 @@ test(`${cancellation} abandons example/candidate interaction at ${rotation} degr
     const ids=cancellation==='second-pointer-first'?[2,1]:[1,2];
     for(const id of ids)pointer('pointerup',{id,primary:id===1,x:174,y:122});
   }
-  // Late movements/releases from an abandoned pointer must not resurrect the drag or toggle a box.
+  // Late movements/releases from an abandoned pointer must not resurrect the drag or modify a box.
   pointer('pointermove',{x:174,y:122});pointer('pointerup',{x:174,y:122});
   assert.equal(snapshot(),before);assert.equal(vm.runInContext('autoState.drag',c),null);
 });
-for(const {rotation,x,y} of [{rotation:90,x:198,y:86},{rotation:270,x:102,y:194}])
-test(`candidate tap toggles exclusion without adding counts at ${rotation} degrees`,()=>{
-  const {c,im,pointer,element}=detectionUI();im.adjustments.rotation=rotation;
-  vm.runInContext('autoState.candidates=[{x:.1,y:.2,w:.2,h:.2,score:.9}]',c);
-  const before=JSON.stringify({project:c.P,examples:plain(vm.runInContext('autoState.examples',c))});
-  for(const excluded of [true,false]){
-    pointer('pointerdown',{x,y});pointer('pointerup',{x:x+1,y:y+1});
-    assert.equal(vm.runInContext('autoState.excluded.has(0)',c),excluded);
-    assert.equal(element('#autoApply').disabled,excluded);
-    assert.equal(JSON.stringify({project:c.P,examples:plain(vm.runInContext('autoState.examples',c))}),before);
-    assert.equal(vm.runInContext('autoState.candidates.length',c),1);
-  }
-});
-
-test('pin and unpin immediately refresh the main-screen reference state',()=>{
-  const {c,im,element}=detectionUI(true);c.renderAutoReference=()=>{};c.renderAutoPreview=()=>{};
-  c.imageCache.set(im.id,{naturalWidth:640,naturalHeight:640});
-  c.document={createElement:()=>({getContext:()=>({fillRect(){},drawImage(){}}),toDataURL:()=>'snapshot'})};
-  c.validateDetectionReference=()=>{};c.validateProject=()=>{};c.pushHistory=()=>{};c.touch=()=>{};c.Toast={show(){}};c.undo=()=>{};
-  const seen=[];c.renderAll=()=>seen.push(c.autoCurrentReference());
-  c.pinAutoExamples();assert.equal(seen.length,1);assert.equal(seen[0],c.autoCurrentReference());
-  element('#autoUnpin').onclick();assert.equal(seen.length,2);assert.equal(seen[1],null);
-});
-
 function editableReference(){
  const f=detectionUI(true),c=f.c;
  c.renderAutoReference=()=>{};c.renderAutoPreview=()=>{};c.touch=()=>{};c.Toast={show(){}};c.undo=()=>{};c.validateDetectionReference=()=>{};c.validateProject=()=>{};
@@ -387,11 +281,95 @@ function editableReference(){
  c.loadImage=async()=>({naturalWidth:640,naturalHeight:640});c.pushHistory=()=>{c.historyCount=(c.historyCount||0)+1};
  return{...f,ref};
 }
+function snapshotEditor(f=detectionUI(true)){
+  const {c,im}=f,createElement=c.document.createElement;
+  c.renderAutoPreview=()=>{};c.touch=()=>{};c.Toast={show(){}};c.undo=()=>{};
+  c.validateDetectionReference=()=>{};c.validateProject=()=>{};
+  c.pushHistory=()=>{c.historyCount=(c.historyCount||0)+1};
+  im.name='current.jpg';c.imageCache.set(im.id,{naturalWidth:1200,naturalHeight:600});
+  c.document.createElement=tag=>tag==='canvas'?{getContext:()=>({fillRect(){},drawImage(){}}),toDataURL:()=>'current-snapshot'}:createElement(tag);
+  return f;
+}
+test('example editor exposes save actions without technical model or candidate controls',()=>{
+  for(const id of ['autoSave','autoSaveDetect','autoCloseEditor','autoReplaceExamples'])assert.ok(source.includes(`id="${id}"`),`Missing ${id}`);
+  for(const id of ['autoModelDetails','autoModel','autoBackend','autoPrecision','autoRun','autoApply','autoApplyNext','autoCandidateList'])assert.ok(!source.includes(`id="${id}"`),`Obsolete ${id} is still exposed`);
+});
+test('example save action preserves the separate project autosave explanation in both languages',()=>{
+  const c={};vm.createContext(c);vm.runInContext(section('const I18N={','let lang=')+'globalThis.words=I18N;',c);
+  assert.equal(c.words.ja.autoSave,'このブラウザー内に自動保存');assert.equal(c.words.en.autoSave,'Auto-saved in this browser');
+  assert.equal(c.words.ja.autoSaveClose,'保存して閉じる');assert.equal(c.words.en.autoSaveClose,'Save & close');
+  const saveButton=source.match(/<button id="autoSave"[^>]*>/)?.[0];assert.match(saveButton,/data-i18n="autoSaveClose"/);
+});
+test('a ready new-example editor has no untranslated or redundant status label',()=>{
+  const {c,element}=detectionUI();c.autoStatus('autoReady');assert.equal(element('#autoStatus').textContent,'');
+});
+test('opening registered examples edits their saved source directly, without decoding the current photo',async()=>{
+  const {c,ref,element}=editableReference(),loads=[];
+  c.loadImage=async dataUrl=>{loads.push(dataUrl);return{naturalWidth:640,naturalHeight:640}};
+  await c.openAutoDetection();
+  assert.deepEqual(loads,[ref.dataUrl]);assert.equal(c.autoCurrentReference(),ref);
+  assert.equal(vm.runInContext('autoState.referenceEdit.reference',c),ref);
+  assert.deepEqual(exampleState(c),plain(ref.examples));assert.equal(element('#autoSaveDetect').disabled,false);
+});
+for(const detect of [false,true])test(`saving new examples ${detect?'starts main-screen detection':'closes without detection'} only after committing`,async()=>{
+  const {c,element}=snapshotEditor(),calls=[];
+  c.startQuickDetection=async all=>calls.push({all,open:element('#autoDlg').open,reference:c.autoCurrentReference()});
+  const button=element(detect?'#autoSaveDetect':'#autoSave');assert.equal(typeof button.onclick,'function');await button.onclick();
+  assert.equal(element('#autoDlg').open,false);assert.equal(c.historyCount,1);
+  assert.equal(c.autoCurrentReference().dataUrl,'current-snapshot');assert.equal(c.autoCurrentReference().sourceName,'current.jpg');
+  assert.equal(calls.length,detect?1:0);if(detect){assert.equal(calls[0].all,false);assert.equal(calls[0].open,false);assert.equal(calls[0].reference,c.autoCurrentReference())}
+});
+for(const failure of ['empty','busy','owner','validation','snapshot'])test(`failed ${failure} example save keeps the editor open and never starts detection`,async()=>{
+  const {c,element,im}=snapshotEditor();let detected=0;c.startQuickDetection=async()=>detected++;
+  if(failure==='empty')vm.runInContext('autoState.examples=[]',c);
+  if(failure==='busy')vm.runInContext('autoState.busy=true',c);
+  if(failure==='owner')vm.runInContext('autoState.owner.project={}',c);
+  if(failure==='validation')c.validateProject=()=>{throw new Error('storage limit')};
+  if(failure==='snapshot')c.imageCache.delete(im.id);
+  await c.saveAutoExamples(true);
+  assert.equal(element('#autoDlg').open,true);assert.equal(detected,0);assert.equal(c.historyCount,undefined);assert.equal(c.autoCurrentReference(),null);
+});
+test('save continuation does not close or detect after its owner changes during saving',async()=>{
+  const {c,element}=snapshotEditor();let detected=0;c.startQuickDetection=async()=>detected++;
+  c.pinAutoExamples=()=>{vm.runInContext('autoState.owner={...autoState.owner}',c);return true};
+  await c.saveAutoExamples(true);assert.equal(element('#autoDlg').open,true);assert.equal(detected,0);
+});
+test('unchanged saved examples may continue to detection without a new history entry',async()=>{
+  const {c,element,ref}=editableReference();await c.editAutoReference();const calls=[];
+  c.startQuickDetection=async all=>calls.push({all,reference:c.autoCurrentReference(),open:element('#autoDlg').open});
+  await c.saveAutoExamples(true);
+  assert.equal(c.historyCount,undefined);assert.equal(c.autoCurrentReference(),ref);
+  assert.equal(element('#autoDlg').open,false);assert.equal(calls.length,1);assert.equal(calls[0].all,false);assert.equal(calls[0].reference,ref);assert.equal(calls[0].open,false);
+});
+test('cancelling the editor leaves the original reference and counts unchanged',async()=>{
+  const {c,element,ref,im}=editableReference(),before=JSON.stringify(im);await c.editAutoReference();c.addAutoExample(box(.5,.5,.1,.1));
+  assert.equal(typeof element('#autoCloseEditor').onclick,'function');element('#autoCloseEditor').onclick();
+  assert.equal(element('#autoDlg').open,false);assert.equal(c.autoCurrentReference(),ref);assert.equal(JSON.stringify(im),before);assert.equal(c.historyCount,undefined);
+});
+for(const action of ['cancel','save','invalid-save'])test(`replacement draft ${action} preserves the previous reference until a valid commit`,async()=>{
+  const {c,element,ref}=snapshotEditor(editableReference());await c.editAutoReference();
+  assert.equal(typeof element('#autoReplaceExamples').onclick,'function');await element('#autoReplaceExamples').onclick();
+  assert.equal(c.autoCurrentReference(),ref);assert.equal(c.historyCount,undefined);assert.equal(exampleState(c).length,0);assert.equal(c.autoExamplesEditable(),true);
+  c.addAutoExample(box(.2,.3,.2,.2));assert.equal(exampleState(c).length,1);assert.equal(c.autoCurrentReference(),ref);
+  if(action==='cancel')element('#autoCloseEditor').onclick();
+  else{
+    if(action==='invalid-save')c.validateProject=()=>{throw new Error('storage limit')};
+    await c.saveAutoExamples(false);
+  }
+  if(action==='save'){assert.notEqual(c.autoCurrentReference(),ref);assert.equal(c.autoCurrentReference().dataUrl,'current-snapshot');assert.equal(c.autoCurrentReference().sourceName,'current.jpg');assert.equal(c.historyCount,1);assert.equal(element('#autoDlg').open,false)}
+  else{assert.equal(c.autoCurrentReference(),ref);assert.equal(c.historyCount,undefined);assert.equal(element('#autoDlg').open,action==='invalid-save')}
+});
+test('replacement save cannot overwrite a reference changed since the draft began',async()=>{
+  const {c,element,ref}=snapshotEditor(editableReference());await c.editAutoReference();await element('#autoReplaceExamples').onclick();
+  c.addAutoExample(box(.2,.3,.2,.2));const newer={...ref,sourceName:'newer.jpg'};c.P.categories[0].detectionReference=newer;
+  let detected=0;c.startQuickDetection=async()=>detected++;await c.saveAutoExamples(true);
+  assert.equal(c.autoCurrentReference(),newer);assert.equal(c.historyCount,undefined);assert.equal(detected,0);assert.equal(element('#autoDlg').open,true);
+});
 test('editing a fixed reference preserves old boxes, allows new boxes on the saved source and commits once',async()=>{
  const {c,ref,element}=editableReference();await c.editAutoReference();
- assert.equal(c.autoCurrentReference(),ref);assert.equal(element('#autoRun').disabled,true);
+ assert.equal(c.autoCurrentReference(),ref);assert.equal(element('#autoSaveDetect').disabled,false);
  c.addAutoExample(box(.5,.5,.1,.1));assert.equal(ref.examples.length,1);assert.equal(vm.runInContext('autoState.examples.length',c),2);
- c.saveAutoReferenceEdit();assert.equal(c.autoCurrentReference().examples.length,2);assert.equal(c.autoCurrentReference().dataUrl,ref.dataUrl);assert.equal(c.autoCurrentReference().sourceName,ref.sourceName);assert.equal(c.historyCount,1);
+ assert.equal(c.saveAutoReferenceEdit(),true);assert.equal(c.autoCurrentReference().examples.length,2);assert.equal(c.autoCurrentReference().dataUrl,ref.dataUrl);assert.equal(c.autoCurrentReference().sourceName,ref.sourceName);assert.equal(c.historyCount,1);
 });
 test('cancelling fixed reference edits leaves the saved reference and markers untouched',async()=>{
  const {c,ref,im}=editableReference();const before=JSON.stringify(im);await c.editAutoReference();c.addAutoExample(box(.5,.5,.1,.1));c.cancelAutoReferenceEdit();
@@ -407,18 +385,12 @@ test('saved reference edit uses snapshot coordinates independent of target rotat
  const b=plain(vm.runInContext('autoState.examples[1]',c));for(const [k,v]of Object.entries({x:.2,y:.1,w:.4,h:.3}))assert.ok(Math.abs(b[k]-v)<1e-10);
 });
 
-test('duplicate-only result explains why markers cannot be added',()=>{
- const {c,im,element}=detectionUI();const b=box(.1,.1,.2,.2);im.markers=[{...b,shape:'rect'}];vm.runInContext("autoState.candidates=[{x:.1,y:.1,w:.2,h:.2,score:.9}];autoState.phase='result'",c);c.renderAutoControls();
- assert.equal(element('#autoApply').disabled,true);assert.equal(element('#autoDuplicateNote').hidden,false);
- vm.runInContext("autoState.candidates=[];autoState.phase='ready'",c);c.renderAutoControls();assert.equal(element('#autoDuplicateNote').hidden,true);
-});
-
 test('unchanged or empty edited examples do not create a history entry or overwrite the reference',async()=>{
- const {c,ref,element}=editableReference();await c.editAutoReference();c.saveAutoReferenceEdit();assert.equal(c.historyCount,undefined);assert.equal(c.autoCurrentReference(),ref);
- await c.editAutoReference();element('#autoClearExamples').onclick();assert.equal(element('#autoSaveEdit').disabled,true);c.saveAutoReferenceEdit();assert.equal(c.autoCurrentReference(),ref);assert.equal(c.historyCount,undefined);
+ const {c,ref,element}=editableReference();await c.editAutoReference();assert.equal(c.saveAutoReferenceEdit(),true);assert.equal(c.historyCount,undefined);assert.equal(c.autoCurrentReference(),ref);
+ await c.editAutoReference();element('#autoClearExamples').onclick();assert.equal(element('#autoSave').disabled,true);assert.equal(c.saveAutoReferenceEdit(),false);assert.equal(c.autoCurrentReference(),ref);assert.equal(c.historyCount,undefined);
 });
 test('saving an edit cannot overwrite a newer category reference',async()=>{
- const {c}=editableReference();await c.editAutoReference();c.addAutoExample(box(.5,.5,.1,.1));const replacement={examples:[]};c.P.categories[0].detectionReference=replacement;c.saveAutoReferenceEdit();assert.equal(c.autoCurrentReference(),replacement);assert.equal(c.historyCount,undefined);
+ const {c}=editableReference();await c.editAutoReference();c.addAutoExample(box(.5,.5,.1,.1));const replacement={examples:[]};c.P.categories[0].detectionReference=replacement;assert.equal(c.saveAutoReferenceEdit(),false);assert.equal(c.autoCurrentReference(),replacement);assert.equal(c.historyCount,undefined);
 });
 
 const exampleState=c=>plain(vm.runInContext('autoState.examples',c));
@@ -434,7 +406,7 @@ test('deleting the selected middle example preserves both neighbors and all save
 
 test('single-example deletion disables saving and discard restores the original pinned example',async()=>{
   const {c,ref,element}=editableReference();await c.editAutoReference();c.selectAutoExample(0);c.deleteAutoExample();
-  assert.equal(exampleState(c).length,0);assert.equal(element('#autoSaveEdit').disabled,true);assert.equal(vm.runInContext('autoState.selectedExample',c),-1);
+  assert.equal(exampleState(c).length,0);assert.equal(element('#autoSave').disabled,true);assert.equal(vm.runInContext('autoState.selectedExample',c),-1);
   c.cancelAutoReferenceEdit();assert.equal(c.autoCurrentReference(),ref);assert.equal(ref.examples.length,1);assert.equal(c.historyCount,undefined);
 });
 
@@ -474,11 +446,10 @@ test('each resize handle anchors the opposite corner and cannot flip or escape t
   }
 });
 
-test('moving a selected example is transient until release and then clears stale candidates',()=>{
+test('moving a selected example is transient until release',()=>{
   const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;c.selectAutoExample(0);const before=exampleState(c),project=JSON.stringify(c.P);
-  vm.runInContext('autoState.candidates=[{x:.6,y:.6,w:.1,h:.1,score:.9}]',c);
   pointer('pointerdown',{x:78,y:86});pointer('pointermove',{x:102,y:104});assert.deepEqual(exampleState(c),before);
-  pointer('pointerup',{x:102,y:104});nearBox(exampleState(c)[0],{x:.2,y:.2,w:.2,h:.2});assert.equal(vm.runInContext('autoState.candidates.length',c),0);assert.equal(JSON.stringify(c.P),project);
+  pointer('pointerup',{x:102,y:104});nearBox(exampleState(c)[0],{x:.2,y:.2,w:.2,h:.2});assert.equal(JSON.stringify(c.P),project);
 });
 
 test('a selected corner resizes only that example after release and cancellation preserves its size',()=>{
@@ -513,20 +484,6 @@ for(const guard of ['busy','owner','fixed'])test(`${guard} blocks deletion and n
   c.deleteAutoExample();c.updateAutoExampleBounds();assert.deepEqual(exampleState(c),before);
 });
 
-for(const mode of ['select','pan'])test(`detecting after ${mode} mode restores canvas candidate-tap behavior`,async()=>{
-  const {c,pointer,element}=detectionUI(true),releases=[];
-  Object.assign(c,{Worker:class{},OffscreenCanvas:class{},createImageBitmap(){},StandaloneAssets:{bytesAsync:()=>new Promise(resolve=>releases.push(()=>resolve(new Uint8Array([1]))))}});
-  c.selectAutoExample(0);if(mode==='pan'){element('#autoZoomIn').onclick();element('#autoPanMode').onclick();pointer('pointerdown',{x:150,y:140})}
-  const pending=c.startAutoDetection();assert.equal(vm.runInContext('autoState.exampleMode',c),'add');
-  if(mode==='pan'){assert.equal(vm.runInContext('autoState.viewMode',c),'edit');assert.equal(vm.runInContext('autoPointers.size',c),0);nearPoint(previewPoint(c,30,50),1/6,1/6)}
-  c.autoStopJob();for(const release of releases)release();await pending;
-  vm.runInContext("autoState.candidates=[{x:.1,y:.2,w:.2,h:.2,score:.9}];autoState.phase='result'",c);
-  const before=exampleState(c),point=mode==='pan'?{x:222,y:59}:{x:198,y:86};
-  if(mode==='pan'){pointer('pointerup',point);assert.equal(vm.runInContext('autoState.excluded.has(0)',c),false)}
-  pointer('pointerdown',point);pointer('pointerup',{x:point.x+1,y:point.y+1});
-  assert.equal(vm.runInContext('autoState.excluded.has(0)',c),true);assert.deepEqual(exampleState(c),before);
-});
-
 test('a valid narrow saved example can move but cannot be made smaller than its original minimum',async()=>{
   const {c,ref}=editableReference();ref.examples=[{x:.2,y:.3,w:.002,h:.02}];await c.editAutoReference();
   c.commitAutoExample(0,{x:.4,y:.5,w:.002,h:.02});nearBox(exampleState(c)[0],{x:.4,y:.5,w:.002,h:.02});nearBox(ref.examples[0],{x:.2,y:.3,w:.002,h:.02});
@@ -534,11 +491,10 @@ test('a valid narrow saved example can move but cannot be made smaller than its 
   c.saveAutoReferenceEdit();assert.equal(c.historyCount,1);nearBox(c.autoCurrentReference().examples[0],{x:.4,y:.5,w:.002,h:.02});
 });
 
-test('selection taps with small touch drift do not move a box or discard candidates',()=>{
+test('selection taps with small touch drift do not move a box',()=>{
   const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;c.selectAutoExample(0);const before=exampleState(c);
-  vm.runInContext('autoState.candidates=[{x:.6,y:.6,w:.1,h:.1,score:.9}]',c);
   pointer('pointerdown',{x:78,y:86});pointer('pointermove',{x:79,y:87});pointer('pointerup',{x:79,y:87});
-  assert.deepEqual(exampleState(c),before);assert.equal(vm.runInContext('autoState.candidates.length',c),1);
+  assert.deepEqual(exampleState(c),before);
 });
 
 test('a stale saved reference edit cannot append new examples',async()=>{
@@ -613,24 +569,17 @@ for(const type of ['touch','mouse'])test(`zoomed ${type} corner hit radius stays
   }
 });
 
-test('zoomed selection taps keep a CSS-pixel drift threshold and retain candidates',()=>{
+test('zoomed selection taps keep a CSS-pixel drift threshold',()=>{
   const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;vm.runInContext('autoState.examples=[{x:.35,y:.35,w:.2,h:.2}]',c);c.selectAutoExample(0);pinchPreview(pointer,centeredPinch);
-  vm.runInContext('autoState.candidates=[{x:.7,y:.7,w:.1,h:.1,score:.9}]',c);const before=exampleState(c);
-  pointer('pointerdown',{x:126,y:122});pointer('pointerup',{x:128,y:123});assert.deepEqual(exampleState(c),before);assert.equal(vm.runInContext('autoState.candidates.length',c),1);
+  const before=exampleState(c);
+  pointer('pointerdown',{x:126,y:122});pointer('pointerup',{x:128,y:123});assert.deepEqual(exampleState(c),before);
   pointer('pointerdown',{x:126,y:122});pointer('pointerup',{x:130,y:122});
-  nearBox(exampleState(c)[0],{x:.35+1/120,y:.35,w:.2,h:.2});assert.equal(vm.runInContext('autoState.candidates.length',c),0);
+  nearBox(exampleState(c)[0],{x:.35+1/120,y:.35,w:.2,h:.2});
 });
 
-test('zoomed candidate taps toggle the visible original-image box without changing examples',()=>{
-  const {c,pointer}=detectionUI();vm.runInContext('autoState.examples=[];autoState.candidates=[{x:.44,y:.52,w:.05,h:.06,score:.9}]',c);
-  const before=JSON.stringify(c.P);pinchPreview(pointer,centeredPinch);
-  pointer('pointerdown',{x:126,y:128});pointer('pointerup',{x:127,y:129});
-  assert.equal(vm.runInContext('autoState.excluded.has(0)',c),true);assert.equal(exampleState(c).length,0);assert.equal(JSON.stringify(c.P),before);
-});
-
-for(const released of [1,2])for(const extraPointer of [false,true])test(`pinch release of pointer ${released}${extraPointer?' with a third finger':''} cannot become an example or candidate tap`,()=>{
+for(const released of [1,2])for(const extraPointer of [false,true])test(`pinch release of pointer ${released}${extraPointer?' with a third finger':''} cannot become an example edit`,()=>{
   const {c,im,pointer}=detectionUI();im.adjustments.rotation=0;
-  vm.runInContext('autoState.examples=[{x:.35,y:.35,w:.2,h:.2}];autoState.candidates=[{x:.35,y:.35,w:.2,h:.2,score:.9}]',c);c.selectAutoExample(0);
+  vm.runInContext('autoState.examples=[{x:.35,y:.35,w:.2,h:.2}]',c);c.selectAutoExample(0);
   const before=JSON.stringify({examples:exampleState(c),project:c.P});
   pointer('pointerdown',{x:126,y:122});pointer('pointermove',{x:150,y:140});pointer('pointerdown',{id:2,primary:false,x:210,y:140});
   if(extraPointer)pointer('pointerdown',{id:3,primary:false,x:180,y:180});
@@ -638,7 +587,7 @@ for(const released of [1,2])for(const extraPointer of [false,true])test(`pinch r
   const remaining=released===1?2:1;pointer('pointermove',{id:remaining,primary:remaining===1,x:200,y:180});pointer('pointerup',{id:remaining,primary:remaining===1,x:200,y:180});
   if(extraPointer){pointer('pointermove',{id:3,primary:false,x:126,y:122});pointer('pointerup',{id:3,primary:false,x:126,y:122})}
   pointer('pointermove',{x:126,y:122});pointer('pointerup',{x:126,y:122});
-  assert.equal(JSON.stringify({examples:exampleState(c),project:c.P}),before);assert.equal(vm.runInContext('autoState.excluded.size',c),0);assert.equal(vm.runInContext('autoState.drag',c),null);
+  assert.equal(JSON.stringify({examples:exampleState(c),project:c.P}),before);assert.equal(vm.runInContext('autoState.drag',c),null);
 });
 
 for(const cancellation of ['pointercancel','lostpointercapture'])test(`${cancellation} during pinch leaves survivors inert and permits a fresh gesture`,()=>{
@@ -676,7 +625,7 @@ test('changing example selection or edit mode retains the current preview positi
   c.setAutoExampleMode('select');nearPoint(previewPoint(c,150,140),at.u,at.v);c.deleteAutoExample();nearPoint(previewPoint(c,150,140),at.u,at.v);
 });
 
-for(const boundary of ['enter-reference','cancel-reference','save-reference','close','unpin'])test(`${boundary} resets preview coordinates and abandons pending gestures`,async()=>{
+for(const boundary of ['enter-reference','cancel-reference','save-reference','close','replace'])test(`${boundary} resets preview coordinates and abandons pending gestures`,async()=>{
   const {c,element,ref,pointer}=editableReference();
   if(boundary!=='enter-reference')await c.editAutoReference();
   pinchPreview(pointer,centeredPinch);pointer('pointerdown',{x:150,y:140});pointer('pointermove',{x:174,y:158});
@@ -684,10 +633,10 @@ for(const boundary of ['enter-reference','cancel-reference','save-reference','cl
   if(boundary==='cancel-reference')c.cancelAutoReferenceEdit();
   if(boundary==='save-reference'){c.addAutoExample(box(.5,.5,.1,.1));c.saveAutoReferenceEdit()}
   if(boundary==='close')element('#autoDlg').listeners.get('close')();
-  if(boundary==='unpin'){c.cancelAutoReferenceEdit();pinchPreview(pointer,centeredPinch);element('#autoUnpin').onclick()}
+  if(boundary==='replace'){c.imageCache.set(c.activeImage().id,{naturalWidth:640,naturalHeight:640});await element('#autoReplaceExamples').onclick()}
   nearPoint(previewPoint(c,30,50),0,0);nearPoint(previewPoint(c,270,230),1,1);assert.equal(vm.runInContext('autoState.drag',c),null);
   const after=JSON.stringify({examples:exampleState(c),project:c.P});pointer('pointerup',{x:198,y:194});assert.equal(JSON.stringify({examples:exampleState(c),project:c.P}),after);
-  if(boundary==='cancel-reference'||boundary==='close')assert.equal(c.autoCurrentReference(),ref);
+  if(boundary==='cancel-reference'||boundary==='close'||boundary==='replace')assert.equal(c.autoCurrentReference(),ref);
 });
 
 test('opening detection starts from a fitted preview and ignores the previous dialog pointer',async()=>{
@@ -695,15 +644,6 @@ test('opening detection starts from a fitted preview and ignores the previous di
   c.imageCache.set(im.id,{});c.renderAutoPreview=()=>{};pinchPreview(pointer,centeredPinch);pointer('pointerdown',{x:150,y:140});
   await c.openAutoDetection();nearPoint(previewPoint(c,30,50),0,0);nearPoint(previewPoint(c,270,230),1,1);
   pointer('pointerup',{x:198,y:194});assert.equal(exampleState(c).length,0);assert.equal(vm.runInContext('autoState.drag',c),null);
-});
-
-test('next-image detection resets the preview before handing the new source to inference',async()=>{
-  const {c,pointer}=detectionUI();c.renderAutoReference=()=>{};
-  const ref={sourceName:'reference',examples:[box(.1,.1,.2,.2)]};c.P.categories[0].detectionReference=ref;
-  const next={...c.P.images[0],id:'two',dataUrl:'next',markers:[]};c.P.images.push(next);c.applyAutoCandidates=()=>0;c.switchImage=async()=>{c.activeImage=()=>next};
-  vm.runInContext("autoState.phase='result';autoState.candidates=[{x:.4,y:.4,w:.2,h:.2,score:.9}]",c);pinchPreview(pointer,centeredPinch);
-  let calls=0;c.startAutoDetection=async()=>{calls++;nearPoint(previewPoint(c,30,50),0,0);nearPoint(previewPoint(c,270,230),1,1)};
-  await c.autoApplyAndNext();assert.equal(calls,1);assert.equal(vm.runInContext('autoState.drag',c),null);
 });
 
 test('pinching a zoomed preview translates the image and limits excessive scale without moving examples',()=>{

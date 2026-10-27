@@ -3,7 +3,7 @@
   "name": "Image Counter EX",
   "nameJa": "画像カウンター EX",
   "slug": "image-counter",
-  "version": "1.1.0-dev.16",
+  "version": "1.1.0-dev.17",
   "description": "Count objects with manual markers and local visual detection, review candidates, and export offline.",
   "descriptionJa": "手動マーカーとローカル自動検出で写真内のものを数え、候補を確認して一括追加・保存・出力できます。",
   "defaultLanguage": "auto",

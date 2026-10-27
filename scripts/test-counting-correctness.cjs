@@ -72,27 +72,6 @@ test('editor navigation can retry after failure and ignores a missing target',as
   const failed=c.switchImage('B');pending[0].reject(new Error('broken'));assert.equal(await failed,false);
   const retry=c.switchImage('B');pending[1].resolve({src:'B'});assert.equal(await retry,true);assert.deepEqual(renders,[['B','B']]);
 });
-function nextDetection(){
-  const f=editorNavigation(),{c}=f,nodes=new Map(),started=[];c.P.categories=[{id:'a',detectionReference:{dataUrl:'reference',examples:[]}}];c.activeCategory=()=>c.P.categories[0];
-  c.autoState={owner:{project:c.P,imageId:'A',dataUrl:'A',categoryId:'a'},generation:0,model:{},urls:[],busy:false,phase:'result',candidates:[],examples:[],excluded:new Set()};
-  c.$=key=>{if(!nodes.has(key))nodes.set(key,{open:true,dataset:{},textContent:''});return nodes.get(key)};
-  Object.assign(c,{URL:{revokeObjectURL(){}},renderAutoControls(){},resetAutoView(){},startAutoDetection:async()=>started.push(c.activeImageId)});
-  vm.runInContext(section('// AUTO:CORE:BEGIN','// AUTO:CORE:END')+section('function autoStopJob()', 'async function autoDetectWorker(')+section('function autoStatus(', 'function invalidateAutoDetection(')+section('function autoSelected(', 'function renderAutoReference(')+section('async function autoApplyAndNext()', "$('#autoEdit').onclick="),c);
-  return{...f,started,nodes};
-}
-test('next-photo detection exits its loading state and keeps the previous owner when navigation fails',async()=>{
-  const {c,pending,started}=nextDetection(),loading=c.autoApplyAndNext();assert.equal(c.autoState.busy,true);pending[0].reject(new Error('broken'));
-  await assert.doesNotReject(loading);assert.equal(c.activeImageId,'A');assert.equal(c.autoState.busy,false);assert.equal(c.autoState.owner.imageId,'A');assert.equal(c.autoState.phase,'error');assert.equal(c.autoState.message,'autoInvalidImage');assert.deepEqual(started,[]);
-});
-test('next-photo detection starts only after navigation commits the matching target',async()=>{
-  const {c,pending,started}=nextDetection(),loading=c.autoApplyAndNext();assert.deepEqual(started,[]);pending[0].resolve({src:'B'});await loading;
-  assert.equal(c.activeImageId,'B');assert.equal(c.autoState.busy,false);assert.deepEqual(started,['B']);
-});
-test('a failed old next-photo transition cannot overwrite a newer detection owner or status',async()=>{
-  const {c,pending,started}=nextDetection(),loading=c.autoApplyAndNext();c.autoStopJob();const newer={project:c.P,imageId:'C',dataUrl:'C',categoryId:'a'};c.autoState.owner=newer;c.autoState.busy=true;c.autoState.phase='processing';
-  pending[0].reject(new Error('obsolete'));await assert.doesNotReject(loading);
-  assert.equal(c.autoState.owner,newer);assert.equal(c.autoState.busy,true);assert.equal(c.autoState.phase,'processing');assert.deepEqual(started,[]);
-});
 function viewer(){
   const build={lang:'en',safeJson:JSON.stringify,t:x=>x};vm.createContext(build);vm.runInContext(section('function csvEsc(', 'function markersCsv(')+section('function viewerHtml(', 'async function saveViewer('),build);
   const html=build.viewerHtml({title:'Test',images:[],categories:[],settings:{}});

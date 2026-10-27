@@ -119,7 +119,7 @@ test('same-project file addition and deletion preserve the filter while retainin
 
 test('detect-all captures all photos even when the list is empty and zero-result detection refreshes status counts',async()=>{
   const f=fixture([photo('one'),photo('two')]),{c}=f;f.set('complete');
-  Object.assign(c,{autoState:{model:{size:1},busy:false},quickState:{run:null},quickImportsBusy:()=>false,autoCurrentReference:()=>c.P.categories[0].detectionReference,Worker:class{},OffscreenCanvas:class{},createImageBitmap(){},setMode(){}});c.P.categories[0].detectionReference={examples:[{}]};c.Toast.hide=()=>{};c.$('#quickProgress').scrollIntoView=()=>{};
+  Object.assign(c,{autoState:{model:{size:1},busy:false},quickState:{run:null},quickImportsBusy:()=>false,autoCurrentReference:()=>c.P.categories[0].detectionReference,Worker:class{},OffscreenCanvas:class{},createImageBitmap(){},setMode(){}});c.autoBuiltinModel=c.autoState.model;c.P.categories[0].detectionReference={examples:[{}]};c.Toast.hide=()=>{};c.$('#quickProgress').scrollIntoView=()=>{};
   vm.runInContext(section('// AUTO:CORE:BEGIN','// AUTO:CORE:END')+section('function nextOrder(','function addPoint(')+section('// QUICK:CORE:BEGIN','async function quickProcessImages(')+section('async function startQuickDetection(',"$('#quickMode').onchange="),c);
   let captured;c.quickProcessImages=async run=>{captured=run;c.quickCommitResult(run,run.targets[0],[])};await c.startQuickDetection(true);
   assert.deepEqual(Array.from(captured.targets,im=>im.id),['one','two']);assert.deepEqual(f.names(),[]);assert.equal(f.select.options[3].textContent,'Needs review (1)');assert.equal(f.select.value,'complete');

@@ -220,7 +220,7 @@ for(const [label,result] of [
 function ui(){
   // The UI consumes the photo-list selector; this fixture uses its all-photo view.
   const f=setup(),{c,run,category}=f,nodes=new Map();c.$=key=>{if(!nodes.has(key))nodes.set(key,{hidden:false,open:false,textContent:'',dataset:{},value:key==='#autoThreshold'?'0.05':key==='#autoBackend'?'wasm':key==='#quickMode'?'append':'fp32',focus(){},scrollIntoView(){},append(){},addEventListener(){}});return nodes.get(key)};
-  c.matchingPhotos=()=>c.P.images;
+  c.autoBuiltinModel=c.autoState.model;c.matchingPhotos=()=>c.P.images;
   Object.assign(c,{activeCategory:()=>category,autoCurrentReference:()=>category.detectionReference,t:k=>k,document:{body:{},querySelector:()=>null,createElement:()=>({})},addEventListener(){},Toast:{hide(){},show(){}},cancelMarkerInteraction(){},pointers:new Map(),Worker:class{},OffscreenCanvas:class{},createImageBitmap(){},imageCache:new Map()});c.autoState.model.size=1;
   vm.runInContext(section('// QUICK:UI:BEGIN','// QUICK:UI:END'),c);return{...f,nodes};
 }
