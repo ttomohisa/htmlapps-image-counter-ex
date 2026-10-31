@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0 — release preparation
+
+- Set the release version to 2.0.0. Includes the integrated compact detection model, reusable examples, batch detection, review workflow, saved work, responsive workspace and dev.22 editor improvements.
+- Physical Android and offline direct-file release acceptance remain pending; see docs/RELEASE_V2.md. No release tag is created by this version update.
+
 ## 1.1.0-dev.22 — 2026-11-01
 
 - Clarify example tool selection with joined Add / Edit boxes / Pan image controls and mode-specific guidance. Join zoom controls; tapping the percentage resets to 100%.
