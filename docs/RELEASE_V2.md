@@ -1,6 +1,6 @@
 # v2.0.0 リリース確認
 
-リリース番号は2.0.0。バージョン更新と正式リリースの受け入れ確認を区別する。
+リリース番号は2.0.0。ユーザーの正式公開指示に従い、未確認項目をリリースノートに明記して公開する。未確認項目を成功扱いにはしない。
 
 ## 確認済み
 
@@ -9,7 +9,7 @@
 - PCおよび320/390px幅の表示。通常版と自己展開版のHTTP起動。
 - ライセンス・ソースコード・ビルド情報の保護チェック。
 
-## 正式公開前の受け入れ確認
+## 継続する実機確認項目
 
 - [ ] Android Chromeで実際の写真を2〜3枚追加。見本登録、ピンチ、枠の移動・サイズ変更・選択削除、見本保存を試す。
 - [ ] 同じ見本で全写真を検出し、停止、再実行、要確認の解除、修正、Undoを確認する。
@@ -21,9 +21,9 @@
 
 ## English
 
-Version 2.0.0 is prepared; the formal release tag is pending acceptance. Validate current workflows on physical Android Chrome, exported-work HTML reimport, and disconnected direct-file startup/detection of both distributable variants on PC and Android. Then build and verify the accepted commit, publish tag v2.0.0 and a GitHub Release with both HTML files and SHA-256 checksums. Existing viewport and HTTP tests do not establish physical touch or file-origin behavior.
+Version 2.0.0 is being published at the user’s explicit request, with incomplete device checks disclosed. Validate current workflows on physical Android Chrome, exported-work HTML reimport, and disconnected direct-file startup/detection of both distributable variants on PC and Android. Then build and verify the accepted commit, publish tag v2.0.0 and a GitHub Release with both HTML files and SHA-256 checksums. Existing viewport and HTTP tests do not establish physical touch or file-origin behavior.
 
 ## バージョン更新後の検証記録（2026-11-01）
 
 - 2.0.0への更新後、通常ビルドと必須リポジトリチェックが終了コード0。4,466件成功、失敗0。ヘルプと単一HTMLの検証も成功。
-- `dist/index.html`、`dist/index.self-extract.html`、`dist/SHA256SUMS.txt`を用意。公開ページはdev.22を維持し、リリースタグとGitHub Releaseはまだ発行していない。
+- `dist/index.html`、`dist/index.self-extract.html`、`dist/SHA256SUMS.txt`を用意。正式タグ、GitHub Release、Pagesを更新する。WindowsのブラウザーURLを安全に確認できずComputer Useが停止したため、今回のPC直接起動は未確認。

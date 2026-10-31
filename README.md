@@ -330,4 +330,4 @@ CSV text that resembles a formula is prefixed with an apostrophe in both editor 
 
 Example editing uses Add / Edit boxes / Pan image. Tap the zoom percentage to return to 100%. Finished detection details are available in the Detection panel.
 
-Version 2.0.0 is prepared for release acceptance; see the [release checklist](docs/RELEASE_V2.md). Physical-device acceptance is pending.
+Download v2.0.0 from the [GitHub Release](https://github.com/ttomohisa/htmlapps-image-counter-ex/releases/tag/v2.0.0). See the [release checklist](docs/RELEASE_V2.md) for verified results and unverified physical-device checks.

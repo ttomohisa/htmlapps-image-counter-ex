@@ -328,4 +328,4 @@ Copyright © 2026 ttomohisa
 
 見本編集は「追加・枠を編集・画像を移動」で操作を切り替えます。倍率の%を押すと100%に戻ります。終了した検出の詳細は「検出」パネルで確認できます。
 
-v2.0.0の正式公開前の確認項目は[リリース確認表](docs/RELEASE_V2.md)にまとめています。実機確認が完了するまではリリース準備中です。
+v2.0.0の確認結果と実機で未確認の項目は[リリース確認表](docs/RELEASE_V2.md)にまとめています。配布HTMLは[GitHub Release](https://github.com/ttomohisa/htmlapps-image-counter-ex/releases/tag/v2.0.0)から取得できます。

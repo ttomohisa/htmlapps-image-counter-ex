@@ -1,9 +1,9 @@
 # Changelog
 
-## 2.0.0 — release preparation
+## 2.0.0 — 2026-11-01
 
 - Set the release version to 2.0.0. Includes the integrated compact detection model, reusable examples, batch detection, review workflow, saved work, responsive workspace and dev.22 editor improvements.
-- Physical Android and offline direct-file release acceptance remain pending; see docs/RELEASE_V2.md. No release tag is created by this version update.
+- Publish the v2.0.0 release with both standalone HTML variants and SHA-256 checksums. Current physical Android and disconnected direct-file acceptance remain unverified and are documented in the release notes; see docs/RELEASE_V2.md.
 
 ## 1.1.0-dev.22 — 2026-11-01
 
