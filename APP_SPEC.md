@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 1.1.0-dev.21
+- **Version:** 1.1.0-dev.22
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -378,3 +378,8 @@ Compatibility exception: the former native resize handler could create an exact 
 - Cover first-time setup, existing-reference edit, save-only and save-and-detect, valid unchanged save, validation failure, close/cancel, staged source replacement, stale asynchronous loading, type switching, Undo/Redo and draft/saved-work round trips. Include small/edge boxes, mixed small and large examples, wide/tall source images and unchanged saved geometry. Check that stale autosave preparation, compression and failure callbacks cannot affect replacement work.
 - Cover local/saved examples, canvas/list selection, selected-only deletion, all resize handles, numeric bounds, rotations, anchored pinch/pan, limits/Fit and interrupted/late gestures without changing saved data.
 - Cover zero/duplicate-only review, all statuses, hidden/other types, both rerun modes, protected markers, errors/truncation/cancellation, one-step run Undo/Redo, keyboard and bilingual layouts. Record physical Android, browser-width and direct-file checks separately; automated checks alone establish none of them.
+
+
+### Editor and report polish (dev.22)
+
+The example editor groups Add, Edit boxes and Pan image as a mutually exclusive segmented tool choice. The joined minus/percentage/plus control resets to fit (100%) on percentage activation, with busy/owner guards. View changes do not change example geometry. Finished detection reports move into Detection; active progress and Stop remain outside the inert workspace. Project display/storage disclosures share padding and SVG chevrons.

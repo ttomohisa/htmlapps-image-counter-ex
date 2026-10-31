@@ -722,6 +722,16 @@ test('zoom controls clamp the preview, preserve geometry, and Fit restores the f
   assert.deepEqual(exampleState(c),before);assert.equal(JSON.stringify(c.P),project);
 });
 
+test('percentage reset preserves the active tool and example geometry, and respects busy state',()=>{
+  const {c,element}=detectionUI();c.selectAutoExample(0);const before=exampleState(c);
+  element('#autoPanMode').onclick();element('#autoZoomIn').onclick();element('#autoZoomLabel').onclick();
+  assert.equal(vm.runInContext('autoState.view.zoom',c),1);
+  assert.equal(vm.runInContext('autoState.viewMode',c),'pan');
+  assert.deepEqual(exampleState(c),before);
+  element('#autoZoomIn').onclick();vm.runInContext('autoState.busy=true',c);element('#autoZoomLabel').onclick();
+  assert.equal(vm.runInContext('autoState.view.zoom',c),1.5);
+});
+
 test('explicit pan moves the zoomed image within its bounds without modifying selected examples',()=>{
   const {c,element,pointer}=detectionUI();c.selectAutoExample(0);pinchPreview(pointer,centeredPinch);const before=exampleState(c),project=JSON.stringify(c.P);
   assert.equal(typeof element('#autoPanMode').onclick,'function');element('#autoPanMode').onclick();

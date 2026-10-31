@@ -7,7 +7,7 @@ Detection starts at **Standard**. Try **Find more** for missed objects or **More
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 1.1.0-dev.21.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
+> **Embedded-model build — 1.1.0-dev.22.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -327,3 +327,5 @@ Camera capture stops when its dialog closes. Pending permission requests are dis
 Viewer HTML imports validate the native project format and embedded raster images before replacing your work. SVG/external images, invalid data, more than 30 images, payloads over 35 MiB per image or projects over the 220 MiB image-plus-metadata budget are rejected. The HTML file itself has a 661 MiB pre-read ceiling allowing encoding overhead. Large files may still exceed your browser’s available memory. Existing oversized or SVG-based exports need reducing/converting first.
 
 CSV text that resembles a formula is prefixed with an apostrophe in both editor and viewer exports. Numbers remain numeric; your project text is unchanged. Some spreadsheet programs display the apostrophe. Do not strip this protection from untrusted text.
+
+Example editing uses Add / Edit boxes / Pan image. Tap the zoom percentage to return to 100%. Finished detection details are available in the Detection panel.

@@ -236,3 +236,8 @@ The native select sits directly above the thumbnail strip. Its option counts and
 Previous/Next and Left/Right resolve matching neighbors relative to the current photo's position in the full list. They do not wrap; an excluded current photo uses the nearest match on the requested side. Native form-control keyboard handling takes precedence over photo shortcuts. Filter changes and project replacement invalidate pending filtered navigation, and asynchronous decode completion rechecks current ownership before committing. Decode failures retain the previous displayed photo. Filtering or a status refresh never initiates an automatic photo switch.
 
 Filtering controls the editor thumbnail list, its ordinary navigation and the explicit Detect list action. Summary totals, saved work, CSV/JPEG exports, Detect all photos, Next incomplete, Review complete & next still use the full project. An explicit full-project navigation action may select an excluded photo and then show the notice. No filter field or filtered subset enters portable work or the read-only viewer.
+
+
+### Editor and report polish (dev.22)
+
+The example editor groups Add, Edit boxes and Pan image as a mutually exclusive segmented tool choice. The joined minus/percentage/plus control resets to fit (100%) on percentage activation, with busy/owner guards. View changes do not change example geometry. Finished detection reports move into Detection; active progress and Stop remain outside the inert workspace. Project display/storage disclosures share padding and SVG chevrons.

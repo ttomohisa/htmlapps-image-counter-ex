@@ -122,3 +122,13 @@ test('mobile return ignores hidden desktop calls and does not steal newer focus 
   const frames=[];c.requestAnimationFrame=fn=>frames.push(fn);c.document.activeElement=$('#mobReturnPhoto');$('#mobReturnPhoto').onclick();
   assert.equal($('#workspaceInspector').hidden,true);c.document.activeElement=$('#other');frames.forEach(fn=>fn());assert.equal(c.document.activeElement,$('#other'));
 });
+
+test('finished detection details leave photo view and return outside inert workspace for the next run',()=>{
+ const hosts={'.main':{prepend(n){n.parentElement=this}},'#inspectorDetection':{prepend(n){n.parentElement=this}}};
+ const panel={parentElement:null};const c={$:id=>hosts[id]};vm.createContext(c);
+ const start=source.indexOf('function placeQuickProgress(');assert.ok(start>=0);
+ vm.runInContext(source.slice(start,source.indexOf('function renderQuickDetection()',start)),c);
+ c.placeQuickProgress(panel,true);assert.equal(panel.parentElement,hosts['.main']);
+ c.placeQuickProgress(panel,false);assert.equal(panel.parentElement,hosts['#inspectorDetection']);
+ c.placeQuickProgress(panel,true);assert.equal(panel.parentElement,hosts['.main']);
+});

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0-dev.22 — 2026-11-01
+
+- Clarify example tool selection with joined Add / Edit boxes / Pan image controls and mode-specific guidance. Join zoom controls; tapping the percentage resets to 100%.
+- Move finished detection details into the Detection panel, preserving active progress and Stop outside the locked workspace.
+- Align display and storage disclosure rows and use matching SVG chevrons. Preserve model assets, schema, offline packaging and license/source/build text.
+
 ## 1.1.0-dev.21 — 2026-10-27
 
 - Fix overlapping Project display controls caused by legacy 32 px icon-button sizing. Use explicit text-button sizing, wrapping labels and larger touch targets.
