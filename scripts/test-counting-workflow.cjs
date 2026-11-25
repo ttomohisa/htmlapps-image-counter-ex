@@ -158,3 +158,16 @@ for(const rotation of [0,90,180,270])for(const handle of ['tl','tr','br','bl'])t
   const resized=f.c.P.images[0].markers[0];assert.equal(resized.w,.003);assert.equal(resized.h,.003);assert.ok(resized.x>=0&&resized.y>=0&&resized.x+resized.w<=1&&resized.y+resized.h<=1);assert.equal(f.c.history.length,1);assert.equal(f.saves(),1);
   f.c.undo();assert.equal(f.c.P.images[0].markers[0].w,.2);f.c.redo();assert.equal(f.c.P.images[0].markers[0].w,.003);
 });
+
+for(const rotation of [0,90,180,270])test('resize keeps original opposite corner after crossing at '+rotation,()=>{
+  const f=fixture(rotation,'rect',[rect]);f.c.selectedMarkerId=rect.id;
+  f.send('pointerdown',.2,.2);f.send('pointermove',.8,.8);f.send('pointermove',.3,.3);f.send('pointerup',.3,.3);
+  const m=f.c.activeImage().markers[0];assert.ok(Math.abs(m.x-.3)<1e-9);assert.ok(Math.abs(m.y-.3)<1e-9);assert.ok(Math.abs(m.x+m.w-.5)<1e-9);assert.ok(Math.abs(m.y+m.h-.6)<1e-9);
+  assert.equal(f.c.history.length,1);
+});
+test('manual count makes the new marker visible and Undo restores visibility',()=>{
+  const f=fixture();f.c.P.settings.markersVisible=false;f.c.P.categories[0].visible=false;
+  f.send('pointerdown',.4,.4);f.send('pointerup',.4,.4);
+  assert.equal(f.c.activeImage().markers.length,1);assert.equal(f.c.P.settings.markersVisible,true);assert.equal(f.c.P.categories[0].visible,true);
+  f.c.undo();assert.equal(f.c.activeImage().markers.length,0);assert.equal(f.c.P.settings.markersVisible,false);assert.equal(f.c.P.categories[0].visible,false);
+});
