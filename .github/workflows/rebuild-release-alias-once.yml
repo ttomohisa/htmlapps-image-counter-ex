@@ -1,0 +1,41 @@
+name: Rebuild release alias (one-time PR 1)
+on:
+  push:
+    branches:
+      - fix/v2.0.1-counting-reliability
+    paths:
+      - .github/workflows/rebuild-release-alias-once.yml
+permissions:
+  contents: write
+jobs:
+  rebuild:
+    if: github.repository == 'ttomohisa/htmlapps-image-counter-ex' && github.ref == 'refs/heads/fix/v2.0.1-counting-reliability'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build release files
+        shell: pwsh
+        run: |
+          ./build-standalone.ps1
+          node --test scripts/test-release-artifacts.cjs
+          if ($LASTEXITCODE -ne 0) { throw "Release artifacts failed verification" }
+      - name: Commit only verified release alias to the PR branch
+        shell: pwsh
+        run: |
+          git add -- image-counter.html
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) { Write-Host "Alias already current"; exit 0 }
+          if ($LASTEXITCODE -ne 1) { throw "git diff failed" }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Regenerate standalone release alias"
+          if ($LASTEXITCODE -ne 0) { throw "Commit failed" }
+          git push origin HEAD:refs/heads/fix/v2.0.1-counting-reliability
+          if ($LASTEXITCODE -ne 0) { throw "Push failed" }
+      - name: Run full repository checks
+        shell: pwsh
+        run: ./scripts/check-repository.ps1
