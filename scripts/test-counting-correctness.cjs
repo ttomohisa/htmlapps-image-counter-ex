@@ -156,7 +156,7 @@ test('photo review no-op or active inference preserves history, redo and existin
 function draftSaving(){
   const pending=[],writes=[],messages=[],errors=[],draws=[],state={textContent:'saving'};
   const project={title:'Old work',categories:[{id:'a',detectionReference:{dataUrl:'reference pixels',examples:[{x:.1,y:.2,w:.3,h:.4}]}}],settings:{draftCompression:{enabled:true,quality:.8,maxEdge:100}},images:[{id:'shared',name:'old.jpg',dataUrl:'old-source',width:400,height:200,mime:'image/jpeg',markers:[{id:'one'}]},{id:'second',name:'second.jpg',dataUrl:'old-second',width:200,height:400,mime:'image/jpeg',markers:[]}]};
-  const c={P:project,saveToken:1,lastDraftBytes:17,structuredClone,Blob,Math,imageCache:new Map(),draftImageCache:new Map(),console:{error:e=>errors.push(e.message)},$:()=>state,t:key=>key,Toast:{show:key=>messages.push(key)},renderStorage(){},
+  const c={embeddedRasterBytes:url=>url.startsWith('data:')?7:100,validateProject(){},P:project,saveToken:1,lastDraftBytes:17,structuredClone,Blob,Math,imageCache:new Map(),draftImageCache:new Map(),console:{error:e=>errors.push(e.message)},$:()=>state,t:key=>key,Toast:{show:key=>messages.push(key)},renderStorage(){},
     loadImage:src=>new Promise((resolve,reject)=>pending.push({src,resolve,reject})),dbPut:async value=>writes.push(structuredClone(value)),
     document:{createElement(){let src;const canvas={width:0,height:0,getContext:()=>({drawImage(image){src=image.src;draws.push(src)}}),toDataURL(type,quality){return `data:image/webp;base64,${Buffer.from(`${src}|${quality}|${canvas.width}x${canvas.height}`).toString('base64')}`}};return canvas}}};
   vm.createContext(c);vm.runInContext(section('function dataUrlBytes(', 'function fmtBytes(')+section('async function webpForDraft(', 'function renderRestoreOffer('),c);
@@ -261,4 +261,23 @@ test('new edits while the database opens prevent the obsolete transaction and re
   opens[0].resolve(connection('obsolete'));await saving;
   assert.deepEqual(transactions,[]);assert.deepEqual(closed,['obsolete']);assert.equal(state.textContent,'saving newer edits');
   assert.equal(c.lastDraftBytes,17);
+});
+
+test('highlight animation has at most one pending redraw callback',()=>{
+  const frames=[],im={markers:[]},c={P:{},activeImage:()=>im,lastMarkerId:'new',lastMarkerAt:Date.now(),Date,devicePixelRatio:1,ctx:{setTransform(){},clearRect(){}},canvasCssSize:()=>({w:100,h:100}),drawBaseImage(){},drawGuide(){},drawMarker(){},drawDraftRect(){},drawReviewSelection(){},positionMarkerPop(){},requestAnimationFrame:fn=>frames.push(fn)};
+  vm.createContext(c);vm.runInContext(section('function markerNumbers(','function categoryNumber(')+section('function renderCanvas(','function hitMarker('),c);
+  for(let i=0;i<100;i++)c.renderCanvas();assert.equal(frames.length,1);
+  frames.shift()();assert.equal(frames.length,1);
+  c.lastMarkerAt=0;frames.shift()();assert.equal(frames.length,0);
+});
+test('category numbering is stable across interleaved types',()=>{
+  const c={};vm.createContext(c);vm.runInContext(section('function markerNumbers(','function categoryNumber('),c);
+  assert.deepEqual(Array.from(c.markerNumbers([{id:'a',categoryId:'1'},{id:'b',categoryId:'2'},{id:'c',categoryId:'1'}]),pair=>Array.from(pair)),[['a',1],['b',1],['c',2]]);
+});
+test('invalid compressed draft output keeps the original',async()=>{
+  const {c,pending,writes}=draftSaving();c.P.images=c.P.images.slice(0,1);
+  c.document.createElement=()=>({getContext:()=>({drawImage(){}}),toDataURL:()=> 'data:,'});
+  c.embeddedRasterBytes=url=>{if(url==='data:,')throw Error('invalidImage');return 100};
+  const saving=c.saveDraft(1);pending[0].resolve({src:'old-source'});await saving;
+  assert.equal(writes.length,1);assert.equal(writes[0].images[0].dataUrl,'old-source');
 });
