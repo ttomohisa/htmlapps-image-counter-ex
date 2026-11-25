@@ -5,6 +5,8 @@ on:
       - fix/v2.0.1-counting-reliability
     paths:
       - .github/workflows/rebuild-release-alias-once.yml
+      - app.config.json
+      - src/**
 permissions:
   contents: write
 jobs:
@@ -16,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       - name: Build release files
         shell: pwsh
         run: |

@@ -1,0 +1,116 @@
+name: Publish Image Counter EX v2.0.1
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/release-v2.0.1.yml"]
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/release-v2.0.1.yml"
+      - "docs/RELEASE_V2_0_1.md"
+      - "app.config.json"
+      - "src/**"
+      - "image-counter.html"
+      - "scripts/**"
+      - "build-standalone.ps1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image-counter-ex-v2.0.1-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.repository == 'ttomohisa/htmlapps-image-counter-ex'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Build and run complete repository checks
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $config = Get-Content app.config.json -Raw | ConvertFrom-Json
+          if ($config.version -ne '2.0.1') { throw 'Wrong release version' }
+          ./scripts/check-repository.ps1
+      - name: Stage both standalone variants and checksums
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Path release-dist -Force | Out-Null
+          $sums = @()
+          foreach ($name in @('index.html', 'index.self-extract.html')) {
+            Copy-Item -LiteralPath "dist/$name" -Destination "release-dist/$name"
+            $hash = (Get-FileHash -LiteralPath "release-dist/$name" -Algorithm SHA256).Hash.ToLowerInvariant()
+            $sums += "$hash  $name"
+          }
+          [IO.File]::WriteAllText((Join-Path $PWD 'release-dist/SHA256SUMS.txt'), ($sums -join "`n") + "`n", [Text.UTF8Encoding]::new($false))
+      - uses: actions/upload-artifact@v7
+        with:
+          name: image-counter-ex-v2.0.1-release
+          path: release-dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    if: github.repository == 'ttomohisa/htmlapps-image-counter-ex' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: prepare
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: image-counter-ex-v2.0.1-release
+          path: release-dist
+      - name: Verify exact release asset set and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$(printf '%s\n' SHA256SUMS.txt index.html index.self-extract.html | sort)"
+          actual="$(find release-dist -maxdepth 1 -type f -printf '%f\n' | sort)"
+          test "$expected" = "$actual"
+          (cd release-dist && sha256sum -c SHA256SUMS.txt)
+      - name: Publish verified assets for this commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag=v2.0.1
+          # Never move an existing tag. Only create a missing tag on the verified commit.
+          if git show-ref --verify --quiet "refs/tags/$tag"; then
+            test "$(git rev-parse "refs/tags/$tag^{}")" = "$GITHUB_SHA"
+          else
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$GITHUB_SHA" --silent
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            if [[ "$(gh release view "$tag" --json isDraft --jq .isDraft)" != true ]]; then
+              echo 'Release already published; refusing to modify it.'
+              exit 0
+            fi
+            gh release upload "$tag" release-dist/* --clobber
+          else
+            gh release create "$tag" release-dist/* --verify-tag --draft --title "Image Counter EX v2.0.1" --notes-file docs/RELEASE_V2_0_1.md
+          fi
+          test "$(gh release view "$tag" --json assets --jq '.assets | length')" = 3
+          downloaded="$(mktemp -d)"
+          gh release download "$tag" -D "$downloaded"
+          for file in release-dist/*; do
+            cmp "$file" "$downloaded/$(basename "$file")"
+          done
+          gh release edit "$tag" --draft=false --latest
+          echo "Published: https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag" >> "$GITHUB_STEP_SUMMARY"

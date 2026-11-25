@@ -1,0 +1,37 @@
+# Image Counter EX / 画像カウンター EX v2.0.1
+
+## 日本語
+
+- 作業の保存前にデータを検証し、読み込み時は全写真のデコードを確認してから現在の作業を置き換えるようにしました。
+- 任意の画像圧縮が失敗するか容量が増える場合、元画像を残します。ページが非表示になった際に保留中の自動保存を開始しますが、ブラウザー終了時の保存完了は保証できません。
+- 矩形リサイズ時の反対側の角のずれ、強調表示の多重描画、マーカー番号計算、画像キャッシュを改善しました。
+- 手動追加時のマーカー表示、種類削除後の完了状態、キーボード操作のUndoと自動保存、閲覧HTMLの要確認表示を修正しました。
+
+## English
+
+- Validate saved data and decode every imported photo before replacing existing work.
+- Retain original images when optional compression fails or increases size. Start pending autosave on page hide; browser shutdown can still interrupt it.
+- Preserve the opposite rectangle corner during resizing, prevent duplicate highlight frames, and improve numbering and image-cache handling.
+- Fix visibility of newly added manual markers, completion after type deletion, keyboard Undo/autosave, and pending-review status in exported viewers.
+
+## 配布 / Downloads
+
+- `index.html`: 通常版 / readable standalone
+- `index.self-extract.html`: 自己展開版 / self-extracting standalone
+- `SHA256SUMS.txt`: SHA-256 checksums
+
+## 検証状況 / Verification
+
+公開ワークフローは配布HTMLの整合性を含む既存の全リポジトリ検査に成功したコミットだけを公開します。実機タッチ操作、PC・Androidで通信を切った直接ファイル起動とAI検出、端末間の作業HTML再読み込みは未確認です。自動テストは実機確認の代わりではありません。
+
+The publication workflow requires the existing full repository check, including standalone parity. Physical touch, disconnected file-origin startup and detection on PC/Android, and cross-device work-file reimport have not been verified. Automated tests do not replace device checks.
+
+- [ ] PC / smartphone and Japanese / English UI
+- [ ] Physical Android Chrome: add photos, reference boxes, pinch, resize, detection, review and Undo
+- [ ] Save and reopen work HTML; restore autosaved work
+- [ ] Open both release HTML variants directly with networking disabled; run detection
+- [ ] Monitor runtime network activity
+
+モデル、依存ライブラリ、保存スキーマ、CSP、ライセンスは変更していません。GNU AGPL v3。対応するソースはリリースタグから取得できます。AI検出結果は目視で確認し、大切な作業はHTMLにも保存してください。
+
+Model, dependencies, saved-project schema, CSP and license are unchanged. GNU AGPL v3; corresponding source is available from the release tag. Review AI results and save important work as HTML.

@@ -1,13 +1,13 @@
 # Changelog
 
-## Unreleased — proposed 2.0.1
+## 2.0.1
 
 - Validate saved work and drafts; retain originals when optional compression fails or grows the payload; decode every imported photo before replacing work.
 - Flush a pending autosave when the page is hidden (browser shutdown can still interrupt writes).
 - Prevent overlapping highlight redraw loops, preserve rectangle resize anchors, reduce repeated numbering calculations, and limit the decoded photo cache.
 - Keep new manual markers visible, reopen affected photos after type deletion, and record keyboard-driven visibility and slider changes in Undo/autosave.
 - Show pending detection checks in the read-only viewer, including zero-result checks.
-- Release alias rebuild, complete CI, offline startup and physical-device verification remain required before release.
+- Publication requires the full repository check and matching release alias; see docs/RELEASE_V2_0_1.md for device and offline verification status.
 
 ## 2.0.0 — 2026-11-01
 
