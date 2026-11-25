@@ -22,6 +22,10 @@
 
 ## 検証状況 / Verification
 
+- 2026-11-25: commit `8a8153254747f3ef24fa6a77697bef907601bd8e` passed the existing full repository check (4,502 test executions, 0 failures, 0 skips), preview build and release asset preparation. [CI log](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/runs/45622424226).
+- 上記コミットで既存の全検査4,502件、プレビュービルド、リリース成果物の準備が成功。追加したオフラインChromiumテストは結果確認待ちです。
+- New headless Chromium direct-file smoke checks run in the release preparation workflow; physical-device checks remain separate.
+
 公開ワークフローは配布HTMLの整合性を含む既存の全リポジトリ検査に成功したコミットだけを公開します。実機タッチ操作、PC・Androidで通信を切った直接ファイル起動とAI検出、端末間の作業HTML再読み込みは未確認です。自動テストは実機確認の代わりではありません。
 
 The publication workflow requires the existing full repository check, including standalone parity. Physical touch, disconnected file-origin startup and detection on PC/Android, and cross-device work-file reimport have not been verified. Automated tests do not replace device checks.
