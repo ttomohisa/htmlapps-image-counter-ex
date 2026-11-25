@@ -331,3 +331,8 @@ CSV text that resembles a formula is prefixed with an apostrophe in both editor 
 Example editing uses Add / Edit boxes / Pan image. Tap the zoom percentage to return to 100%. Finished detection details are available in the Detection panel.
 
 Download v2.0.0 from the [GitHub Release](https://github.com/ttomohisa/htmlapps-image-counter-ex/releases/tag/v2.0.0). See the [release checklist](docs/RELEASE_V2.md) for verified results and unverified physical-device checks.
+
+
+### Work-file safety (unreleased)
+
+The editor checks that every photo can be decoded before replacing an open project. Optional photo compression keeps the original when conversion fails or would increase the payload. Pending detection checks, including checks with no detected objects, are shown in the saved viewer. When the page is hidden, any pending autosave is started; closing the browser can still interrupt the write. Save important projects as HTML.
