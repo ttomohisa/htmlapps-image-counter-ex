@@ -552,8 +552,13 @@ async function autoDetectWorker(){
           if(!self.navigator.gpu)throw new Error('autoNoGPU');
           const adapter=await self.navigator.gpu.requestAdapter();if(!adapter||(data.precision==='fp16'&&!adapter.features.has('shader-f16')))throw new Error('autoNoGPU');
         }else if(data.precision==='fp16')throw new Error('autoFP16GPU');
-        ort=await import(data.moduleUrl);ort.env.wasm.numThreads=1;ort.env.wasm.proxy=false;ort.env.wasm.wasmBinary=new Uint8Array(data.wasm);ort.env.logLevel='error';
-        session=await ort.InferenceSession.create(new Uint8Array(data.model),{executionProviders:[data.backend],graphOptimizationLevel:'all'});
+        // A blob module Worker may fail to start from an opaque file:// origin.
+        // Start a classic Worker and create the module URL in that Worker's own realm.
+        const moduleUrl=URL.createObjectURL(new Blob([data.module],{type:'text/javascript'}));
+        try{
+          ort=await import(moduleUrl);ort.env.wasm.numThreads=1;ort.env.wasm.proxy=false;ort.env.wasm.wasmBinary=new Uint8Array(data.wasm);ort.env.logLevel='error';
+          session=await ort.InferenceSession.create(new Uint8Array(data.model),{executionProviders:[data.backend],graphOptimizationLevel:'all'});
+        }finally{URL.revokeObjectURL(moduleUrl)}
       }
       const initialized=performance.now();post({phase:'processing'});
       function prepare(bitmap){
@@ -1401,9 +1406,8 @@ function quickInferImage(run,im){
         let referenceBitmap;
         try{const reference=await loadImage(run.reference.dataUrl);if(!current())return;referenceBitmap=await createImageBitmap(reference)}catch{throw new Error('autoModelError')}
         if(!current()){referenceBitmap.close();return}pending.referenceBitmap=referenceBitmap;
-        const moduleUrl=URL.createObjectURL(new Blob([moduleBytes],{type:'text/javascript'}));runtime.urls.push(moduleUrl);
         const workerUrl=URL.createObjectURL(new Blob([autoWorkerSource()],{type:'text/javascript'}));runtime.urls.push(workerUrl);
-        const worker=new Worker(workerUrl,{type:'module'});runtime.worker=worker;
+        const worker=new Worker(workerUrl,{type:'classic'});runtime.worker=worker;
         worker.onerror=event=>{event.preventDefault();const active=runtime.pending;if(active)active.finish(new Error('autoModelError'),null,true);else run.cancelInference?.()};
         worker.onmessage=({data})=>{
           if(runtime.closed)return;const active=runtime.pending;if(!active)return;
@@ -1415,7 +1419,7 @@ function quickInferImage(run,im){
           if(data.phase!=='result'||!Array.isArray(data.candidates)||data.candidates.length>1000||data.candidates.some(b=>!autoValidRect(b))||(data.truncated!==undefined&&(!Number.isInteger(data.truncated)||data.truncated<0))){active.finish(new Error('autoInvalidOutput'),null,true);return}
           active.finish(null,{candidates:data.candidates,truncated:data.truncated||0});
         };
-        initial={moduleUrl,wasm:wasm.buffer,model:modelBuffer,referenceBitmap,examples:run.reference.examples,backend:run.backend,precision:run.precision};transfers.push(referenceBitmap,wasm.buffer,modelBuffer);
+        initial={module:moduleBytes.buffer,wasm:wasm.buffer,model:modelBuffer,referenceBitmap,examples:run.reference.examples,backend:run.backend,precision:run.precision};transfers.push(referenceBitmap,moduleBytes.buffer,wasm.buffer,modelBuffer);
       }
       if(!quickRunCurrent(run)){run.cancelInference?.();return}
       runtime.worker.postMessage({...initial,batch:true,requestId:pending.id,bitmap,threshold:run.threshold},transfers);pending.bitmap=null;pending.referenceBitmap=null;

@@ -115,7 +115,9 @@ def desktop(browser, path, label):
         expect(page.locator("#autoSaveDetect")).to_be_enabled()
         page.locator("#autoSaveDetect").click()
         expect(page.locator("#autoDlg")).to_be_hidden()
-        page.wait_for_function("!document.querySelector('#quickProgress').hidden && !document.querySelector('#quickDismiss').hidden", timeout=180000)
+        expect(page.locator("#quickProgressText")).to_contain_text(
+            re.compile(r"Finished|Stopped on error|Cancelled|Work changed"), timeout=180000
+        )
         status = page.locator("#quickProgressText").inner_text()
         rows = page.locator("#quickResults").text_content()
         print(f"[{label}] detection: {status} | {rows}", flush=True)

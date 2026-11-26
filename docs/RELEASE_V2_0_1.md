@@ -39,3 +39,9 @@ The publication workflow requires the existing full repository check, including 
 モデル、依存ライブラリ、保存スキーマ、CSP、ライセンスは変更していません。GNU AGPL v3。対応するソースはリリースタグから取得できます。AI検出結果は目視で確認し、大切な作業はHTMLにも保存してください。
 
 Model, dependencies, saved-project schema, CSP and license are unchanged. GNU AGPL v3; corresponding source is available from the release tag. Review AI results and save important work as HTML.
+
+
+### Direct-file inference follow-up / ローカルHTMLのAI検出
+
+- The previous Windows Chromium smoke check reproduced a bootstrap Worker error (no Worker message before the error). A classic Blob Worker now imports the embedded runtime from a Worker-owned Blob URL; the embedded model, WASM, versions and CSP are unchanged. Browser verification is pending.
+- Windows Chromiumの直接ファイル検査でWorker起動時のエラーを再現。通常のBlob Workerに変更し、Worker内で内蔵ランタイムを読み込みます。モデル・WASM・バージョン・CSPは変更なし。実ブラウザーでの再検証待ちです。

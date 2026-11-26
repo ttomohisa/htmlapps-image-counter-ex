@@ -126,21 +126,21 @@ test('bad photos are reported and skipped, while a model failure stops the batch
 function reply(worker,data){worker.onmessage({data:{requestId:worker.data.requestId,...data}})}
 function runner(mode='append'){
   const {c,run,images}=setup(mode),bitmaps=[],revoked=[],workers=[];run.backend='wasm';run.precision='fp32';run.threshold=.05;run.model.arrayBuffer=async()=>new ArrayBuffer(3);
-  Object.assign(c,{Blob,StandaloneAssets:{bytesAsync:async()=>new Uint8Array(3)},loadImage:async src=>({src}),createImageBitmap:async image=>{const b={image,closed:0,close(){this.closed++}};bitmaps.push(b);return b},autoWorkerSource:()=>'',I18N:{ja:{autoModelError:'error'}},URL:{createObjectURL:()=>`blob:${Math.random()}`,revokeObjectURL:u=>revoked.push(u)},Worker:class{constructor(){workers.push(this);this.terminated=0}postMessage(data,transfers){this.data=data;this.transfers=transfers}terminate(){this.terminated++}}});
+  Object.assign(c,{Blob,StandaloneAssets:{bytesAsync:async()=>new Uint8Array(3)},loadImage:async src=>({src}),createImageBitmap:async image=>{const b={image,closed:0,close(){this.closed++}};bitmaps.push(b);return b},autoWorkerSource:()=>'',I18N:{ja:{autoModelError:'error'}},URL:{createObjectURL:()=>`blob:${Math.random()}`,revokeObjectURL:u=>revoked.push(u)},Worker:class{constructor(url,options){this.url=url;this.options=options;workers.push(this);this.terminated=0}postMessage(data,transfers){this.data=data;this.transfers=transfers}terminate(){this.terminated++}}});
   vm.runInContext(section('// QUICK:RUNNER:BEGIN','// QUICK:RUNNER:END'),c);return{c,run,images,bitmaps,revoked,workers};
 }
 test('headless runner retains the same worker for later photos and releases it at batch completion',async()=>{
   const {c,run,images,bitmaps,revoked,workers}=runner(),pending=c.quickInferImage(run,images[1]);
   await new Promise(resolve=>setImmediate(resolve));const w=workers[0];
-  assert.equal(w.data.bitmap.image.src,'two');assert.equal(w.data.referenceBitmap.image.src,'ref');assert.equal(w.transfers.length,4);
+  assert.equal(w.data.bitmap.image.src,'two');assert.equal(w.data.referenceBitmap.image.src,'ref');assert.equal(w.options.type,'classic');assert.equal(w.data.module.byteLength,3);assert.equal(w.data.moduleUrl,undefined);assert.equal(w.transfers.length,5);assert.ok(w.transfers.includes(w.data.module));
   reply(w,{phase:'processing'});assert.equal(run.phase,'processing');
   reply(w,{phase:'result',candidates:[box()],truncated:4});const result=await pending;
   assert.equal(result.candidates.length,1);assert.equal(result.truncated,4);assert.equal(w.terminated,0);assert.equal(revoked.length,0);assert.equal(typeof run.cancelInference,'function');
   const next=c.quickInferImage(run,images[2]);await new Promise(resolve=>setImmediate(resolve));
-  assert.equal(workers.length,1);assert.equal(w.data.bitmap.image.src,'three');assert.equal(w.data.referenceBitmap,undefined);assert.equal(w.data.model,undefined);assert.equal(w.transfers.length,1);assert.equal(w.data.requestId,2);
+  assert.equal(workers.length,1);assert.equal(w.data.bitmap.image.src,'three');assert.equal(w.data.referenceBitmap,undefined);assert.equal(w.data.model,undefined);assert.equal(w.data.module,undefined);assert.equal(w.transfers.length,1);assert.equal(w.data.requestId,2);
   reply(w,{phase:'result',candidates:[],truncated:0});await next;
   assert.equal(bitmaps.length,3,'two targets and one reference');c.finishQuickDetection(run,'done');
-  assert.equal(w.terminated,1);assert.equal(revoked.length,2);assert.equal(run.cancelInference,null);
+  assert.equal(w.terminated,1);assert.equal(revoked.length,1);assert.equal(run.cancelInference,null);
   // Transferred bitmaps belong to the worker and must not be closed by the sender.
   assert.ok(bitmaps.every(b=>b.closed===0));
 });
