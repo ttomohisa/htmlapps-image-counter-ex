@@ -158,14 +158,13 @@ test('Help allocates the available height between a fixed header and scrollable 
   assert.match(body, /flex:1 1 auto/);
 });
 
-test('mobile help/build/footer and start layout are scoped to mobile widths', () => {
-  const mobile = css.match(/\/\* Mobile start and Help layout \*\/([\s\S]*?)\/\* End mobile start and Help layout \*\//)?.[1];
-  assert.ok(mobile, 'dedicated responsive scope');
-  assert.match(mobile, /@media\(max-width:760px\)/);
-  assert.match(mobile, /#helpDlg \.build,body>footer\{display:none\}/);
-  assert.match(mobile, /\.start-actions\{[^}]*grid-template-columns:minmax\(0,1fr\)[^}]*justify-content:stretch/);
-  assert.match(mobile, /\.start-actions \.btn,\.start-secondary \.btn\{[^}]*width:100%[^}]*min-height:44px/);
-  assert.match(mobile, /\.start-secondary\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(mobile, /@media\(max-width:380px\)\{\.start-secondary\{grid-template-columns:minmax\(0,1fr\)\}/);
-  assert.match(mobile, /\.start \.drop-hint\{display:none\}/);
+test('mobile help and footer stay compact; photo input comes before the sample on narrow screens', () => {
+  assert.match(css, /@media\(max-width:760px\)\{#helpDlg \.build,body>footer\{display:none\}\}/);
+  const narrow = css.slice(css.indexOf('@media(max-width:720px){', css.indexOf('/* The start screen')));
+  assert.match(narrow, /\.welcome\{grid-template-columns:1fr/);
+  assert.match(narrow, /\.welcome-actions \.btn\{min-height:46px/);
+  assert.match(narrow, /\.welcome-copy \.welcome-drop\{display:none\}/);
+  const start = source.slice(source.indexOf('<section id="startScreen"'), source.indexOf('<section id="quickProgress"'));
+  assert.ok(start.indexOf('id="chooseStart"') < start.indexOf('id="sampleBtn"'));
+  assert.match(start, /id="practicePhoto"[^>]*data-i18n-alt="practiceAlt"/);
 });

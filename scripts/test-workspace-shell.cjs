@@ -28,7 +28,7 @@ test('completed filtered run returns focus to tools when its launcher becomes di
 
 test('native dialog closing in mobile tools returns to visible inspector without stealing another owner',()=>{const{c,$}=fixture();c.matchMedia=()=>({matches:true});const viewer={inert:false};$('#canvasWrap').closest=()=>viewer;$('#mobileReviewToggle').getClientRects=()=>viewer.inert?[]:[{}];c.renderWorkspaceShell();c.setWorkspacePanel('detection');c.document.activeElement=c.document.body;$('#autoDlg').close();assert.equal(c.document.activeElement,$('#inspectorTabDetection'));c.document.activeElement=$('#other');$('#autoDlg').close();assert.equal(c.document.activeElement,$('#other'));c.lang='ja';c.renderWorkspaceShell();assert.equal($('#workspaceInspector').attributes['aria-label'],'写真と作業の設定');c.lang='en';c.renderWorkspaceShell();assert.equal($('#inspectorTabs').attributes['aria-label'],'Workspace tools')});
 
-for(const [language,openLabel,closeLabel] of [['ja','パネルを開く','パネルを閉じる'],['en','Open panel','Hide panel']])test(`closing the inspector returns focus to its explicit ${language} opener and reopening preserves the selected panel`,()=>{
+for(const [language,openLabel,closeLabel] of [['ja','写真・ツール','ツールを閉じる'],['en','Photos & tools','Hide tools']])test(`closing the inspector returns focus to its explicit ${language} opener and reopening preserves the selected panel`,()=>{
   const{c,$}=fixture();c.lang=language;c.renderWorkspaceShell();c.setWorkspacePanel('detection');
   const before=JSON.stringify(c.P),toggle=$('#mobileReviewToggle'),label=$('#workspacePanelLabel');
   assert.equal(label.textContent,closeLabel);assert.equal(toggle.getAttribute('aria-expanded'),'true');
@@ -66,7 +66,9 @@ test('the prominent action follows counting versus review mode without changing 
   const{c,$}=fixture();c.renderWorkspaceShell();c.setWorkspacePanel('project');const before=JSON.stringify(c.P);
   for(const mode of ['point','review','rect','pan','review']){
     c.mode=mode;c.renderWorkspaceShell();
-    assert.equal($('#workspaceDetect').classList.contains('primary'),mode!=='review',mode+' detection priority');
+    assert.equal($('#workspaceDetect').classList.contains('primary'),false,mode+' detection priority');
+    const guide={point:'guidePoint',rect:'guideRect',pan:'guidePan',review:'guideReview'}[mode];
+    assert.equal($('#modeGuide').textContent,c.t(guide));
     assert.equal($('#reviewNext').classList.contains('primary'),mode==='review',mode+' review priority');
     assert.equal($('#inspectorProject').hidden,false);assert.equal(JSON.stringify(c.P),before);
   }

@@ -3,6 +3,7 @@ param(
   [string]$Path,
   [bool]$RequireNetworkBlock = $true,
   [string[]]$ForbiddenPlaceholders = @(
+    "__SAMPLE_PHOTO_DATA_URL__",
     "__APP_CONFIG_JSON__",
     "__BUILD_MANIFEST_JSON__",
     "__EMBEDDED_ASSET_BUNDLE_JSON__"

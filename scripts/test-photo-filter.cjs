@@ -31,7 +31,7 @@ function fixture(images=photos()){
 
 test('status filter uses review-first priority and all-project option counts without altering data or selection',()=>{
   const f=fixture(),{c,$}=f,before=JSON.stringify(c.P),view=plain(c.view);f.set('review');
-  assert.deepEqual(f.names(),['zero.png','flag.png']);assert.deepEqual(f.select.options.map(o=>o.textContent),['All (5)','Undetected (1)','In progress (1)','Needs review (2)','Complete (1)']);
+  assert.deepEqual(f.names(),['zero.png','flag.png']);assert.deepEqual(f.select.options.map(o=>o.textContent),['All (5)','Not started (1)','In progress (1)','Needs review (2)','Complete (1)']);
   assert.equal($('#photoFilterCount').textContent,'2/5 photos');assert.equal($('#photoFilterReset').hidden,false);assert.equal($('#photoFilterOutside').hidden,false);assert.equal(c.activeImageId,'fresh');assert.equal(c.selectedMarkerId,'keep-selection');assert.deepEqual(plain(c.view),view);
   assert.equal(JSON.stringify(c.P),before);assert.equal(c.history.length,0);assert.equal(c.future.length,1);assert.equal(f.saves(),0);
   f.set('complete');assert.deepEqual(f.names(),['done.png']);f.set('working');assert.deepEqual(f.names(),['manual.png']);f.set('undetected');assert.deepEqual(f.names(),['fresh.png']);assert.equal($('#photoFilterOutside').hidden,true);
@@ -64,7 +64,7 @@ test('review/completion edits and Undo/Redo update matches and counts without re
   c.undo();assert.deepEqual(f.names(),['zero.png','flag.png']);c.redo();assert.deepEqual(f.names(),['flag.png']);
   c.P.images.push(photo('new'));c.renderImages();assert.equal(f.select.value,'review');assert.equal($('#photoFilterCount').textContent,'1/6 photos');
   c.P.images=c.P.images.filter(im=>im.id!=='manual');c.renderImages();assert.equal(f.select.value,'review');assert.equal($('#photoFilterCount').textContent,'1/5 photos');
-  c.lang='ja';c.renderImages();assert.equal(f.select.value,'review');assert.deepEqual(f.select.options.map(o=>o.textContent),['すべて (5)','未検出 (2)','作業中 (0)','要確認 (1)','完了 (2)']);assert.equal($('#photoFilterCount').textContent,'1/5枚');
+  c.lang='ja';c.renderImages();assert.equal(f.select.value,'review');assert.deepEqual(f.select.options.map(o=>o.textContent),['すべて (5)','未着手 (2)','作業中 (0)','要確認 (1)','完了 (2)']);assert.equal($('#photoFilterCount').textContent,'1/5枚');
 });
 
 test('project replacement resets transient filtering even if image IDs are reused',()=>{
