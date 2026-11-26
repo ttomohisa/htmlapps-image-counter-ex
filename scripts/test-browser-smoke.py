@@ -37,6 +37,23 @@ def session(browser, path, label, *, width=1280, height=900, mobile=False):
     });""")
     page = context.new_page()
     page.on("pageerror", lambda error: errors.append(str(error)))
+    page.on("console", lambda msg: print(f"[{label}] console {msg.type}: {msg.text}", flush=True)
+            if msg.type in ("error", "warning") or msg.text.startswith("[worker-smoke]") else None)
+    context.add_init_script("""(() => {
+      // Observe existing worker messages, never change their contents or timing.
+      const OriginalWorker = window.Worker;
+      window.Worker = new Proxy(OriginalWorker, {
+        construct(target, args, newTarget) {
+          const worker = Reflect.construct(target, args, newTarget);
+          worker.addEventListener('message', e => {
+            if (e.data?.phase === 'error') console.error('[worker-smoke]', e.data.code, e.data.detail);
+            else if (e.data?.phase) console.log('[worker-smoke]', e.data.phase);
+          });
+          worker.addEventListener('error', e => console.error('[worker-smoke] error', e.message));
+          return worker;
+        }
+      });
+    })()""")
     page.set_default_timeout(30000)
     try:
         page.goto(path.resolve().as_uri(), wait_until="load", timeout=90000)
@@ -98,7 +115,11 @@ def desktop(browser, path, label):
         expect(page.locator("#autoSaveDetect")).to_be_enabled()
         page.locator("#autoSaveDetect").click()
         expect(page.locator("#autoDlg")).to_be_hidden()
-        expect(page.locator("#quickProgressText")).to_contain_text("Finished", timeout=180000)
+        expect(page.locator("#quickDismiss")).to_be_visible(timeout=180000)
+        status = page.locator("#quickProgressText").inner_text()
+        rows = page.locator("#quickResults").text_content()
+        print(f"[{label}] detection: {status} | {rows}", flush=True)
+        assert "Finished" in status, f"Detection failed: {status}; rows: {rows}"
         work = OUT / (label + "-work.html")
         project = export_project(page, work)
         assert len(project["images"]) == 2
