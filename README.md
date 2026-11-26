@@ -7,7 +7,7 @@ Detection starts at **Standard**. Try **Find more** for missed objects or **More
 
 [日本語版 README](README.ja.md)
 
-> **Embedded-model build — 2.0.0.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
+> **Embedded-model build — 2.0.1.** The single HTML includes the 6.44 MiB YOLOE-26n model. No separate model selection is needed. The user reported successful Android Chrome operation with 1.1.0-dev.3; the newer photo workspace, detection, review, photo-filtering, bulk-delete, example-editing and pinch workflows still need physical-device confirmation.
 
 
 A privacy-focused, single-HTML app for **counting objects in photos manually or with reviewed local detection candidates**. Place point or rectangle markers yourself, keep track of what has already been counted, flag uncertain items for review, and export the result without uploading your images to a server.
@@ -330,4 +330,9 @@ CSV text that resembles a formula is prefixed with an apostrophe in both editor 
 
 Example editing uses Add / Edit boxes / Pan image. Tap the zoom percentage to return to 100%. Finished detection details are available in the Detection panel.
 
-Download v2.0.0 from the [GitHub Release](https://github.com/ttomohisa/htmlapps-image-counter-ex/releases/tag/v2.0.0). See the [release checklist](docs/RELEASE_V2.md) for verified results and unverified physical-device checks.
+Download the latest published version from [GitHub Releases](https://github.com/ttomohisa/htmlapps-image-counter-ex/releases/latest). See the [v2.0.1 release checklist](docs/RELEASE_V2_0_1.md) for verification status and the [v2.0.0 record](docs/RELEASE_V2.md) for previous results.
+
+
+### Work-file safety (v2.0.1)
+
+The editor checks that every photo can be decoded before replacing an open project. Optional photo compression keeps the original when conversion fails or would increase the payload. Pending detection checks, including checks with no detected objects, are shown in the saved viewer. When the page is hidden, any pending autosave is started; closing the browser can still interrupt the write. Save important projects as HTML.

@@ -103,7 +103,7 @@ test('failed save work resets the action so a retry is possible',async()=>{
 
 
 test('work photo compression uses captured photo data and settings without polluting a different project cache',async()=>{
-  const f=fixture(),wait={};f.c.structuredClone=structuredClone;f.c.dataUrlBytes=()=>7;
+  const f=fixture(),wait={};f.c.structuredClone=structuredClone;f.c.dataUrlBytes=()=>7;f.c.embeddedRasterBytes=url=>url.startsWith('data:')?7:100;f.c.validateProject=()=>{};
   f.c.P.images[0].dataUrl='first';f.c.P.images[1].dataUrl='second';const input=f.c.P,qualities=[],decoded=[];
   f.c.imageCache.set('im1',{source:'wrong-cache'});
   f.c.loadImage=async data=>{decoded.push(data);if(data==='first')await new Promise(resolve=>wait.finish=resolve);return{source:data}};

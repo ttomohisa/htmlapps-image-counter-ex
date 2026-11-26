@@ -103,6 +103,11 @@ test('pending filtered navigation cannot commit after a modal, inference, inert 
 
 test('draft and viewer serialization retain every photo and omit the active view filter',async()=>{
   const f=fixture(),{c}=f;c.P.settings.draftCompression={enabled:false};c.P.settings.viewerCompression={enabled:false};f.set('review');
+  Object.assign(c.P,{app:'image-counter',schemaVersion:4});
+  Object.assign(c,{MAX_IMAGES:30,MAX_FILE_BYTES:35*1024*1024,MAX_PROJECT_BYTES:220*1024*1024,atob});
+  const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=';
+  c.P.images.forEach(im=>{im.dataUrl=png});
+  vm.runInContext(section('function validateProject(','function cloneLight('),c);
   vm.runInContext(section('async function makeDraft(','async function saveDraft(')+section('function safeJson(','function csvEsc(')+section('async function compressProjectForViewer(','async function saveViewer('),c);
   const draft=await c.makeDraft(),viewer=c.viewerHtml(await c.compressProjectForViewer(c.P)),exported=JSON.parse(viewer.match(/<script id="imageCounterProject"[^>]*>(.*?)<\/script>/s)[1]);
   for(const project of [draft,exported]){assert.deepEqual(plain(project.images).map(im=>im.id),['fresh','manual','zero','done','flag']);assert.equal('photoFilter' in project,false);assert.equal('photoFilter' in project.settings,false);assert.equal(project.images[2].detectionChecks[0].reviewed,false)}

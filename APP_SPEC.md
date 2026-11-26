@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** Image Counter EX / 画像カウンター EX
-- **Version:** 2.0.0
+- **Version:** 2.0.1
 - **Repository:** `ttomohisa/htmlapps-image-counter-ex`
 - **Distribution:** `dist/index.html`, `dist/index.self-extract.html`, and the tracked readable alias `image-counter.html`
 - **Purpose:** Count objects in photos manually or with explicitly reviewed local detection candidates, without uploads.
@@ -383,3 +383,12 @@ Compatibility exception: the former native resize handler could create an exact 
 ### Editor and report polish (dev.22)
 
 The example editor groups Add, Edit boxes and Pan image as a mutually exclusive segmented tool choice. The joined minus/percentage/plus control resets to fit (100%) on percentage activation, with busy/owner guards. View changes do not change example geometry. Finished detection reports move into Detection; active progress and Stop remain outside the inert workspace. Project display/storage disclosures share padding and SVG chevrons.
+
+
+### v2.0.1 reliability acceptance criteria
+
+- Validate the complete serialized project against the import rules; preserve valid originals when optional compression fails or grows the payload. Validate all photo decodes before replacing an existing project or draft.
+- Start a pending debounced autosave on page hide without promising completion during shutdown.
+- Keep the original opposite corner fixed across rectangle handle crossings; permit only one pending highlight-animation redraw callback. Compute category numbers in a single pass over sorted markers and release non-current decoded-image references.
+- Make new manual markers visible, reopen photos affected by type deletion, and include keyboard-driven visibility/range edits in Undo and autosave.
+- Expose pending detection review in the generated viewer independently of the count of flagged markers; retain existing CSV columns and project schema.
