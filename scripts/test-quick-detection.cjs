@@ -262,5 +262,5 @@ test('cancelling during reference bitmap creation closes both bitmaps and never 
 test('cancelling an active headless worker ignores late results and cleans resources',async()=>{
   const {c,run,images,workers,revoked}=runner(),pending=c.quickInferImage(run,images[0]);await new Promise(resolve=>setImmediate(resolve));
   const w=workers[0];run.cancelInference();await assert.rejects(pending,/autoCancelled/);reply(w,{phase:'result',candidates:[box()]});
-  assert.equal(w.terminated,1);assert.equal(revoked.length,2);assert.equal(images[0].markers.length,0);
+  assert.equal(w.terminated,1);assert.deepEqual(revoked,[w.url]);assert.equal(images[0].markers.length,0);
 });
