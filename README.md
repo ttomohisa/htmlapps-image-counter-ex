@@ -1,6 +1,6 @@
 # Image Counter EX
 
-Open a photo and tap each object to leave a numbered marker. Choose **Try sample** to practice counting round parts.
+Open a photo and tap each object to leave a numbered marker. Choose **Try sample** on the start screen to practice counting brass nuts in a photo.
 
 [![GitHub Pages](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml)
 [![Single HTML](https://img.shields.io/badge/distribution-single%20HTML-0ea5e9)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)

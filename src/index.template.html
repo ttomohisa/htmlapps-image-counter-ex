@@ -137,17 +137,21 @@ body:has(#startScreen:not([hidden]))>footer{width:min(760px,100%);padding-inline
 .main:has(#startScreen:not([hidden])){padding-block:18px}
 .file-start{padding:16px 18px 6px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .file-start h2{margin:0 0 12px;font-size:1.125rem;line-height:1.4}
-.file-actions,.file-shortcuts{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.file-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .file-actions .btn{min-height:44px;font-size:.94rem;padding:8px 14px}
 .file-drop-hint{margin:10px 0 0;color:var(--muted);font-size:.82rem}
-.file-shortcuts{margin-top:14px;padding:4px 0;border-top:1px solid var(--line)}
-.file-shortcuts .btn{min-height:44px;padding:6px 3px;border:0;background:transparent;color:var(--accent);box-shadow:none;font-size:.85rem}
+.file-shortcuts{margin-top:4px}
+.file-shortcuts .btn{min-height:44px;padding:6px 2px;border:0;background:transparent;color:var(--accent);box-shadow:none;font-size:.85rem}
 .file-shortcuts .btn:hover{text-decoration:underline}
+.sample-row{margin-top:4px;border-top:1px solid var(--line);padding-top:4px}
+.sample-link{display:flex;width:100%;align-items:center;gap:12px;padding:6px 2px;border:0;border-radius:6px;background:transparent;text-align:start;font-size:.875rem;font-weight:650;cursor:pointer}
+.sample-link:hover{background:var(--surface2)}
+.sample-link img{flex:none;width:66px;height:44px;border-radius:4px;object-fit:contain}
+.sample-link svg{width:16px;height:16px;margin-inline-start:auto;margin-inline-end:6px;color:var(--muted)}
 .restore:not([hidden]){margin-bottom:12px}
 @media(max-width:520px){
   .file-start{padding:14px 12px 4px}
   .file-actions .btn{flex:1 1 110px}
-  .file-shortcuts{column-gap:14px}
 }
 @media(hover:none) and (pointer:coarse){.file-drop-hint{display:none}}
 
@@ -244,7 +248,13 @@ body:has(#startScreen:not([hidden]))>footer{width:min(760px,100%);padding-inline
   <p class="file-drop-hint" data-i18n="fileDropHint">写真をドラッグ＆ドロップ、または貼り付けても開けます。</p>
   <div class="file-shortcuts">
     <button id="importViewerStart" class="btn small" type="button"><svg viewBox="0 0 24 24" fill="none"><path d="M6 3h8l4 4v14H6V3Z" stroke="currentColor" stroke-width="1.7"/><path d="M14 3v5h5M9 13h6M9 17h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span data-i18n="openSavedHtml">保存した作業HTMLを開く</span></button>
-    <button id="sampleBtn" class="btn small" type="button" data-i18n="sample">サンプルで試す</button>
+  </div>
+  <div class="sample-row">
+    <button id="sampleBtn" class="sample-link" type="button">
+      <img id="practicePhoto" src="__SAMPLE_PHOTO_DATA_URL__" width="960" height="640" alt="">
+      <span data-i18n="sample">サンプルで試す</span>
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 5 7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
   </div>
 </section>
 <section id="quickProgress" class="quick-progress" hidden tabindex="-1" aria-labelledby="quickProgressTitle"><div class="quick-progress-head"><strong id="quickProgressTitle"></strong><button id="quickCancel" class="btn small" type="button" data-i18n="quickStop">停止</button><button id="quickDismiss" class="btn small" type="button" data-i18n="close" hidden>閉じる</button></div><p id="quickProgressText" role="status" aria-live="polite"></p><progress id="quickProgressBar" max="1" value="0" data-i18n-aria-label="quickProgressLabel" aria-label="検出の進捗"></progress><details><summary data-i18n="quickResults">写真ごとの結果</summary><ol id="quickResults"></ol></details></section>
@@ -318,7 +328,7 @@ body:has(#startScreen:not([hidden]))>footer{width:min(760px,100%);padding-inline
 <section class="dlg-section">
 <h3 data-i18n="helpQuickTitle">まずは3ステップ</h3>
 <ol class="help-list">
-<li data-i18n="helpQuickPhoto">「写真を選ぶ」か「カメラで撮る」で写真を開きます。数えたいものをタップすると1個数えます。</li>
+<li data-i18n="helpQuickPhoto">写真を開き、数えたいものをタップします。「サンプルで試す」ではナットの写真で練習できます。</li>
 <li data-i18n="helpQuickCount">「枠で囲む」は対象をドラッグして数えます。自動で探すときは「自動検出の見本を登録」で対象を囲み、「保存して検出」を押します。</li>
 <li data-i18n="helpQuickFinish">結果を確認・修正し、「確認完了して次へ」で進みます。「保存」で作業をHTMLに保存できます。</li>
 </ol>
@@ -400,8 +410,8 @@ Object.assign(I18N.en,{photoFilterLabel:"Filter photos",photoFilterAll:'All',pho
 Object.assign(I18N.ja,{quickFiltered:'一覧の{count}枚を検出',mobileReviewShow:'設定・写真一覧を表示',mobileReviewHide:'写真の確認に戻る',mobileReviewPrev:'前の写真',mobileReviewNext:'次の写真',mobileReviewComplete:'確認して次へ',mobileReviewHelp:'スマホの確認モードでは設定を畳み、下部に前後の写真・確認完了・保存を表示します。「設定・写真一覧を表示」で検出や絞り込み、やり直す操作を使えます。',quickFilteredHelp:'「一覧の○枚を検出」は実行時点で写真一覧に表示される写真だけが対象です。検出で状態が変わっても、開始時の対象を最後まで処理します。'});
 Object.assign(I18N.en,{quickFiltered:'Detect list ({count})',mobileReviewShow:'Show settings / photos',mobileReviewHide:'Return to photo review',mobileReviewPrev:'Previous',mobileReviewNext:'Next',mobileReviewComplete:'Review & next',mobileReviewHelp:'On phones, Review folds settings and keeps photo navigation, review completion and Save in the bottom bar. Show settings / photos reveals detection, filtering and Redo.',quickFilteredHelp:'Detect list processes the photos matching the list filter at the time you start. Status changes during detection do not change that captured list.'});
 // HELP:CONCISE:BEGIN
-Object.assign(I18N.ja,{"helpQuickTitle":"まずは3ステップ","helpQuickPhoto":"「写真を選ぶ」か「カメラで撮る」で写真を開きます。数えたいものをタップすると1個数えます。","helpQuickCount":"「点」はタップ、「矩形」はドラッグ。AIは「見本設定」で対象を囲み、「この見本を固定」を押すとメイン画面から検出できます。","helpQuickFinish":"結果を確認・修正し、「確認完了して次へ」で進みます。「保存・書き出し」（スマホは「保存」）で作業をHTMLに保存できます。","helpNotesTitle":"大切な注意事項","helpAiNote":"AIには誤検出・見落としがあります。0個でも必ず写真を確認し、手動で直してください。","helpStorageNote":"自動保存は、このブラウザー・このページだけです。データ削除や端末変更に備え、大切な作業はHTMLに保存してください。","helpPrivacyNote":"写真・作業データは端末内で処理し、送信しません。ダウンロード済みHTMLはオフラインで使えます。","helpLoadingNote":"モデルなどを含むHTMLのため、初回の読み込みや検出の準備には時間がかかる場合があります。","helpMoreTitle":"便利な操作・保存の補足","helpReviewDetails":"「確認」で選んだマーカーは「編集」で位置や大きさを直せます。「複数」「範囲」で選んで一括削除でき、Undoで戻せます。","quickHelp":"見本を「この見本を固定」で登録すると、同じ種類の別写真にも使えます。再検出の「未確認の自動結果を置換」は未修正・未確認の自動結果だけが対象で、手動・確認済み・旧版の結果は残ります。停止しても処理済みの結果は残り、実行全体を1回のUndoで戻せます。","photoFilterHelp":"「写真一覧」は表示と前後移動を絞り込みます。「一覧の○枚を検出」は開始時の一覧が対象。集計・書き出し・「全写真を検出」「確認完了して次へ」は全写真が対象です。","typeKeyboardNote":"PCでは1〜9で種類、←/→で写真を切り替えます。「種類」の名前はTab / Shift+Tabで確定して移動できます。","mobileReviewHelp":"「写真」「検出」「作業」で一覧・設定・集計を切り替えます。スマホでは「写真に戻る」でカウント画面に戻れます。","helpSaveDetails":"保存したHTMLを直接開くと閲覧専用です。「作業を開く」で編集を再開できます。集計ZIPはCSVと、必要に応じてマーカー付きJPEGを保存します。SVGなどは写真の追加時に端末内でPNGへ変換します。"});
-Object.assign(I18N.en,{"helpQuickTitle":"Start in 3 steps","helpQuickPhoto":"Choose photos or use the camera, then tap each object to count it.","helpQuickCount":"Tap in Point mode or drag in Rectangle mode. For AI, open Set up examples, outline an object, then choose Pin these examples to enable detection from the main screen.","helpQuickFinish":"Check and correct the results, then choose Review complete & next. Use Save / export (Save on phones) to save your work as HTML.","helpNotesTitle":"Important notes","helpAiNote":"AI can miss objects or detect the wrong ones. Check every photo, even with zero results, and correct it manually.","helpStorageNote":"Autosave stays in this browser on this page. Save important work as HTML before clearing browser data or changing devices.","helpPrivacyNote":"Photos and work data are processed on your device and are not uploaded. A downloaded HTML works offline.","helpLoadingNote":"The HTML includes the model and runtime, so the first load and detection preparation can take time.","helpMoreTitle":"More controls and saving tips","helpReviewDetails":"In Review, select a marker and choose Edit to change its position or size. Use Multiple or Range to delete a selection together; Undo restores it.","quickHelp":"Pin these examples reuses them for other photos of the same type. Replace unreviewed auto results changes only untouched, unreviewed automatic results; manual, reviewed and older-version results stay. Stop keeps processed results. One Undo reverses the whole run.","photoFilterHelp":"Photo list filters thumbnails and previous/next navigation. Detect list uses the matches when you start. Totals, exports, Detect all photos and Review complete & next still use all photos.","typeKeyboardNote":"On desktop, use 1–9 for types and ←/→ for photos. In Types, Tab / Shift+Tab commits a name and moves to the next or previous control.","mobileReviewHelp":"Use Photos, Detection and Project to switch the list, settings and totals. On phones, Return to photo returns to counting.","helpSaveDetails":"Opening a saved HTML directly shows a read-only viewer. Use Open work to resume editing. Results ZIP saves CSV files with optional annotated JPEGs. SVG and similar formats are converted locally to PNG when added as photos."});
+Object.assign(I18N.ja,{"helpQuickTitle":"まずは3ステップ","helpQuickPhoto":"写真を開き、数えたいものをタップします。「サンプルで試す」ではナットの写真で練習できます。","helpQuickCount":"「点」はタップ、「矩形」はドラッグ。AIは「見本設定」で対象を囲み、「この見本を固定」を押すとメイン画面から検出できます。","helpQuickFinish":"結果を確認・修正し、「確認完了して次へ」で進みます。「保存・書き出し」（スマホは「保存」）で作業をHTMLに保存できます。","helpNotesTitle":"大切な注意事項","helpAiNote":"AIには誤検出・見落としがあります。0個でも必ず写真を確認し、手動で直してください。","helpStorageNote":"自動保存は、このブラウザー・このページだけです。データ削除や端末変更に備え、大切な作業はHTMLに保存してください。","helpPrivacyNote":"写真・作業データは端末内で処理し、送信しません。ダウンロード済みHTMLはオフラインで使えます。","helpLoadingNote":"モデルなどを含むHTMLのため、初回の読み込みや検出の準備には時間がかかる場合があります。","helpMoreTitle":"便利な操作・保存の補足","helpReviewDetails":"「確認」で選んだマーカーは「編集」で位置や大きさを直せます。「複数」「範囲」で選んで一括削除でき、Undoで戻せます。","quickHelp":"見本を「この見本を固定」で登録すると、同じ種類の別写真にも使えます。再検出の「未確認の自動結果を置換」は未修正・未確認の自動結果だけが対象で、手動・確認済み・旧版の結果は残ります。停止しても処理済みの結果は残り、実行全体を1回のUndoで戻せます。","photoFilterHelp":"「写真一覧」は表示と前後移動を絞り込みます。「一覧の○枚を検出」は開始時の一覧が対象。集計・書き出し・「全写真を検出」「確認完了して次へ」は全写真が対象です。","typeKeyboardNote":"PCでは1〜9で種類、←/→で写真を切り替えます。「種類」の名前はTab / Shift+Tabで確定して移動できます。","mobileReviewHelp":"「写真」「検出」「作業」で一覧・設定・集計を切り替えます。スマホでは「写真に戻る」でカウント画面に戻れます。","helpSaveDetails":"保存したHTMLを直接開くと閲覧専用です。「作業を開く」で編集を再開できます。集計ZIPはCSVと、必要に応じてマーカー付きJPEGを保存します。SVGなどは写真の追加時に端末内でPNGへ変換します。"});
+Object.assign(I18N.en,{"helpQuickTitle":"Start in 3 steps","helpQuickPhoto":"Open a photo and tap each object to count it. Choose Try sample to practice with a photo of brass nuts.","helpQuickCount":"Tap in Point mode or drag in Rectangle mode. For AI, open Set up examples, outline an object, then choose Pin these examples to enable detection from the main screen.","helpQuickFinish":"Check and correct the results, then choose Review complete & next. Use Save / export (Save on phones) to save your work as HTML.","helpNotesTitle":"Important notes","helpAiNote":"AI can miss objects or detect the wrong ones. Check every photo, even with zero results, and correct it manually.","helpStorageNote":"Autosave stays in this browser on this page. Save important work as HTML before clearing browser data or changing devices.","helpPrivacyNote":"Photos and work data are processed on your device and are not uploaded. A downloaded HTML works offline.","helpLoadingNote":"The HTML includes the model and runtime, so the first load and detection preparation can take time.","helpMoreTitle":"More controls and saving tips","helpReviewDetails":"In Review, select a marker and choose Edit to change its position or size. Use Multiple or Range to delete a selection together; Undo restores it.","quickHelp":"Pin these examples reuses them for other photos of the same type. Replace unreviewed auto results changes only untouched, unreviewed automatic results; manual, reviewed and older-version results stay. Stop keeps processed results. One Undo reverses the whole run.","photoFilterHelp":"Photo list filters thumbnails and previous/next navigation. Detect list uses the matches when you start. Totals, exports, Detect all photos and Review complete & next still use all photos.","typeKeyboardNote":"On desktop, use 1–9 for types and ←/→ for photos. In Types, Tab / Shift+Tab commits a name and moves to the next or previous control.","mobileReviewHelp":"Use Photos, Detection and Project to switch the list, settings and totals. On phones, Return to photo returns to counting.","helpSaveDetails":"Opening a saved HTML directly shows a read-only viewer. Use Open work to resume editing. Results ZIP saves CSV files with optional annotated JPEGs. SVG and similar formats are converted locally to PNG when added as photos."});
 // HELP:CONCISE:END
 // DETECTION:GUIDED:BEGIN
 Object.assign(I18N.ja,{"autoTitle":"見本を編集","autoPreview":"見本の枠を編集","autoDeleteExample":"選んだ見本を削除","autoSelectHint":"枠の中をドラッグで移動、四隅でサイズを変更できます。","autoSaveClose":"保存して閉じる","autoSaveDetect":"保存して検出","autoReplaceExamples":"この写真で作り直す","autoEditorTarget":"「{type}」の見本 · {source}","autoInstructions":"数えたいものを1つずつ、まずは1〜3個囲んでください。同じ種類の別写真にも使えます。","autoEditInstructions":"枠を選ぶと移動・サイズ変更・削除ができます。「追加」で見本を増やせます。","autoEditorReady":"","autoModelError":"検出に失敗しました。再試行し、続く場合は作業を保存してブラウザーを開き直してください。","autoInvalidOutput":"検出結果を読み取れませんでした。もう一度検出してください。","autoInvalidModel":"内蔵モデルを読み込めませんでした。作業を保存してページを開き直してください。","autoPinned":"見本を保存しました","autoThreshold":"検出の感度","autoExplore":"多めに拾う","autoBroad":"標準","autoBalanced":"絞り込む","quickSetup":"自動検出の見本を登録","quickAddExamples":"見本を登録","quickEditExamples":"見本を編集","quickExamplesTitle":"見本","quickReference":"「{type}」· 見本 {count} 個を登録済み","quickNeedReference":"「{type}」の見本を登録すると、同じ種類の写真を続けて検出できます。","quickReviewGuide":"結果は写真上で確認・修正し、「確認完了して次へ」。","helpQuickCount":"「枠で囲む」は対象をドラッグして数えます。自動で探すときは「自動検出の見本を登録」で対象を囲み、「保存して検出」を押します。","quickHelp":"登録した見本は同じ種類の別写真にも使えます。「見本を編集」で修正し、保存せず閉じると変更を取り消します。検出結果は要確認で追加され、0個でも写真を確認してください。再検出の「未確認の自動結果を置換」は未修正・未確認の自動結果だけを置き換えます。停止しても処理済みの結果は残り、実行全体を1回のUndoで戻せます。"});
@@ -1012,27 +1022,28 @@ function reviewCameraFile(file,{capturedAt=null,capturedAtSource=''}={}){cameraR
 async function captureCamera(){const v=$('#cameraVideo');if(!v.videoWidth)return;const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0);const b=await new Promise(ok=>c.toBlob(ok,'image/jpeg',.94));reviewCameraFile(new File([b],`camera-${new Date().toISOString().replace(/[:.]/g,'-')}.jpg`,{type:'image/jpeg',lastModified:Date.now()}),{capturedAt:Date.now(),capturedAtSource:'camera'})}
 async function acceptCamera(again=false){if(!cameraReviewFile)return;const f=cameraReviewFile,cap=cameraReviewCapturedAt,capSource=cameraReviewCapturedSource;cameraReviewFile=null;cameraReviewCapturedAt=null;cameraReviewCapturedSource='';await addFiles([f],{newProjectIfEmpty:!P,capturedAt:cap,capturedAtSource:capSource});Toast.show(t('captured'));if(again){await startCamera()}else{$('#cameraDlg').close();stopCamera()}}
 async function sampleProject(){
+  const photo=$('#practicePhoto');
+  const second=document.createElement('canvas');
+  second.width=1200;second.height=760;
+  const context=second.getContext('2d');
+  context.fillStyle='#eef2ef';
+  context.fillRect(0,0,second.width,second.height);
+  for(let i=0;i<42;i++){
+    context.beginPath();
+    context.arc(72+(i%7)*164+(i%2)*7,135+Math.floor(i/7)*92,27,0,Math.PI*2);
+    context.fillStyle=i%2?'#8656a8':'#16624f';
+    context.fill();
+  }
   const capturedAt=Date.now();
-  function sampleImage(name,rows,colors,background){
-    const sheet=document.createElement('canvas');
-    sheet.width=1200;sheet.height=760;
-    const context=sheet.getContext('2d');
-    context.fillStyle=background;
-    context.fillRect(0,0,sheet.width,sheet.height);
-    for(let i=0;i<rows*7;i++){
-      context.beginPath();
-      context.arc(72+(i%7)*164+(i%2)*7,135+Math.floor(i/7)*92,27,0,Math.PI*2);
-      context.fillStyle=colors[i%colors.length];
-      context.fill();
-    }
-    const dataUrl=sheet.toDataURL('image/jpeg',.92),bytes=dataUrlBytes(dataUrl);
-    return {id:id(),name,mime:'image/jpeg',sourceMime:'image/jpeg',dataUrl,width:sheet.width,height:sheet.height,byteSize:bytes,sourceByteSize:bytes,
+  function sampleImage(name,dataUrl,width,height){
+    const bytes=dataUrlBytes(dataUrl);
+    return {id:id(),name,mime:'image/jpeg',sourceMime:'image/jpeg',dataUrl,width,height,byteSize:bytes,sourceByteSize:bytes,
       note:'',completed:false,createdAt:capturedAt,capturedAt,capturedAtSource:'sample',adjustments:defaultAdjust(),markers:[]};
   }
   P=newProject();
   P.images=[
-    sampleImage('sample-1.jpg',5,['#d15c52','#4f78c8','#d39c2f'],'#f7f3ea'),
-    sampleImage('sample-2.jpg',6,['#16624f','#8656a8'],'#eef2ef')
+    sampleImage('sample-1.jpg',photo.getAttribute('src'),Number(photo.getAttribute('width')),Number(photo.getAttribute('height'))),
+    sampleImage('sample-2.jpg',second.toDataURL('image/jpeg',.92),second.width,second.height)
   ];
   activeImageId=P.images[0].id;activeCategoryId=P.categories[0].id;
   history=[];future=[];imageCache.clear();showWorkspace();

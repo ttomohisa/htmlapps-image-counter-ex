@@ -161,7 +161,9 @@ test('Help allocates the available height between a fixed header and scrollable 
 test('start screen offers direct file actions and an optional sample in both languages', () => {
   assert.match(css, /@media\(max-width:760px\)\{#helpDlg \.build,body>footer\{display:none\}\}/);
   const start = source.slice(source.indexOf('<section id="startScreen"'), source.indexOf('<section id="quickProgress"'));
-  assert.doesNotMatch(start, /<img\b|<figure\b|<canvas\b/);
+  const sampleButton = start.match(/<button id="sampleBtn"[^>]*>([\s\S]*?)<\/button>/)[1];
+  assert.equal((start.match(/<img\b/g) || []).length, 1);
+  assert.match(sampleButton, /<img id="practicePhoto"[^>]*alt=""/);
   const actions = [...start.matchAll(/<button id="([^"]+)"/g)].map(match => match[1]);
   assert.deepEqual(actions, ['chooseStart', 'cameraStart', 'importViewerStart', 'sampleBtn']);
   const translations = vm.runInNewContext(source.slice(source.indexOf('const I18N='), source.indexOf('\nlet lang=')) + '\nI18N;');

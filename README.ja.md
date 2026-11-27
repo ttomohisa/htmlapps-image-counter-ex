@@ -1,7 +1,7 @@
 # 画像カウンター EX (Image Counter EX)
 
 
-写真を開き、数えたいものを1つずつタップすると、写真に番号が残ります。**サンプルで試す** から丸い部品を数える練習もできます。
+写真を開き、数えたいものを1つずつタップすると、写真に番号が残ります。開始画面の **サンプルで試す** を押すと、ナットの写真で練習できます。
 
 [![GitHub Pages](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml)
 [![Single HTML](https://img.shields.io/badge/distribution-single%20HTML-0ea5e9)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
