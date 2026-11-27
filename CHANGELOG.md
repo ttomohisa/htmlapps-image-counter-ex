@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Start with your own photos or try the pictured brass-nut sample. Each workspace tool now explains its gesture beside the photo, with the running photo count in the header.
+- Open photos, use the camera or resume saved work from a compact file panel. Each workspace tool now explains its gesture beside the photo, with the running photo count in the header.
 - Keep manual counting tools above the photo and detection, review completion and saving below it. Photos groups batch actions into a disclosure, and Detection groups sensitivity, region and rerun controls under Detection settings.
 
 ## 2.0.1

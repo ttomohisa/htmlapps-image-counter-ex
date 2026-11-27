@@ -158,13 +158,14 @@ test('Help allocates the available height between a fixed header and scrollable 
   assert.match(body, /flex:1 1 auto/);
 });
 
-test('mobile help and footer stay compact; photo input comes before the sample on narrow screens', () => {
+test('start screen offers direct file actions and an optional sample in both languages', () => {
   assert.match(css, /@media\(max-width:760px\)\{#helpDlg \.build,body>footer\{display:none\}\}/);
-  const narrow = css.slice(css.indexOf('@media(max-width:720px){', css.indexOf('/* The start screen')));
-  assert.match(narrow, /\.welcome\{grid-template-columns:1fr/);
-  assert.match(narrow, /\.welcome-actions \.btn\{min-height:46px/);
-  assert.match(narrow, /\.welcome-copy \.welcome-drop\{display:none\}/);
   const start = source.slice(source.indexOf('<section id="startScreen"'), source.indexOf('<section id="quickProgress"'));
-  assert.ok(start.indexOf('id="chooseStart"') < start.indexOf('id="sampleBtn"'));
-  assert.match(start, /id="practicePhoto"[^>]*data-i18n-alt="practiceAlt"/);
+  assert.doesNotMatch(start, /<img\b|<figure\b|<canvas\b/);
+  const actions = [...start.matchAll(/<button id="([^"]+)"/g)].map(match => match[1]);
+  assert.deepEqual(actions, ['chooseStart', 'cameraStart', 'importViewerStart', 'sampleBtn']);
+  const translations = vm.runInNewContext(source.slice(source.indexOf('const I18N='), source.indexOf('\nlet lang=')) + '\nI18N;');
+  for (const [,key] of start.matchAll(/data-i18n="([^"]+)"/g)) {
+    assert.ok(translations.en[key] && translations.ja[key], key);
+  }
 });

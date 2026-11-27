@@ -104,12 +104,12 @@ def desktop(browser, path, label):
         expect(page.locator("#summaryTotal")).to_have_text("0")
         page.locator("#redoBtn").click()
         expect(page.locator("#summaryTotal")).to_have_text("1")
-        # Reference uses normalized bounds around the upper-left brass nut of the
+        # Reference uses normalized bounds around the first round part of the
         # built-in sample; success does not require a particular detection count.
         page.locator("#workspaceDetect").click()
         expect(page.locator("#autoDlg")).to_be_visible()
         page.locator("#autoBoundsDetails summary").click()
-        for field, value in (("Left", "12"), ("Top", "7"), ("Right", "30"), ("Bottom", "32")):
+        for field, value in (("Left", "3.5"), ("Top", "14"), ("Right", "8.5"), ("Bottom", "22")):
             page.locator("#auto" + field).fill(value)
         page.locator("#autoAddBounds").click()
         expect(page.locator("#autoSaveDetect")).to_be_enabled()

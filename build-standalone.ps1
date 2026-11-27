@@ -316,10 +316,6 @@ $replacements = [ordered]@{
   "__BUILD_MANIFEST_JSON__" = ConvertTo-SafeJson $manifest 40
   "__EMBEDDED_ASSET_BUNDLE_JSON__" = $assetBundleJson
 }
-if ($template.Contains("__SAMPLE_PHOTO_DATA_URL__")) {
-  $practiceBytes = [IO.File]::ReadAllBytes((Join-Path $Root "assets\practice-nuts.jpg"))
-  $replacements["__SAMPLE_PHOTO_DATA_URL__"] = "data:image/jpeg;base64," + [Convert]::ToBase64String($practiceBytes)
-}
 
 foreach ($entry in $replacements.GetEnumerator()) {
   $count = ([regex]::Matches($template, [regex]::Escape($entry.Key))).Count

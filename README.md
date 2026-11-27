@@ -1,6 +1,6 @@
 # Image Counter EX
 
-Open a photo and tap each object to leave a numbered marker. Choose **Try this photo** to practice on the brass nuts pictured on the start screen.
+Open a photo and tap each object to leave a numbered marker. Choose **Try sample** to practice counting round parts.
 
 [![GitHub Pages](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/ttomohisa/htmlapps-image-counter-ex/actions/workflows/deploy-pages.yml)
 [![Single HTML](https://img.shields.io/badge/distribution-single%20HTML-0ea5e9)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
@@ -27,6 +27,8 @@ GitHub Pages delivers the initial HTML. After it loads, image decoding, counting
 The initial HTML includes the model and detection runtimes, so opening it can take time on a slower connection or device. A startup notice remains until the app is ready. The self-extract variant shows **Loading application file**, **Unpacking locally**, then **Starting**. Detection assets are decoded when you run Detect; they are already included in the initial file. These notices explain the wait; they do not promise faster loading.
 
 [![Image Counter screenshot](assets/screenshot-en.png)](https://ttomohisa.github.io/htmlapps-image-counter-ex/)
+
+The screenshots use a crop of Satthepbienhoa’s steel pipe photograph with counting markers added. [Original photo](https://commons.wikimedia.org/wiki/File:Seamless_Steel_Pipes.jpg) · [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
 Undo / Redo results also auto-save. Resetting image corrections returns the image to in-progress. During rapid viewer navigation, images and counts switch together; a decoding failure keeps the previous image and lets you retry or select another.
 
@@ -123,7 +125,7 @@ The photo header's **Photos & tools** button restores the panel after you close 
 8. Check the photo, then choose **Review complete & next**, or use the status filter in **Photos** to work through matching photos with Previous / Next or arrow keys.
 9. Open **Save** (in the bottom bar on mobile), enter a filename, and choose **Save work as HTML** or save a results ZIP. Clear **Include annotated JPEGs** to export only the two CSV files.
 
-The top-right EN / JA and Help controls remain available on narrow screens. **How to use & notes** starts with three steps and four short notes about AI review, saving, privacy and loading time. Optional control and saving tips are collapsed. License, source-code and build information are preserved. Help keeps its heading visible while the contents scroll. At phone widths, the start screen places photo and camera actions above the practice image; Build info and the page footer are hidden as before. Build info remains available on wider screens.
+The top-right EN / JA and Help controls remain available on narrow screens. **How to use & notes** starts with three steps and four short notes about AI review, saving, privacy and loading time. Optional control and saving tips are collapsed. License, source-code and build information are preserved. Help keeps its heading visible while the contents scroll. At phone widths, the start screen opens with photo and camera actions; Build info and the page footer are hidden as before. Build info remains available on wider screens.
 
 ### Keyboard shortcuts
 
