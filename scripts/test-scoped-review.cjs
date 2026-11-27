@@ -108,7 +108,7 @@ test('mobile disclosure never accepts actions during a modal or running detectio
 });
 
 test('resize repairs a newly hidden settings focus but preserves visible controls and modal ownership',()=>{
-  for(const boundary of ['hidden','visible','modal']){const{c,$,events}=fixture();c.mode='review';c.renderMobileReview();const opener=$('#autoOpen');opener.hidden=boundary!=='visible';c.document.activeElement=opener;if(boundary==='modal')c.document.querySelector=()=>({});events.resize();assert.equal(c.document.activeElement,boundary==='hidden'?$('#mobileReviewToggle'):opener)}
+  for(const boundary of ['hidden','visible','modal']){const{c,$,events}=fixture();c.mode='review';c.renderMobileReview();const setting=$('#autoThreshold');setting.hidden=boundary!=='visible';c.document.activeElement=setting;if(boundary==='modal')c.document.querySelector=()=>({});events.resize();assert.equal(c.document.activeElement,boundary==='hidden'?$('#mobileReviewToggle'):setting)}
   const{c,$,events}=fixture();c.mode='review';c.renderMobileReview();c.document.activeElement=$('#mobileReviewToggle');c.matchMedia=()=>({matches:false});events.resize();assert.equal(c.document.activeElement,$('#mobileReviewToggle'));
 });
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Open photos, use the camera or resume saved work from a compact file panel. Each workspace tool now explains its gesture beside the photo, with the running photo count in the header.
+- A small thumbnail at the bottom of the file panel opens the brass-nut photo for counting practice.
+- Keep manual counting tools above the photo and detection, review completion and saving below it. Photos groups batch actions into a disclosure, and Detection groups sensitivity, region and rerun controls under Detection settings.
+
 ## 2.0.1
 
 - Validate saved work and drafts; retain originals when optional compression fails or grows the payload; decode every imported photo before replacing work.
